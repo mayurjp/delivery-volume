@@ -143,6 +143,10 @@ describe('history lines and narrative', () => {
     expect(line.startsWith('Historically: 60 days')).toBe(true);
     const thin = perf.map((r) => ({ ...r, n: 5 }));
     expect(historyLine(thin, 'list', 'strongA', '6M')).toContain('too few cases (n 5)');
+    // many overlapping cases from few month-ends (the deals indicator in 2026) are hidden too
+    const fewDates = perf.map((r) => ({ ...r, n: 500, dates: 3 }));
+    expect(historyLine(fewDates, 'list', 'strongA', '6M')).toContain('too few dates (3 month-ends)');
+    expect(historyLine(fewDates, 'list', 'strongA', '6M')).not.toContain('median excess');
   });
   it('writes 3 to 5 sentences whose numbers come from the window record', () => {
     const e = entries.find((x) => x.w['6M'] && x.w['6M'].spikeDays !== null && x.w['6M'].consA !== null)!;
@@ -158,5 +162,53 @@ describe('history lines and narrative', () => {
     const m = sectorMedian(entries, bySym, sec, '6M')!;
     expect(m.n).toBe(entries.filter((e) => bySym.get(e.sym)!.sector === sec && e.w['6M']).length);
     expect(m.shareA + m.shareD).toBeLessThanOrEqual(100);
+  });
+});
+
+// ---- named deals in the trail views (Phase 4): the sector flows and the "via deals" insight ----------------------------
+
+describe('named deals in the trail views', () => {
+  const win = '3M' as const;
+  const ctx = { win, universeLabel: 'Nifty 500', sectorLabel: null, perf, minN: 30 };
+
+  it('each sector row sums the window deal flows of its own stocks, and nothing else', () => {
+    const rot = sectorRotation(entries, bySym, win);
+    expect(rot.length).toBeGreaterThan(0);
+    for (const r of rot) {
+      const mine = entries.filter((e) => bySym.get(e.sym)?.sector === r.sector && e.w[win]);
+      const fii = mine.reduce((t, e) => t + (e.w[win]!.dealsFii ?? 0), 0);
+      const dii = mine.reduce((t, e) => t + (e.w[win]!.dealsDii ?? 0), 0);
+      expect(r.fiiDeals).toBeCloseTo(Math.round(fii * 100) / 100, 1);
+      expect(r.diiDeals).toBeCloseTo(Math.round(dii * 100) / 100, 1);
+    }
+  });
+
+  it('the via-deals insight quotes exactly the sector numbers it is built from', () => {
+    const rot = sectorRotation(entries, bySym, win);
+    // the insight's rule: among sectors with FII net below zero and DII net above zero, the most negative FII flow
+    const want = rot
+      .filter((r) => r.fiiDeals !== null && r.diiDeals !== null && r.fiiDeals < 0 && r.diiDeals > 0)
+      .sort((a, b) => a.fiiDeals! - b.fiiDeals!)[0];
+    const ins = buildInsights(entries, bySym, ctx).find((i) => i.id === 'dealsSector');
+    if (!want) {
+      expect(ins).toBeUndefined();
+      return;
+    }
+    expect(ins).toBeDefined();
+    expect(ins!.text).toContain(
+      `FIIs net sold ₹${Math.round(-want.fiiDeals!).toLocaleString('en-IN')} Cr in ${want.sector}`,
+    );
+    expect(ins!.text).toContain(`DIIs bought ₹${Math.round(want.diiDeals!).toLocaleString('en-IN')} Cr`);
+    expect(ins!.numbers.fii).toBe(want.fiiDeals);
+    expect(ins!.numbers.dii).toBe(want.diiDeals);
+  });
+
+  it('the list insights count indicators out of the five the trail computes', () => {
+    const texts = buildInsights(entries, bySym, ctx)
+      .map((i) => i.text)
+      .join(' ');
+    expect(texts).toContain('of 5');
+    expect(texts).not.toContain('of 4 ');
+    expect(texts).toContain('Holdings and F&O footprints arrive in Phase 4B and 5');
   });
 });

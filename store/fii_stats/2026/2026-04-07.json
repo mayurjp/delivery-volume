@@ -1,0 +1,145 @@
+{
+ "date": "2026-04-07",
+ "rows": [
+  {
+   "buyAmtCr": 4982.76,
+   "buyContracts": 33058.0,
+   "category": "INDEX FUTURES",
+   "level": "total",
+   "oiAmtCr": 62391.49,
+   "oiContracts": 410971.0,
+   "sellAmtCr": 3634.91,
+   "sellContracts": 24031.0
+  },
+  {
+   "buyAmtCr": 431.04,
+   "buyContracts": 2731.0,
+   "category": "BANKNIFTY FUTURES",
+   "level": "instrument",
+   "oiAmtCr": 9018.28,
+   "oiContracts": 56825.0,
+   "sellAmtCr": 735.13,
+   "sellContracts": 4674.0
+  },
+  {
+   "buyAmtCr": 26.72,
+   "buyContracts": 181.0,
+   "category": "FINNIFTY FUTURES",
+   "level": "instrument",
+   "oiAmtCr": 28.22,
+   "oiContracts": 190.0,
+   "sellAmtCr": 11.67,
+   "sellContracts": 79.0
+  },
+  {
+   "buyAmtCr": 97.11,
+   "buyContracts": 643.0,
+   "category": "MIDCPNIFTY FUTURES",
+   "level": "instrument",
+   "oiAmtCr": 4566.87,
+   "oiContracts": 30143.0,
+   "sellAmtCr": 90.5,
+   "sellContracts": 599.0
+  },
+  {
+   "buyAmtCr": 4414.97,
+   "buyContracts": 29421.0,
+   "category": "NIFTY FUTURES",
+   "level": "instrument",
+   "oiAmtCr": 48691.85,
+   "oiContracts": 323268.0,
+   "sellAmtCr": 2787.22,
+   "sellContracts": 18613.0
+  },
+  {
+   "buyAmtCr": 12.91,
+   "buyContracts": 82.0,
+   "category": "NIFTYNXT50 FUTURES",
+   "level": "instrument",
+   "oiAmtCr": 86.27,
+   "oiContracts": 545.0,
+   "sellAmtCr": 10.38,
+   "sellContracts": 66.0
+  },
+  {
+   "buyAmtCr": 3605579.14,
+   "buyContracts": 24121610.0,
+   "category": "INDEX OPTIONS",
+   "level": "total",
+   "oiAmtCr": 296307.1,
+   "oiContracts": 1953261.0,
+   "sellAmtCr": 3604547.86,
+   "sellContracts": 24109503.0
+  },
+  {
+   "buyAmtCr": 27304.39,
+   "buyContracts": 167372.0,
+   "category": "BANKNIFTY OPTIONS",
+   "level": "instrument",
+   "oiAmtCr": 54473.39,
+   "oiContracts": 344444.0,
+   "sellAmtCr": 27340.9,
+   "sellContracts": 167645.0
+  },
+  {
+   "buyAmtCr": 140.01,
+   "buyContracts": 931.0,
+   "category": "FINNIFTY OPTIONS",
+   "level": "instrument",
+   "oiAmtCr": 203.21,
+   "oiContracts": 1372.0,
+   "sellAmtCr": 168.7,
+   "sellContracts": 1115.0
+  },
+  {
+   "buyAmtCr": 2856.17,
+   "buyContracts": 18660.0,
+   "category": "MIDCPNIFTY OPTIONS",
+   "level": "instrument",
+   "oiAmtCr": 3170.91,
+   "oiContracts": 20937.0,
+   "sellAmtCr": 2753.47,
+   "sellContracts": 17926.0
+  },
+  {
+   "buyAmtCr": 3575268.73,
+   "buyContracts": 23934585.0,
+   "category": "NIFTY OPTIONS",
+   "level": "instrument",
+   "oiAmtCr": 238426.75,
+   "oiContracts": 1586300.0,
+   "sellAmtCr": 3574277.9,
+   "sellContracts": 23922774.0
+  },
+  {
+   "buyAmtCr": 9.83,
+   "buyContracts": 62.0,
+   "category": "NIFTYNXT50 OPTIONS",
+   "level": "instrument",
+   "oiAmtCr": 32.84,
+   "oiContracts": 208.0,
+   "sellAmtCr": 6.88,
+   "sellContracts": 43.0
+  },
+  {
+   "buyAmtCr": 19991.33,
+   "buyContracts": 322585.0,
+   "category": "STOCK FUTURES",
+   "level": "total",
+   "oiAmtCr": 440010.87,
+   "oiContracts": 7298942.0,
+   "sellAmtCr": 20571.63,
+   "sellContracts": 335169.0
+  },
+  {
+   "buyAmtCr": 11454.01,
+   "buyContracts": 176770.0,
+   "category": "STOCK OPTIONS",
+   "level": "total",
+   "oiAmtCr": 33158.45,
+   "oiContracts": 529408.0,
+   "sellAmtCr": 11241.81,
+   "sellContracts": 174068.0
+  }
+ ]
+}

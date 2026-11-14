@@ -9,7 +9,13 @@
 
 import { periodKey } from './aggregate';
 
-export const INDICATORS = ['delivBal', 'delivPctTrend', 'tradeSizeTrend', 'spikePersist'] as const;
+export const INDICATORS = [
+  'delivBal',
+  'delivPctTrend',
+  'tradeSizeTrend',
+  'spikePersist',
+  'dealsNet',
+] as const;
 export type IndicatorId = (typeof INDICATORS)[number];
 export type Code = 'A' | 'D' | 'N' | '-';
 export type WindowName = '3M' | '6M' | '1Y';
@@ -31,6 +37,8 @@ export const WINDOW_COLS = [
   'consD',
   'flip',
   'flipSince',
+  'dealsFii',
+  'dealsDii',
 ] as const;
 
 export type WindowRec = [
@@ -48,6 +56,8 @@ export type WindowRec = [
   consD: number | null,
   flip: string | null,
   flipSince: string | null,
+  dealsFii: number | null,
+  dealsDii: number | null,
 ];
 
 export interface TrailCfg {
@@ -66,7 +76,14 @@ export interface TrailCfg {
   stripWeeks: number;
   listSize: number;
   persistent: number;
+  /** Named deals indicator (Phase 4): FII + DII net Rs Cr over the window, A above aboveA, D below belowD. */
+  dealsNet: { aboveA: number; belowD: number };
+  /** First day of the named-deal history (ISO); null means no history is configured (the indicator is missing). */
+  dealsFrom: string | null;
 }
+
+/** Named deal flows of one stock on one day, Rs Crore, round trips excluded (symbols/{f}.json dealFlows). */
+export type DealsByDate = Readonly<Record<string, { fii: number; dii: number }>>;
 
 export interface TrailInput {
   date: string;
@@ -105,7 +122,7 @@ export interface TrailResult {
 const EXCLUDED = 256 | 512 | 1024;
 const MISSING = 9;
 const CH: Record<number, Code> = { 1: 'A', [-1]: 'D', 0: 'N', 9: '-' };
-const KEYS = ['NE', 'DV', 'TV', 'TR', 'UP', 'DN', 'SP', 'SPU', 'SPD'] as const;
+const KEYS = ['NE', 'DV', 'TV', 'TR', 'UP', 'DN', 'SP', 'SPU', 'SPD', 'DF', 'DD'] as const;
 type Cums = Record<(typeof KEYS)[number], Float64Array>;
 
 /** Python's round() on a float: ties to even (cons values are percentages of small integers). */
@@ -120,11 +137,21 @@ function rint(x: number): number {
 const r = (x: number | null, dp: number): number | null =>
   x === null || !Number.isFinite(x) ? null : Math.round(x * 10 ** dp) / 10 ** dp;
 
-function buildCums(rows: readonly TrailInput[], days: readonly string[]): { cs: Cums; elig: boolean[] } {
+function buildCums(
+  rows: readonly TrailInput[],
+  days: readonly string[],
+  deals: DealsByDate,
+): { cs: Cums; elig: boolean[] } {
   const T = days.length;
   const pos = new Map(days.map((d, i) => [d, i]));
   const m = Object.fromEntries(KEYS.map((k) => [k, new Float64Array(T)])) as Cums;
   const elig = new Array<boolean>(T).fill(false);
+  for (const [date, v] of Object.entries(deals)) {
+    const t = pos.get(date);
+    if (t === undefined) continue;
+    m.DF[t] = v.fii;
+    m.DD[t] = v.dii;
+  }
   for (const row of rows) {
     const t = pos.get(row.date);
     if (t === undefined) continue;
@@ -163,6 +190,8 @@ function buildCums(rows: readonly TrailInput[], days: readonly string[]): { cs: 
 interface Ind {
   ok: boolean;
   codes: number[];
+  fii: number | null;
+  dii: number | null;
   bal: number | null;
   dp: number | null;
   ts: number | null;
@@ -174,7 +203,7 @@ interface Ind {
   dn: number | null;
 }
 
-function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg): Ind {
+function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg, dealFrom: number): Ind {
   const lo = end + 1 - n;
   const full = lo >= 0;
   const loC = Math.max(lo, 0);
@@ -199,15 +228,24 @@ function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg): Ind {
   const spikeD = persist && spd >= sp.upDownMult * spu && spd > spu;
   const lead = (v: number | null, a: number, d: number) =>
     v === null ? MISSING : v > a ? 1 : v < d ? -1 : 0;
+  // named deals: coded only when the whole window lies inside the deal history
+  const dealOk = lo >= dealFrom;
+  const dfw = w('DF');
+  const ddw = w('DD');
+  const net = r(dfw + ddw, 2) ?? 0;
+  const dealCode = !dealOk ? MISSING : net > cfg.dealsNet.aboveA ? 1 : net < cfg.dealsNet.belowD ? -1 : 0;
   const codes = [
     lead(bal, cfg.delivBal.aboveA, cfg.delivBal.belowD),
     lead(dp, cfg.delivPctTrendPp, -cfg.delivPctTrendPp),
     lead(ts, cfg.tradeSizeTrendPct, -cfg.tradeSizeTrendPct),
     !okB ? MISSING : spikeA ? 1 : spikeD ? -1 : 0,
+    dealCode,
   ];
   return {
     ok: okW,
     codes,
+    fii: dealOk ? r(dfw, 2) : null,
+    dii: dealOk ? r(ddw, 2) : null,
     bal,
     dp,
     ts,
@@ -247,15 +285,24 @@ function weekIndex(days: readonly string[]): { wk: number[]; ends: number[]; key
   return { wk, ends, keys };
 }
 
-/** ONE stock's trail at as-of index `a` (default: the latest day). */
+/** First market-day index on or after cfg.dealsFrom; the number of days when no history is configured. */
+export function dealFromIndex(days: readonly string[], cfg: TrailCfg): number {
+  if (!cfg.dealsFrom) return days.length;
+  const i = days.findIndex((d) => d >= cfg.dealsFrom!);
+  return i < 0 ? days.length : i;
+}
+
+/** ONE stock's trail at as-of index `a` (default: the latest day). `deals` are the stock's named deal flows by date. */
 export function trailForRows(
   rows: readonly TrailInput[],
   days: readonly string[],
   cfg: TrailCfg,
   asOfIndex?: number,
+  deals: DealsByDate = {},
 ): TrailResult {
   const a = asOfIndex ?? days.length - 1;
-  const { cs, elig } = buildCums(rows, days);
+  const { cs, elig } = buildCums(rows, days, deals);
+  const dealFrom = dealFromIndex(days, cfg);
   const { wk, ends, keys } = weekIndex(days);
   const lastW = wk[a]!;
   const firstW = lastW - cfg.stripWeeks + 1;
@@ -269,7 +316,7 @@ export function trailForRows(
       continue;
     }
     const e = Math.min(ends[wi]!, a);
-    const ind = indicators(cs, e, cfg.weekDays, cfg);
+    const ind = indicators(cs, e, cfg.weekDays, cfg, dealFrom);
     const ov = overall(ind.codes, cfg.weekMargin);
     stripCodes.push(ov);
     stripDates.push(days[e]!);
@@ -287,7 +334,7 @@ export function trailForRows(
   const windows = {} as Record<WindowName, WindowRec | null>;
   for (const name of WINDOWS) {
     const wc = cfg.windows[name];
-    const ind = indicators(cs, a, wc.days, cfg);
+    const ind = indicators(cs, a, wc.days, cfg, dealFrom);
     if (!ind.ok) {
       windows[name] = null;
       continue;
@@ -298,7 +345,7 @@ export function trailForRows(
     const enough = defined >= Math.ceil(wc.weeks / 2);
     const consA = enough ? (weeksSlice.filter((c) => c === 1).length / defined) * 100 : null;
     const consD = enough ? (weeksSlice.filter((c) => c === -1).length / defined) * 100 : null;
-    const rt = tally(indicators(cs, a, cfg.flipDays, cfg).codes);
+    const rt = tally(indicators(cs, a, cfg.flipDays, cfg, dealFrom).codes);
     const leansA = t.A >= 2 && t.A > t.D;
     const leansD = t.D >= 2 && t.D > t.A;
     const flip =
@@ -326,6 +373,8 @@ export function trailForRows(
       consD === null ? null : rint(consD),
       flip || null,
       since,
+      ind.fii,
+      ind.dii,
     ];
   }
   return {
@@ -354,7 +403,10 @@ export interface WindowView {
   consD: number | null;
   flip: 'A→D' | 'D→A' | null;
   flipSince: string | null;
-  /** Tally of the four codes. */
+  /** Named deals over the window, Rs Cr (null before the deal history). */
+  dealsFii: number | null;
+  dealsDii: number | null;
+  /** Tally of the five codes. */
   A: number;
   D: number;
   N: number;
@@ -379,6 +431,8 @@ export function windowView(rec: WindowRec): WindowView {
     consD: rec[11],
     flip: rec[12] as 'A→D' | 'D→A' | null,
     flipSince: rec[13],
+    dealsFii: rec[14],
+    dealsDii: rec[15],
     A: count('A'),
     D: count('D'),
     N: count('N'),

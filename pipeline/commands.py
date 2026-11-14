@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import timedelta
+from datetime import date, timedelta
 
 from . import calendar as cal_mod
 from . import config, store
@@ -93,7 +93,9 @@ def cmd_status(args: argparse.Namespace) -> int:
     kinds = [("S1 cm_delivery", "cm_delivery", "csv.gz"), ("S2 cm_isin", "cm_isin", "csv.gz"),
              ("S4 mcap", "mcap", "csv.gz"), ("S4 corp_actions", "corp_actions", "csv.gz"),
              ("S4 band_hits", "band_hits", "csv.gz"), ("S12 indices_close", "indices_close", "csv.gz"),
-             ("S13 hl52", "hl52", "csv.gz"), ("S14 fo_ban", "fo_ban", "txt")]
+             ("S13 hl52", "hl52", "csv.gz"), ("S14 fo_ban", "fo_ban", "txt"),
+             ("S5 participant_oi", "participant_oi", "csv"), ("S6 participant_vol", "participant_vol", "csv"),
+             ("S7 fii_stats", "fii_stats", "json")]
     print(f"Trading days in store: {len(days)} ({days[0] if days else '-'} .. {days[-1] if days else '-'})")
     print(f"Coverage, last {len(last)} trading days (x present, . missing):")
     header = "".join(f"{d.day:>3}" for d in last)
@@ -103,9 +105,16 @@ def cmd_status(args: argparse.Namespace) -> int:
         have = set(store.list_dates(kind, ext))
         row = "".join("  x" if d in have else "  ." for d in last)
         print(f"{name:<20}{row}")
-        miss = [d.isoformat() for d in days if d not in have]
+        # S5 to S7 start at backfillFrom (2025-11-01): earlier trading days are not gaps for them
+        since = date.fromisoformat(config.settings()["backfillFrom"]) if kind in ("participant_oi", "participant_vol", "fii_stats") else None
+        miss = [d.isoformat() for d in days if d not in have and (since is None or d >= since)]
         if miss:
             gaps[name] = miss
+    cash_days = sorted({r.split('"')[3] for r in (STORE_DIR / "fii_dii_cash").glob("*.jsonl") and
+                        [ln for f in (STORE_DIR / "fii_dii_cash").glob("*.jsonl") for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip()]})         if (STORE_DIR / "fii_dii_cash").exists() else []
+    print(f"S8 fii_dii_cash: {len(cash_days)} trade dates stored ({cash_days[0] if cash_days else '-'} .. {cash_days[-1] if cash_days else '-'})")
+    deal_days = sorted({f.name for f in (STORE_DIR / "deals").glob("*.csv")}) if (STORE_DIR / "deals").exists() else []
+    print(f"S9/S10 deals: files {deal_days}; rows in store: {sum(max(0, len(f.read_text(encoding='utf-8').splitlines()) - 1) for f in (STORE_DIR / 'deals').glob('*.csv')) if deal_days else 0}")
     snaps = [(k, sorted(p.name for p in (STORE_DIR / k).glob("*")) if (STORE_DIR / k).exists() else [])
              for k in ("constituents", "equity_list", "ref/symbolchange")]
     for k, items in snaps:

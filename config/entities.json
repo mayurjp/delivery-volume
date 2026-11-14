@@ -1,0 +1,946 @@
+{
+  "schemaVersion": 1,
+  "README": [
+    "Entity seed list for bulk and block deals (docs/specs/04 section 5.3). Human-editable; the build reads it on every run.",
+    "Matching: a client name is cleaned (upper case, '&' becomes AND, every run of non-letters or digits becomes one space, LIMITED becomes LTD, PRIVATE becomes PVT). A cleaned name matches an entity when one of its patterns appears in it as whole words. The first matching entity in this file wins, so list specific names before general ones.",
+    "Unmatched names become their own entity: id = the cleaned name in lower case with spaces replaced by hyphens; the type is inferred (entityTypeInferred = true).",
+    "Type inference, first rule that matches wins: an ODI account (name ends in ODI, e.g. '- ODI') -> FPI (likely); MUTUAL FUND or a trailing MF -> MF; INSURANCE or ASSURANCE -> Insurance; PENSION or PROVIDENT -> Pension; BANK -> Bank; PTE, PLC, LLC, FUND, SICAV, MAURITIUS or SINGAPORE -> FPI (likely); TRADING, SECURITIES, BROKING, CAPITAL MARKETS or LLP -> Trader/Prop (likely); otherwise Other.",
+    "Category: FPI and FPI (likely) -> FII; MF, Insurance, Pension, Bank and AIF -> DII; everything else -> Other. An entity's own 'category' field overrides the derived value. The ODI rule is checked first, so an ODI account stays FII even when its name also contains BANK (see DEVIATIONS #76).",
+    "Seeds: the largest names by deal value in the stored deals (2025-11-03 to 2026-11-13), grouped by firm. Foreign pension funds, sovereign funds and US trusts are set to FII explicitly, because the name rules would call them DII. Review and edit freely; the build and the tests read this file.",
+    "Added after the coverage check (DEVIATIONS #76): the top 50 FII and top 50 DII names by value must each be a seed (tested). Integrated Insurance Broking Services is typed Other because it is a broker, not an insurer, so the name rule (INSURANCE -> DII) is overridden.",
+    "Also set to FII by name (DEVIATIONS #76): the Hong Kong MPF unit trust (Manulife Provident Funds) and the Government Pension Fund Global account, which is Norway's sovereign fund.",
+    "Factory Mutual Insurance (a US insurer) is typed Insurance by the name rule and listed here so it is covered; an overseas insurer may be FPI rather than DII, so review it."
+  ],
+  "entities": [
+    {
+      "id": "goldman-sachs",
+      "name": "Goldman Sachs",
+      "type": "FPI",
+      "patterns": [
+        "GOLDMAN SACHS"
+      ]
+    },
+    {
+      "id": "morgan-stanley",
+      "name": "Morgan Stanley",
+      "type": "FPI",
+      "patterns": [
+        "MORGAN STANLEY"
+      ]
+    },
+    {
+      "id": "gqg-partners",
+      "name": "GQG Partners",
+      "type": "FPI",
+      "patterns": [
+        "GQG PARTNERS"
+      ]
+    },
+    {
+      "id": "societe-generale",
+      "name": "Societe Generale",
+      "type": "FPI",
+      "patterns": [
+        "SOCIETE GENERALE"
+      ]
+    },
+    {
+      "id": "bnp-paribas",
+      "name": "BNP Paribas",
+      "type": "FPI",
+      "patterns": [
+        "BNP PARIBAS"
+      ]
+    },
+    {
+      "id": "bofa-securities",
+      "name": "BofA Securities",
+      "type": "FPI",
+      "patterns": [
+        "BOFA SECURITIES",
+        "BOFA SEC"
+      ]
+    },
+    {
+      "id": "nomura",
+      "name": "Nomura",
+      "type": "FPI",
+      "patterns": [
+        "NOMURA"
+      ]
+    },
+    {
+      "id": "citigroup",
+      "name": "Citigroup",
+      "type": "FPI",
+      "patterns": [
+        "CITIGROUP"
+      ]
+    },
+    {
+      "id": "fidelity",
+      "name": "Fidelity",
+      "type": "FPI",
+      "patterns": [
+        "FIDELITY"
+      ]
+    },
+    {
+      "id": "capital-group-american-funds",
+      "name": "Capital Group (American Funds)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "AMERICAN FUNDS",
+        "SMALLCAP WORLD FUND",
+        "SMALL CAP WORLD FUND"
+      ]
+    },
+    {
+      "id": "kotak-alternative-funds",
+      "name": "Kotak alternative (IFSC) funds",
+      "type": "FPI",
+      "patterns": [
+        "KOTAK REAL ESTATE",
+        "KOTAK INDIA COMMERCIAL REAL ESTATE",
+        "KOTAK PERFORMING RE"
+      ]
+    },
+    {
+      "id": "svf-softbank",
+      "name": "SVF (SoftBank Vision Fund)",
+      "type": "FPI",
+      "patterns": [
+        "SVF II",
+        "SVF III"
+      ]
+    },
+    {
+      "id": "integrated-core-strategies",
+      "name": "Integrated Core Strategies",
+      "type": "FPI",
+      "patterns": [
+        "INTEGRATED CORE STRATEGIES"
+      ]
+    },
+    {
+      "id": "government-of-singapore",
+      "name": "Government of Singapore",
+      "type": "FPI",
+      "patterns": [
+        "GOVERNMENT OF SINGAPORE"
+      ]
+    },
+    {
+      "id": "norges-bank",
+      "name": "Norges Bank (Government Pension Fund Global)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "NORGES BANK",
+        "GOVERNMENT PENSION FUND GLOBAL"
+      ]
+    },
+    {
+      "id": "psp-investments",
+      "name": "PSP Investments (Public Sector Pension Investment Board)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "PUBLIC SECTOR PENSION INVESTMENT BOARD"
+      ]
+    },
+    {
+      "id": "gpif-japan",
+      "name": "Government Pension Investment Fund (Japan)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "MTBJ"
+      ]
+    },
+    {
+      "id": "cpp-investment-board",
+      "name": "CPP Investment Board",
+      "type": "FPI",
+      "patterns": [
+        "CPP INVESTMENT"
+      ]
+    },
+    {
+      "id": "reliance-trust-us-retirement",
+      "name": "Reliance Trust (US institutional retirement trust)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "RELIANCE TRUST INSTITUTIONAL"
+      ]
+    },
+    {
+      "id": "factory-mutual-insurance",
+      "name": "Factory Mutual Insurance Company (FM Global, US)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "FACTORY MUTUAL INSURANCE"
+      ]
+    },
+    {
+      "id": "peak-xv-partners",
+      "name": "Peak XV Partners",
+      "type": "FPI",
+      "patterns": [
+        "PEAK XV"
+      ]
+    },
+    {
+      "id": "saif-partners",
+      "name": "SAIF Partners",
+      "type": "FPI",
+      "patterns": [
+        "SAIF PARTNERS",
+        "SAIF III",
+        "SAIF MAURITIUS"
+      ]
+    },
+    {
+      "id": "ribbit-capital",
+      "name": "Ribbit Capital",
+      "type": "FPI",
+      "patterns": [
+        "RIBBIT"
+      ]
+    },
+    {
+      "id": "general-atlantic",
+      "name": "General Atlantic",
+      "type": "FPI",
+      "patterns": [
+        "GENERAL ATLANTIC"
+      ]
+    },
+    {
+      "id": "birdseye-view",
+      "name": "Birdseye View Holdings",
+      "type": "FPI",
+      "patterns": [
+        "BIRDSEYE VIEW"
+      ]
+    },
+    {
+      "id": "pioneer-investment-fund",
+      "name": "Pioneer Investment Fund",
+      "type": "FPI",
+      "patterns": [
+        "PIONEER INVESTMENT FUND"
+      ]
+    },
+    {
+      "id": "ghisallo",
+      "name": "Ghisallo Master Fund",
+      "type": "FPI",
+      "patterns": [
+        "GHISALLO"
+      ]
+    },
+    {
+      "id": "viridian",
+      "name": "Viridian Asia Opportunities",
+      "type": "FPI",
+      "patterns": [
+        "VIRIDIAN"
+      ]
+    },
+    {
+      "id": "nitro-asia",
+      "name": "Nitro Asia Holdings",
+      "type": "FPI",
+      "patterns": [
+        "NITRO ASIA"
+      ]
+    },
+    {
+      "id": "centella",
+      "name": "Centella Mauritius Holdings",
+      "type": "FPI",
+      "patterns": [
+        "CENTELLA"
+      ]
+    },
+    {
+      "id": "hyperion-investments",
+      "name": "Hyperion Investments",
+      "type": "FPI",
+      "patterns": [
+        "HYPERION INVESTMENTS"
+      ]
+    },
+    {
+      "id": "epsilon-bidco",
+      "name": "Epsilon Bidco",
+      "type": "FPI",
+      "patterns": [
+        "EPSILON BIDCO"
+      ]
+    },
+    {
+      "id": "claymore-investments",
+      "name": "Claymore Investments",
+      "type": "FPI",
+      "patterns": [
+        "CLAYMORE"
+      ]
+    },
+    {
+      "id": "chiswick-investment",
+      "name": "Chiswick Investment",
+      "type": "FPI",
+      "patterns": [
+        "CHISWICK"
+      ]
+    },
+    {
+      "id": "cube-infrastructure",
+      "name": "CUBE (Mobility and Highways)",
+      "type": "FPI",
+      "patterns": [
+        "CUBE MOBILITY",
+        "CUBE HIGHWAYS"
+      ]
+    },
+    {
+      "id": "y-combinator",
+      "name": "Y Combinator",
+      "type": "FPI",
+      "patterns": [
+        "Y COMBINATOR",
+        "YC HOLDINGS",
+        "YCS16"
+      ]
+    },
+    {
+      "id": "augment-india",
+      "name": "Augment India Holdings",
+      "type": "FPI",
+      "patterns": [
+        "AUGMENT INDIA"
+      ]
+    },
+    {
+      "id": "ap-asia-opportunistic",
+      "name": "AP Asia Opportunistic Holdings",
+      "type": "FPI",
+      "patterns": [
+        "AP ASIA"
+      ]
+    },
+    {
+      "id": "bpc-genesis",
+      "name": "BPC Genesis Fund",
+      "type": "FPI",
+      "patterns": [
+        "BPC GENESIS"
+      ]
+    },
+    {
+      "id": "accel-india",
+      "name": "Accel India",
+      "type": "FPI",
+      "patterns": [
+        "ACCEL INDIA"
+      ]
+    },
+    {
+      "id": "true-north",
+      "name": "True North",
+      "type": "FPI",
+      "patterns": [
+        "TRUE NORTH FUND"
+      ]
+    },
+    {
+      "id": "euro-pacific-growth",
+      "name": "Euro Pacific Growth Fund",
+      "type": "FPI",
+      "patterns": [
+        "EURO PACIFIC GROWTH"
+      ]
+    },
+    {
+      "id": "internet-fund",
+      "name": "Internet Fund",
+      "type": "FPI",
+      "patterns": [
+        "INTERNET FUND"
+      ]
+    },
+    {
+      "id": "lightspeed",
+      "name": "Lightspeed",
+      "type": "FPI",
+      "patterns": [
+        "LIGHTSPEED"
+      ]
+    },
+    {
+      "id": "pabrai-wagons",
+      "name": "Pabrai Wagons Fund",
+      "type": "FPI",
+      "patterns": [
+        "PABRAI"
+      ]
+    },
+    {
+      "id": "a91-emerging",
+      "name": "A91 Emerging Fund",
+      "type": "FPI",
+      "patterns": [
+        "A91 EMERGING"
+      ]
+    },
+    {
+      "id": "blackrock",
+      "name": "BlackRock",
+      "type": "FPI",
+      "patterns": [
+        "BLACKROCK"
+      ]
+    },
+    {
+      "id": "belgrave-investment",
+      "name": "Belgrave Investment Fund",
+      "type": "FPI",
+      "patterns": [
+        "BELGRAVE"
+      ]
+    },
+    {
+      "id": "union-mauritius",
+      "name": "Union Mauritius Holdings",
+      "type": "FPI",
+      "patterns": [
+        "UNION MAURITIUS"
+      ]
+    },
+    {
+      "id": "fih-mauritius",
+      "name": "FIH Mauritius Investments",
+      "type": "FPI",
+      "patterns": [
+        "FIH MAURITIUS"
+      ]
+    },
+    {
+      "id": "copthall-mauritius",
+      "name": "Copthall Mauritius Investment",
+      "type": "FPI",
+      "patterns": [
+        "COPTHALL"
+      ]
+    },
+    {
+      "id": "ruby-qc",
+      "name": "Ruby QC Investment Holdings",
+      "type": "FPI",
+      "patterns": [
+        "RUBY QC"
+      ]
+    },
+    {
+      "id": "elevation-capital",
+      "name": "Elevation Capital",
+      "type": "FPI",
+      "patterns": [
+        "ELEVATION CAPITAL"
+      ]
+    },
+    {
+      "id": "nexus-venture-partners",
+      "name": "Nexus Venture Partners",
+      "type": "FPI",
+      "patterns": [
+        "NEXUS VENTURES"
+      ]
+    },
+    {
+      "id": "alpha-wave-ventures",
+      "name": "Alpha Wave Ventures",
+      "type": "FPI",
+      "patterns": [
+        "ALPHA WAVE"
+      ]
+    },
+    {
+      "id": "tencent-cloud-europe",
+      "name": "Tencent Cloud Europe",
+      "type": "FPI",
+      "patterns": [
+        "TENCENT CLOUD EUROPE"
+      ]
+    },
+    {
+      "id": "sbi-mf",
+      "name": "SBI Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "SBI MUTUAL FUND",
+        "SBI MF"
+      ]
+    },
+    {
+      "id": "icici-prudential-mf",
+      "name": "ICICI Prudential Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "ICICI PRUDENTIAL MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "kotak-mf",
+      "name": "Kotak Mahindra Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "KOTAK MAHINDRA MUTUAL FUND",
+        "KOTAK MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "hdfc-mf",
+      "name": "HDFC Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "HDFC MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "quant-mf",
+      "name": "Quant Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "QUANT MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "nippon-india-mf",
+      "name": "Nippon India Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "NIPPON INDIA MUTUAL FUND",
+        "NIPPON MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "ppfas-mf",
+      "name": "PPFAS Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "PPFAS MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "motilal-oswal-mf",
+      "name": "Motilal Oswal Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "MOTILAL OSWAL MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "invesco-mf",
+      "name": "Invesco Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "INVESCO MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "aditya-birla-sun-life-mf",
+      "name": "Aditya Birla Sun Life Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "ADITYA BIRLA SUN LIFE MUTUAL FUND",
+        "ADITYA BIRLA SUNLIFE MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "mirae-asset-mf",
+      "name": "Mirae Asset Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "MIRAE ASSET MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "uti-mf",
+      "name": "UTI Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "UTI MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "hsbc-mf",
+      "name": "HSBC Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "HSBC MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "edelweiss-mf",
+      "name": "Edelweiss Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "EDELWEISS MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "axis-mf",
+      "name": "Axis Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "AXIS MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "bandhan-mf",
+      "name": "Bandhan Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "BANDHAN MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "franklin-templeton-mf",
+      "name": "Franklin Templeton Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "FRANKLIN TEMPLETON MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "tata-mf",
+      "name": "Tata Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "TATA MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "whiteoak-mf",
+      "name": "WhiteOak Capital Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "WHITEOAK CAPITAL MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "canara-robeco-mf",
+      "name": "Canara Robeco Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "CANARA ROBECO MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "dsp-mf",
+      "name": "DSP Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "DSP MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "mahindra-manulife-mf",
+      "name": "Mahindra Manulife Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "MAHINDRA MANULIFE MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "bajaj-finserv-mf",
+      "name": "Bajaj Finserv Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "BAJAJ FINSERV MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "360-one-mf",
+      "name": "360 ONE Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "360 ONE MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "sundaram-mf",
+      "name": "Sundaram Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "SUNDARAM MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "lic-mf",
+      "name": "LIC Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "LIC MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "life-insurance-corporation",
+      "name": "Life Insurance Corporation of India",
+      "type": "Insurance",
+      "patterns": [
+        "LIFE INSURANCE CORPORATION"
+      ]
+    },
+    {
+      "id": "icici-prudential-life",
+      "name": "ICICI Prudential Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "ICICI PRUDENTIAL LIFE INSURANCE"
+      ]
+    },
+    {
+      "id": "sbi-life",
+      "name": "SBI Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "SBI LIFE INSURANCE"
+      ]
+    },
+    {
+      "id": "hdfc-life",
+      "name": "HDFC Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "HDFC LIFE INSURANCE",
+        "HDFC STANDARD LIFE"
+      ]
+    },
+    {
+      "id": "bajaj-allianz-life",
+      "name": "Bajaj Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "BAJAJ LIFE INSURANCE",
+        "BAJAJ ALLIANZ LIFE"
+      ]
+    },
+    {
+      "id": "kotak-life",
+      "name": "Kotak Mahindra Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "KOTAK MAHINDRA LIFE INSURANCE"
+      ]
+    },
+    {
+      "id": "tata-aia-life",
+      "name": "TATA AIA Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "TATA AIA LIFE"
+      ]
+    },
+    {
+      "id": "axis-max-life",
+      "name": "Axis Max Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "AXIS MAX LIFE"
+      ]
+    },
+    {
+      "id": "aditya-birla-sun-life-insurance",
+      "name": "Aditya Birla Sun Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "ADITYA BIRLA SUN LIFE INSURANCE"
+      ]
+    },
+    {
+      "id": "reliance-nippon-life",
+      "name": "Reliance Nippon Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "RELIANCE NIPPON LIFE"
+      ]
+    },
+    {
+      "id": "edelweiss-life",
+      "name": "Edelweiss Life Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "EDELWEISS LIFE"
+      ]
+    },
+    {
+      "id": "icici-lombard",
+      "name": "ICICI Lombard General Insurance",
+      "type": "Insurance",
+      "patterns": [
+        "ICICI LOMBARD"
+      ]
+    },
+    {
+      "id": "american-funds-insurance-series",
+      "name": "American Funds Insurance Series (US fund)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "AMERICAN FUNDS INSURANCE SERIES"
+      ]
+    },
+    {
+      "id": "nps-trust",
+      "name": "National Pension System (NPS) Trust",
+      "type": "Pension",
+      "patterns": [
+        "NATIONAL PENSION SYSTEM NPS TRUST"
+      ]
+    },
+    {
+      "id": "kotak-mahindra-bank",
+      "name": "Kotak Mahindra Bank",
+      "type": "Bank",
+      "patterns": [
+        "KOTAK MAHINDRA BANK"
+      ]
+    },
+    {
+      "id": "axis-bank",
+      "name": "Axis Bank",
+      "type": "Bank",
+      "patterns": [
+        "AXIS BANK"
+      ]
+    },
+    {
+      "id": "idfc-first-bank",
+      "name": "IDFC First Bank",
+      "type": "Bank",
+      "patterns": [
+        "IDFC FIRST BANK"
+      ]
+    },
+    {
+      "id": "national-investment-and-infrastructure-fund-ii",
+      "name": "National Investment and Infrastructure Fund II",
+      "type": "FPI",
+      "patterns": [
+        "NATIONAL INVESTMENT AND INFRASTRUCTURE FUND"
+      ]
+    },
+    {
+      "id": "bank-of-america-national-association",
+      "name": "Bank of America National Association",
+      "type": "Bank",
+      "patterns": [
+        "BANK OF AMERICA NATIONAL ASSOCIATION"
+      ]
+    },
+    {
+      "id": "iti-mutual-fund",
+      "name": "ITI Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "ITI MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "bank-of-india-mf",
+      "name": "Bank of India Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "BANK OF INDIA MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "trust-mutual-fund",
+      "name": "Trust Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "TRUST MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "helios-mf",
+      "name": "Helios Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "HELIOS MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "abakkus-mf",
+      "name": "Abakkus Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "ABAKKUS MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "jm-financial-mf",
+      "name": "JM Financial Mutual Fund",
+      "type": "MF",
+      "patterns": [
+        "JM FINANCIAL MUTUAL FUND"
+      ]
+    },
+    {
+      "id": "general-pension-social-security-authority",
+      "name": "General Pension and Social Security Authority",
+      "type": "Pension",
+      "patterns": [
+        "GENERAL PENSION AND SOCIAL SECURITY AUTHORITY"
+      ]
+    },
+    {
+      "id": "integrated-insurance-broking",
+      "name": "Integrated Insurance Broking Services (broker, not an insurer)",
+      "type": "Other",
+      "patterns": [
+        "INTEGRATED INSURANCE BROKING"
+      ]
+    },
+    {
+      "id": "manulife-provident-funds-hk",
+      "name": "Manulife Provident Funds unit trust (Hong Kong MPF)",
+      "type": "FPI",
+      "category": "FII",
+      "patterns": [
+        "MANULIFE PROVIDENT FUNDS UNIT TRUST"
+      ]
+    },
+    {
+      "id": "pi-opportunities-aif",
+      "name": "PI Opportunities AIF (Premji Invest)",
+      "type": "AIF",
+      "patterns": [
+        "PI OPPORTUNITIES AIF"
+      ]
+    },
+    {
+      "id": "gss-india-opportunities-aif",
+      "name": "GSS India Opportunities AIF",
+      "type": "AIF",
+      "patterns": [
+        "GSS INDIA OPPORTUNITIES AIF"
+      ]
+    },
+    {
+      "id": "nippon-india-equity-opportunities-aif",
+      "name": "Nippon India Equity Opportunities AIF (all schemes)",
+      "type": "AIF",
+      "patterns": [
+        "NIPPON INDIA EQUITY OPPORTUNITIES AIF"
+      ]
+    }
+  ]
+}

@@ -224,6 +224,32 @@ Script: [scripts/signal_fwd4.py](scripts/signal_fwd4.py).
 
 DII net sell and "FII buys, DII sells" had n < 30.
 
+### Named FII/DII deals, re-run with entity categories (Phase 4, 2026-11-14)
+
+The tables above used a keyword heuristic for the client categories. The re-run uses the entity seeds and the category rules of the product (`config/entities.json` through `pipeline/entities.py`) and the same flows as `deals/flows.json` (`pipeline/deals.py`). Script: [scripts/signal_fwd4.py](scripts/signal_fwd4.py), run as `python -I scripts/signal_fwd4.py <project root>`. The old tables above are kept.
+
+- **Data:** 16,315 deal rows for stocks in the daily data, 2025-11-03 to 2026-11-13 (16,599 in the build, which also keeps names outside the daily data). Round trips dropped: 9,879 rows (same entity, same stock, same day, buy and sell within 10%).
+- **Categories:** 21.8% of gross deal value is FII, 9.0% DII and 69.2% Other (mostly domestic brokers and proprietary desks, which name rules cannot place). Stock-days with a net: FII 419, DII 140, Other 2,199.
+- **History gap (read first):** the historical bulk-deal endpoint returns at most 70 records per request, so **218 of the 256 bulk-deal days before 2026-11-14 are truncated** (`store/deals/_backfill.json`). Only daily collection from 2026-11-14 is complete. The history below is therefore a lower bound on deal activity on busy days, and the 1-year sample is small. Read every number here as a description of one sample period, not a forecast.
+- **Event:** a liquid EQ stock-day with a category's net value via deals above zero (net bought) or below zero (net sold). Benchmark: the same-day median of all liquid stocks. Forward returns exclude windows that cross a price adjustment.
+
+| Event | n | days | +20d at close(t) | +5d at t+1 | +20d at t+1 |
+|-------|---|------|------------------|------------|-------------|
+| FII net buy | 137 | 100 | −0.06% (49%) | −0.06% (49%) | +0.72% (52%) |
+| FII net sell | 180 | 113 | +1.16% (57%) | +0.86% (58%) | +0.82% (55%) |
+| DII net buy | 122 | 89 | +2.05% (59%) | +0.33% (53%) | +0.85% (55%) |
+| FII buy ≥ ₹25 Cr | 90 | 70 | +1.01% (51%) | +0.47% (52%) | +1.11% (56%) |
+| DII buy ≥ ₹25 Cr | 109 | 82 | +2.05% (60%) | +0.69% (55%) | +1.02% (58%) |
+| FII sell ≤ −₹25 Cr | 116 | 77 | +2.37% (65%) | +1.21% (64%) | +1.97% (61%) |
+| FII and DII both net buy | 37 | 31 | +2.23% (58%) | +1.25% (61%) | +0.85% (56%) |
+| **FII sells, DII buys** | 41 | 37 | **+3.86% (72%)** | +1.00% (62%) | **+3.18% (69%)** |
+| Institutional net buy + delivery ≥ 2× | 117 | 87 | −0.73% (46%) | −0.81% (45%) | −0.34% (49%) |
+| **Other/unclassified net buy only** | 732 | 246 | −1.33% (44%) | −1.19% (42%) | **−1.49% (45%)** |
+
+DII net sell (n 17), "FII buys, DII sells" (n 5), institutional net buy with price up (n 17) and the ≥ ₹25 Cr sell for DII (n 11) have n < 30 and are not read.
+
+**What changed against the heuristic tables.** The direction of the main findings holds: "FII sells, DII buys" is still the strongest group, and "Other net buy only" is still negative. The sizes moved. The handover group is now +3.18% at +20 days from t+1 (n 41), against +4.85% (n 35) before, and the "Other" group is −1.49% (n 732), against −1.36% (n 776). One difference is that the keyword rule put the Goldman Sachs Bank Europe accounts in DII (the word BANK), while the ODI rule now places them in FII. Other names moved for the same kind of reason. The FII-sell-at-least-₹25-Cr group had +2.84% (n 101) and is now +1.97% (n 116), still positive. None of the rows says the deals predict anything: the same caveats as above apply, and the history gap means the 1-year sample is incomplete on busy days.
+
 ## Conclusions
 
 1. **A heavy-delivery up day is not a buy signal by itself.** Its follow-through was flat to negative in every cap bucket, and worst in large caps.

@@ -170,7 +170,7 @@ ROUTES.push(
     wait: 'h1:has-text("Smart Money Trail")',
     expect: async (p) => {
       await p.waitForSelector('[data-testid=list-flip]', { timeout: 25000 });
-      return (await p.locator('[data-testid=indicator-rows] li').count()) === 4;
+      return (await p.locator('[data-testid=indicator-rows] li').count()) === 5;
     },
   },
   {
@@ -184,11 +184,50 @@ ROUTES.push(
         n >= 3 &&
         n <= 5 &&
         (await p.locator('canvas').count()) >= 1 &&
-        (await p.locator('[data-testid=sector-compare]').count()) === 1
+        (await p.locator('[data-testid=sector-compare]').count()) === 1 &&
+        (await p.locator('section[aria-label="Named deals"]').count()) === 1
       );
     },
   },
   { path: '#/trail/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
+// Phase 4: institutions (P6), deals (P7) and the entity page (items of the list above)
+  {
+    path: '#/institutions',
+    wait: 'h1:has-text("Institutions")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Cash summary"]', { timeout: 25000 });
+      return (await p.locator('canvas').count()) >= 1;
+    },
+  },
+  {
+    path: '#/institutions?tab=deriv',
+    wait: 'h1:has-text("Institutions")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Latest positioning"]', { timeout: 25000 });
+      return (await p.locator('canvas').count()) >= 3;
+    },
+  },
+  {
+    path: '#/institutions?tab=s7',
+    wait: 'h1:has-text("Institutions")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="FII derivatives on the latest day"]', { timeout: 25000 });
+      return (await p.locator('canvas').count()) >= 2;
+    },
+  },
+  {
+    path: '#/deals',
+    wait: 'h1:has-text("Bulk and block deals")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="FII vs DII by stock"]', { timeout: 25000 });
+      return (await p.locator('section[aria-label="Deal list"] table').count()) === 1;
+    },
+  },
+  {
+    path: '#/entity/goldman-sachs',
+    wait: 'h1:has-text("Goldman Sachs")',
+    expect: async (p) => (await p.locator('section[aria-label="Aliases"] li').count()) >= 2,
+  },
   {
     path: '#/learn',
     wait: 'h1:has-text("Learn")',

@@ -14,6 +14,10 @@ import type {
   TrailDoc,
   TrailPerfRow,
   UniverseRow,
+  DealRow,
+  FlowRow,
+  EntityRow,
+  FiiDerivRow,
 } from '../types/data';
 import { dataClient } from './dataClient';
 import { activeFilterCount, defaultFilters, type Filters } from './filters';
@@ -68,6 +72,35 @@ export const useSymbol = (fileKey: string | null): Async<{ file: SymbolFile; row
 export const useTrail = (asOf: string | null): Async<TrailDoc> =>
   useAsync(`trail:${asOf ?? 'latest'}`, () => dataClient.trail(asOf));
 export const useTrailPerf = (): Async<TrailPerfRow[]> => useAsync('trailPerf', () => dataClient.trailPerf());
+
+// ---- Phase 4: institutions and deals ----------------------------------------------------------------------------------
+
+export const useInstitutionalCash = () =>
+  useAsync('institutional:cash', () => dataClient.institutionalCash());
+export const useParticipants = () => useAsync('institutional:participants', () => dataClient.participants());
+export const useFiiDeriv = (): Async<FiiDerivRow[]> =>
+  useAsync('institutional:fiiDeriv', () => dataClient.fiiDeriv());
+export const useDealFlows = (): Async<FlowRow[]> => useAsync('deals:flows', () => dataClient.dealFlows());
+export const useEntities = (): Async<EntityRow[]> => useAsync('deals:entities', () => dataClient.entities());
+
+/**
+ * Every deal row, for each year that has deals (deals/{YYYY}.json, loaded together). The years come from the entity
+ * table's first and last deal dates, not from meta.firstDate: the published window starts before the first deal day, and
+ * a missing file would otherwise answer with the app shell.
+ */
+export const useDeals = (): Async<DealRow[]> =>
+  useAsync('deals:all', async () => {
+    const ents = await dataClient.entities();
+    const dates = ents
+      .flatMap((e) => [e.firstDate, e.lastDate])
+      .filter(Boolean)
+      .sort();
+    if (dates.length === 0) return [];
+    const first = Number(dates[0]!.slice(0, 4));
+    const last = Number(dates[dates.length - 1]!.slice(0, 4));
+    const years = Array.from({ length: last - first + 1 }, (_, i) => first + i);
+    return (await Promise.all(years.map((y) => dataClient.dealsYear(y)))).flat();
+  });
 
 export const usePeriods = (): Async<PeriodsDoc> => useAsync('periods', () => dataClient.periods());
 export const usePeriodSnapshot = (tf: 'w' | 'm', info: PeriodInfo | null): Async<PeriodSnapshot> =>

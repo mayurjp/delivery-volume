@@ -366,3 +366,11 @@ Exclude stocks with `dilutionFlag` from the pp rankings by default.
 | Shareholding pattern | A quarterly filing by each company showing who owns its shares by category, and naming every public shareholder above 1% |
 | FPI Category I / II | SEBI's classes of foreign portfolio investors (e.g. sovereign and regulated funds are Category I). Both count as FII here. |
 | ODI | Offshore derivative instruments, issued by FPIs to overseas clients. Deals in an "… - ODI" account are FPI activity. |
+
+## Phase 4 as built (2026-11-14)
+
+- **Entity type and category (5.3):** the ODI rule is checked first, so an ODI account is FII even if its name contains BANK (DEVIATIONS #76). Names are cleaned (LIMITED to LTD, PRIVATE to PVT) before matching. Explicit categories in `config/entities.json` override the name rules.
+- **Round trips** are grouped by entity id, per symbol and date, with the 10% rule. They are flagged on every row and excluded from flows, entity totals and dealsNet. They stay in the deal rows and are shown as "round trip" on the deals list.
+- **Flows (`deals/flows.json`):** the sums of the rounded row values (2 dp), so totals equal the rows exactly (tested in `site/src/lib/deals.test.ts`).
+- **dealsNet** (07 6A) uses the same flows: the window's FII plus DII net, A above +10 Cr and D below −10 Cr, with the coverage rule in DEVIATIONS #79.
+- **Replication:** `docs/research/scripts/signal_fwd4.py` now uses the entity categories and flows from the pipeline (DEVIATIONS #84). Its tables are in the 2026-11 study.

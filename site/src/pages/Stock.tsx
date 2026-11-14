@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { calendarOption, stockChartOption } from '../charts/options';
+import { dealFlowBarsOption } from '../charts/deals';
 import { barHolding, barSpecOf, baselineLabel, periodChartOption, periodTitle } from '../charts/periods';
 import { FootprintCard, PeriodSummary, rangeSpanText } from '../components/PeriodPanels';
 import { aggregatePeriods, aggregateRange, skipSet } from '../lib/aggregate';
+import { DEALS_CAVEAT, HISTORY_GAP_NOTE, dealChip, flowsFromSymbol, monthlyFlows } from '../lib/deals';
 import { dataClient } from '../lib/dataClient';
 import { footprintRows, priorWindow } from '../lib/footprint';
 import { periodSignalHistory } from '../lib/signalPerf';
@@ -220,7 +222,17 @@ export default function Stock() {
   const pal = palette(dark);
   const rows = data.data?.rows;
   const chart = useMemo(
-    () => (data.data ? stockChartOption(data.data.rows, data.data.file.corpActions, pal, mobile) : null),
+    () =>
+      data.data
+        ? stockChartOption(
+            data.data.rows,
+            data.data.file.corpActions,
+            pal,
+            mobile,
+            undefined,
+            data.data.file.deals,
+          )
+        : null,
     [data.data, pal, mobile],
   );
   const periodRows = useMemo(
@@ -269,15 +281,26 @@ export default function Stock() {
   const dailyHighlighted = useMemo(
     () =>
       data.data && rangeInfo
-        ? stockChartOption(data.data.rows, data.data.file.corpActions, pal, mobile, {
-            a: rangeInfo.lo,
-            b: rangeInfo.hi,
-          })
+        ? stockChartOption(
+            data.data.rows,
+            data.data.file.corpActions,
+            pal,
+            mobile,
+            {
+              a: rangeInfo.lo,
+              b: rangeInfo.hi,
+            },
+            data.data.file.deals,
+          )
         : null,
     [data.data, rangeInfo, pal, mobile],
   );
   const cal = useMemo(() => (rows ? calendarOption(rows, pal) : null), [rows, pal]);
   const stats = useMemo(() => (rows ? stockStats(rows, win) : null), [rows, win]);
+  const flowMonths = useMemo(
+    () => monthlyFlows(flowsFromSymbol(sym, data.data?.file.dealFlows), null),
+    [sym, data.data],
+  );
 
   if (!u) return <NotFound sym={decodeURIComponent(sym)} />;
   if (data.error) return <ErrorBox message={data.error} />;
@@ -526,20 +549,46 @@ export default function Stock() {
 
       <div className="grid gap-3 md:grid-cols-2">
         <section aria-label="Deals" className="card p-3">
-          <h2 className="mb-1 text-sm font-semibold">Bulk and block deals</h2>
+          <h2 className="mb-1 flex items-center gap-1 text-sm font-semibold">
+            Bulk and block deals
+            <Tip label={<span className="chip">?</span>}>{DEALS_CAVEAT}</Tip>
+          </h2>
+          <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{HISTORY_GAP_NOTE}</p>
           {deals.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              None shown yet. Deals are collected daily and will be listed here, with the named client, in a
-              later phase.
+              No bulk or block deals stored for this stock.
             </p>
           ) : (
-            <ul className="text-sm">
-              {deals.map((d, i) => (
-                <li key={i}>
-                  {fmtDate(d.date)} {d.type} {d.side} {d.client} {fmtCr(d.valueCr)}
-                </li>
-              ))}
+            <ul className="space-y-1 text-sm">
+              {[...deals]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .map((d, i) => (
+                  <li key={i} className="flex flex-wrap items-center gap-1">
+                    <span className="num">{fmtDate(d.date)}</span>
+                    <span className="chip">{dealChip(d)}</span>
+                    {d.roundTrip && <span className="text-xs text-slate-500">round trip, not counted</span>}
+                    {d.entityId ? (
+                      <AppLink to={`/entity/${encodeURIComponent(d.entityId)}`}>
+                        {d.entityName ?? d.client}
+                      </AppLink>
+                    ) : (
+                      <span className="text-slate-600 dark:text-slate-300">{d.client}</span>
+                    )}
+                  </li>
+                ))}
             </ul>
+          )}
+          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Net via deals by month (Rs Cr)
+          </h3>
+          {flowMonths.months.length === 0 ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">No deal flows for this stock.</p>
+          ) : (
+            <EChart
+              option={dealFlowBarsOption(flowMonths, pal)}
+              height={220}
+              ariaLabel="Deal flows by month"
+            />
           )}
         </section>
         <section aria-label="Corporate actions" className="card p-3">

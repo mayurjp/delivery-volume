@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import vectors from './trailVectors.json';
 import { trailForRows, windowView, type TrailCfg, type TrailInput, type TrailResult } from './trail';
+import type { DealsByDate } from './trail';
 
 const V = vectors as unknown as {
   cfg: TrailCfg;
   tradingDays: string[];
   asOfIndex: number;
   stocks: Record<string, TrailInput[]>;
+  deals: Record<string, Record<string, [number, number]>>;
   expected: Record<string, { latest: TrailResult; asOf: TrailResult }>;
 };
 
@@ -44,16 +46,20 @@ function expectSame(got: TrailResult, want: TrailResult, label: string) {
   });
 }
 
+/** The vector deals of one stock, as the browser reads them from dealFlows (FII and DII net, Rs Cr). */
+const dealsOf = (sym: string): DealsByDate =>
+  Object.fromEntries(Object.entries(V.deals[sym] ?? {}).map(([d, [fii, dii]]) => [d, { fii, dii }]));
+
 describe('trailForRows matches the Python twin on the shared vectors', () => {
   for (const sym of Object.keys(V.stocks)) {
     it(`${sym}: latest and an earlier as-of date`, () => {
       expectSame(
-        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg),
+        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg, undefined, dealsOf(sym)),
         V.expected[sym]!.latest,
         `${sym} latest`,
       );
       expectSame(
-        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg, V.asOfIndex),
+        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg, V.asOfIndex, dealsOf(sym)),
         V.expected[sym]!.asOf,
         `${sym} as-of`,
       );
@@ -65,6 +71,10 @@ describe('trailForRows matches the Python twin on the shared vectors', () => {
     expect(windowView(e.AAA!.latest.windows['6M']!).codes[0]).toBe('A');
     expect(windowView(e.BBB!.latest.windows['3M']!).flip).toBe('A→D');
     expect(windowView(e.CCC!.latest.windows['3M']!).codes[3]).toBe('D');
+    expect(windowView(e.AAA!.latest.windows['3M']!).codes[4]).toBe('A'); // named deals: DII bought 63 Cr
+    expect(windowView(e.BBB!.latest.windows['3M']!).codes[4]).toBe('D'); // FII sold 25 Cr
+    expect(windowView(e.AAA!.asOf.windows['1Y']!).codes[4]).toBe('-'); // the as-of 1Y window starts before the history
+    expect(windowView(e.AAA!.latest.windows['3M']!).dealsDii).toBeCloseTo(63, 1);
     expect(windowView(e.DDD!.latest.windows['1Y']!).missing).toBe(3);
   });
 
@@ -72,6 +82,10 @@ describe('trailForRows matches the Python twin on the shared vectors', () => {
     const cut = V.tradingDays[V.asOfIndex]!;
     const days = V.tradingDays.filter((d) => d <= cut);
     const rows = V.stocks.AAA!.filter((r) => r.date <= cut);
-    expectSame(trailForRows(rows, days, V.cfg), V.expected.AAA!.asOf, 'AAA truncated');
+    expectSame(
+      trailForRows(rows, days, V.cfg, undefined, dealsOf('AAA')),
+      V.expected.AAA!.asOf,
+      'AAA truncated',
+    );
   });
 });

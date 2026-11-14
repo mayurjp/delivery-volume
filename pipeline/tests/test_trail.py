@@ -49,7 +49,7 @@ def window_codes(rows, w="3M"):
 
 def test_codes_on_a_synthetic_series():
     rec = window_codes(synth(DAYS))
-    assert rec[0] == "NNNN" and 0.9 < rec[1] < 1.1  # balanced: neutral
+    assert rec[0] == "NNNN-" and 0.9 < rec[1] < 1.1  # balanced: neutral; no deal history: dealsNet missing
     rec = window_codes(synth(DAYS, up_dv=lambda i: 3.0 if last_window(i) else 1.0))
     assert rec[0][0] == "A" and rec[1] > 1.2
     rec = window_codes(synth(DAYS, dn_dv=lambda i: 3.0 if last_window(i) else 1.0))
@@ -79,7 +79,7 @@ def test_spike_persistence_rules():
 
 def test_not_enough_history_is_missing_not_neutral():
     rec = T.trail_for_rows(synth(DAYS[:150]), DAYS[:150], CFG)["windows"]["3M"]
-    assert rec is not None and rec[0][1:] == "---"  # baseline short of 120 days: only delivBal exists
+    assert rec is not None and rec[0][1:] == "----"  # baseline short of 120 days; no deal history configured
     assert T.trail_for_rows(synth(DAYS[:40]), DAYS[:40], CFG)["windows"]["3M"] is None
 
 
@@ -137,7 +137,8 @@ def test_consistency_is_the_share_of_weeks_coded():
 def _multi(rows_by_sym, days):
     syms = sorted(rows_by_sym)
     mats = [T.stock_arrays(rows_by_sym[s], days)[0] for s in syms]
-    return {k: np.concatenate([m[k] for m in mats], axis=1) for k in mats[0]}, syms
+    return {k: (mats[0][k] if np.ndim(mats[0][k]) == 0 else np.concatenate([m[k] for m in mats], axis=1))
+            for k in mats[0]}, syms
 
 
 def test_market_snapshot_equals_the_one_stock_twin_path():
@@ -229,12 +230,21 @@ def build_trail_vectors() -> dict:
                      spike=lambda i: 2.2 if (lw(i) and i % 6 == 1) else None),
         "DDD": synth(days, seed=24)[n - 150:],  # listed late: little history
     }
-    cfg = T.trail_cfg()
+    # named deals (Phase 4): FII and DII net Rs Cr per day; deal history starts at day 100 so the 1Y window of the
+    # as-of date (n-61) starts before it and is missing, while the latest 1Y window is covered
+    cfg = {**T.trail_cfg(), "dealsFrom": days[100]}
+    deals = {
+        "AAA": {d: [0.0, 1.0] for d in days[-126:]},  # DII buys 126 Cr over 6 months: A
+        "BBB": {d: [-0.4, 0.0] for d in days[-63:]},  # FII sells 25 Cr over 3 months: D
+        "CCC": {d: [0.05, 0.0] for d in days[-200:]},  # tiny: N
+        "DDD": {},  # covered, no deals: N
+    }
     expected = {}
     for sym, rows in stocks.items():
-        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg),
-                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61)}
-    return {"cfg": cfg, "tradingDays": days, "asOfIndex": n - 61, "stocks": stocks,
+        dl = {d: (v[0], v[1]) for d, v in deals[sym].items()}
+        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg, deals=dl),
+                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61, deals=dl)}
+    return {"cfg": cfg, "tradingDays": days, "asOfIndex": n - 61, "stocks": stocks, "deals": deals,
             "expected": json.loads(json.dumps(expected))}
 
 
@@ -242,7 +252,9 @@ def test_trail_vectors_cover_the_cases_and_file_is_current():
     vec = build_trail_vectors()
     e = vec["expected"]
     assert e["AAA"]["latest"]["windows"]["6M"][0][0] == "A" and e["BBB"]["latest"]["windows"]["3M"][12] == "A→D"
-    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---"
+    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---N"
+    assert e["AAA"]["latest"]["windows"]["3M"][0][4] == "A" and e["BBB"]["latest"]["windows"]["3M"][0][4] == "D"
+    assert e["AAA"]["asOf"]["windows"]["1Y"][0][4] == "-"  # the as-of 1Y window starts before the deal history
     assert e["AAA"]["asOf"]["asOf"] == vec["tradingDays"][vec["asOfIndex"]]
     text = json.dumps(vec, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
     if not TRAIL_VECTORS.exists() or TRAIL_VECTORS.read_text(encoding="utf-8") != text:

@@ -407,3 +407,14 @@ The push then triggers the build and deploy jobs. README.md must document:
 - **Symbol-change merge test**, deal dedupe test, round-trip detection test, entity normalisation and FII/DII categorisation test, signal-classification boundary tests.
 - **Shareholding test:** parse 2 real XBRL fixtures (one large-cap, one small-cap). The category %s must sum to 100 ± 0.1. Named holders > 1% must be extracted. The QoQ `chg` labels (`NEW`, `UP`, `DOWN`, `EXITED`) must be correct on a synthetic two-quarter pair.
 - **Golden test:** `build` on a fixture store produces JSON that validates against the schemas and matches a stored snapshot.
+
+## Phase 4 as built (2026-11-14)
+
+- `pipeline/entities.py` (cleaning, type and category rules, seeded resolver), `pipeline/deals.py` (deal rows, round trips, flows, entity totals), `pipeline/institutional.py` (readers for S5/S6/S7/S8), `pipeline/build/deals.py` (writes the files below).
+- `config/entities.json`: an object with a `README` array and an `entities` list (DEVIATIONS #76).
+- `deals/{YYYY}.json`, `deals/flows.json`, `deals/entities.json` in the table shape. The `deals/entities.json` columns `disclosedHoldingsCount` and `disclosedHoldingsQuarter` are null until 4B (DEVIATIONS #78).
+- `symbols/{f}.json` `deals` holds one object per deal row for the stock (with `entityName` and `entityCategory`), and `dealFlows` holds one row per date and category, round trips excluded.
+- `institutional/cash.json` (one row per trading day since collection began, nulls for missing days, `collectingSince`), `institutional/participants.json` (`oi` and `vol` tables), `institutional/fii_deriv.json`.
+- Schemas: `institutional_cash`, `institutional_part`, `fii_deriv`, `deals_year`, `deals_flows`, `deals_entities` in `pipeline/schemas/`.
+- `trail/latest.json` and `trail/asof/*.json` gain the `dealsNet` indicator (fifth code) and the `dealsFii` and `dealsDii` window cells (07 6A, DEVIATIONS #79 and #80).
+- Commands: `fetch`, `backfill` and `update` include S5, S6 and S7. `status` lists S5 to S7 and the deals store.

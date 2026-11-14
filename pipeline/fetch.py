@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import time
 from datetime import date
 
@@ -15,7 +16,7 @@ from .http import Client, Response
 from .sources import REGISTRY
 from .sources import s11_constituents as s11
 
-DAILY_ORDER = ["s1", "s2", "s4", "s12", "s13", "s14"]
+DAILY_ORDER = ["s1", "s2", "s4", "s5", "s6", "s7", "s12", "s13", "s14"]
 SNAPSHOT_ORDER = ["s11", "s15", "s17"]
 FETCHABLE = DAILY_ORDER + SNAPSHOT_ORDER
 SNAPSHOT_RECHECK_DAYS = 6
@@ -155,10 +156,31 @@ def fetch_s13(client: Client, d: date, force: bool) -> str:
     return STORED
 
 
+def fetch_s7(client: Client, d: date, force: bool) -> str:
+    """S7 FII derivatives statistics: the legacy .xls is parsed and stored as JSON (store/fii_stats/YYYY/DATE.json)."""
+    if store.exists("fii_stats", d, "json") and not force:
+        return SKIPPED
+    r = _get(client, "S7", REGISTRY["S7"].urls(d)[0][1], d)
+    code = _classify(r)
+    if code:
+        return code
+    parsed, err = _validate("s7", r, d)
+    if err:
+        _warn(f"S7 {d} schema_mismatch: {err}")
+        client.log("S7", d.isoformat(), r, status="schema_mismatch")
+        return INVALID
+    text = json.dumps(parsed.data, indent=1, sort_keys=True) + "\n"
+    store.write_atomic(store.path_for("fii_stats", d, "json"), text.encode("utf-8"), force=True)
+    return STORED
+
+
 FETCHERS = {
     "s1": fetch_s1,
     "s2": fetch_s2,
     "s4": fetch_s4,
+    "s5": _raw_source("s5", "participant_oi", "csv", False),
+    "s6": _raw_source("s6", "participant_vol", "csv", False),
+    "s7": fetch_s7,
     "s12": _raw_source("s12", "indices_close", "csv.gz", True),
     "s13": fetch_s13,
     "s14": _raw_source("s14", "fo_ban", "txt", False),

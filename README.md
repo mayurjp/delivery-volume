@@ -9,8 +9,7 @@ static React site reads only that JSON. The browser never talks to NSE. Specs: [
 - SME stocks (series SM, ST) are excluded everywhere, by design.
 - Labels such as "Up on heavy delivery" describe what happened on a day. They are not predictions or advice.
 
-**Status:** Phase 3C adds the **Smart Money Trail** (`#/trail`, `#/trail/:sym`): four delivery footprints per stock, weekly codes, the strongest accumulation and distribution lists, taste changes, sector rotation, month-end as-of snapshots and a track record per list and indicator (docs/specs/07-run-forensics.md section 6A). It also adds S17 (NSE symbol changes, so renamed stocks such as ZOMATO to ETERNAL have one continuous history), a rolling publish window (`publish.historyTradingDays`, 750 days) and two small fixes. Phase 3B adds 3 years of history (744 trading days) and the D / W / M / Q / Custom timeframes (docs/specs/08-timeframes.md). Phases 0-2 are done: the pipeline and backfill, the Dashboard, Screener (day mode), Stock page, Learn and
-Watchlist, the workflows, and daily collection of FII/DII cash and bulk/block deals into `store/` (no UI yet).
+**Status:** Phase 4 adds **institutions and deals**: FII and DII cash (`#/institutions`), participant derivatives positioning (S5/S6, about one year), FII derivatives statistics (S7, backfilled), the **Deals** page (`#/deals`) with an FII vs DII table by stock, **entity pages** (`#/entity/:id`) built from `config/entities.json`, deal markers and a deal-flow chart on every stock page, and the trail's **named deals** indicator (07 section 6A). Deal history before 2026-11-14 is incomplete on busy days (the historical endpoint returns at most 70 records per request); daily collection is complete from 2026-11-14. Phase 3C added the Smart Money Trail (`#/trail`, `#/trail/:sym`), S17 symbol changes and the rolling publish window. Phase 3B added 3 years of history and the D / W / M / Q / Custom timeframes. Phases 0-2 are done: the pipeline and backfill, the Dashboard, Screener, Stock page, Learn and Watchlist, the workflows, and daily collection.
 
 ## Setup (Windows, PowerShell)
 
@@ -30,6 +29,7 @@ Pipeline (from the repo root):
 ```powershell
 .venv\Scripts\python -m pipeline status                                     # coverage table and gaps
 .venv\Scripts\python -m pipeline backfill --from 2025-11-01                 # resumable; about 1 request/second
+.venv\Scripts\python -m pipeline backfill --from 2025-11-01 --sources s5,s6,s7   # participant OI/volume and FII derivatives statistics
 .venv\Scripts\python -m pipeline update                                     # fetch the last 7 days + FII/DII + deals, then build
 .venv\Scripts\python -m pipeline update --no-build                          # fetch only
 .venv\Scripts\python -m pipeline collect                                    # only the latest FII/DII cash and bulk/block deals

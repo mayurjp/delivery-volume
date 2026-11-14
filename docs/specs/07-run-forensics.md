@@ -262,3 +262,11 @@ Each of those phases' acceptance includes "the indicator is wired into the trail
 
 - Phase 5B, after Phase 5. It needs Phase 4 entities and deals, Phase 4B holdings, and Phase 5 F&O.
 - The delivery-only parts (§1–5 without big-player fields, plus the Runs tab) may be built earlier if convenient. They must leave slots for the later fields.
+
+## Phase 4 as built (2026-11-14)
+
+- **Staged delivery, row 4 (named deals) is built:** the `dealsNet` indicator is wired into the weekly codes, the window tally, consistency, flip, the strip and the track record (`stats/trail_perf.json`, rows `dealsNet:A|D|N`). The Python twin (`pipeline/trail.py`) and the TypeScript twin (`site/src/lib/trail.ts`) read the same shared vectors (`trailVectors.json`, which now carry per-stock deal flows).
+- **Thresholds:** `config/signals.json → smartMoney.dealsNet` (`aboveA` 10, `belowD` −10, Rs Cr). The `flipMinIndicators` stays 2 while fewer than 6 indicators exist (five now).
+- **Sector rotation** gains the FII and DII deal flows. **Insights:** one deals template, "Via deals, FIIs net sold ₹X Cr in <sector> while DIIs bought ₹Y Cr over <window>", tested against the sector row (DEVIATIONS #81).
+- **Stock mode:** the named-deals card lists the window's deals with entities and the chip text (DEVIATIONS #82).
+- **Coverage:** the indicator is coded only inside the deal history (from 2025-11-03). The history before 2026-11-14 is incomplete on busy days (DEVIATIONS #87), so the track record for dealsNet is labelled with that limit.

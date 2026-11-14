@@ -68,3 +68,26 @@ def daily_slim_cols() -> list:
 
 def names(cols) -> list[str]:
     return [c[0] for c in cols]
+
+# Phase 4 (docs/specs/03 5.7 and 5.8): institutional and deals tables. The `s/i/f/b` kinds drive the cell-type checks.
+CASH = [("date", "s", None), ("fiiBuy", "f", 2), ("fiiSell", "f", 2), ("fiiNet", "f", 2), ("diiBuy", "f", 2),
+        ("diiSell", "f", 2), ("diiNet", "f", 2)]
+PARTICIPANT = [("date", "s", None), ("participant", "s", None), ("futIdxLong", "i", None), ("futIdxShort", "i", None),
+               ("futStkLong", "i", None), ("futStkShort", "i", None), ("optIdxCallLong", "i", None),
+               ("optIdxPutLong", "i", None), ("optIdxCallShort", "i", None), ("optIdxPutShort", "i", None),
+               ("optStkCallLong", "i", None), ("optStkPutLong", "i", None), ("optStkCallShort", "i", None),
+               ("optStkPutShort", "i", None), ("totalLong", "i", None), ("totalShort", "i", None)]
+FII_DERIV = [("date", "s", None), ("category", "s", None), ("level", "s", None), ("buyContracts", "f", 2),
+             ("buyAmtCr", "f", 2), ("sellContracts", "f", 2), ("sellAmtCr", "f", 2), ("oiContracts", "f", 2),
+             ("oiAmtCr", "f", 2)]
+DEALS = [("date", "s", None), ("type", "s", None), ("sym", "s", None), ("client", "s", None),
+         ("entityId", "s", None), ("entityName", "s", None), ("entityType", "s", None),
+         ("entityCategory", "s", None), ("entityTypeInferred", "b", None), ("side", "s", None), ("qty", "i", None),
+         ("price", "f", 2), ("valueCr", "f", 2), ("roundTrip", "b", None)]
+FLOWS = [("date", "s", None), ("sym", "s", None), ("category", "s", None), ("buyValueCr", "f", 2),
+         ("sellValueCr", "f", 2), ("netValueCr", "f", 2)]
+ENTITIES = [("entityId", "s", None), ("entityName", "s", None), ("entityType", "s", None),
+            ("entityCategory", "s", None), ("aliases", "j", None), ("dealCount", "i", None),
+            ("buyValueCr", "f", 2), ("sellValueCr", "f", 2), ("netValueCr", "f", 2), ("firstDate", "s", None),
+            ("lastDate", "s", None), ("topSymbols", "j", None), ("disclosedHoldingsCount", "i", None),
+            ("disclosedHoldingsQuarter", "s", None)]

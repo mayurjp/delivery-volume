@@ -152,6 +152,13 @@ def schemas() -> dict[str, dict]:
                 {"type": ["number", "null"]}]}},
         }}
     out["split_bonus"] = _table(C.SPLIT_BONUS, title="stats/split_bonus.json")
+    # Phase 4: institutional (03 5.7) and deals (03 5.8) tables
+    out["institutional_cash"] = _table(C.CASH, title="institutional/cash.json")
+    out["institutional_part"] = _table(C.PARTICIPANT, title="institutional/participants.json (oi, vol)")
+    out["fii_deriv"] = _table(C.FII_DERIV, title="institutional/fii_deriv.json")
+    out["deals_year"] = _table(C.DEALS, title="deals/{YYYY}.json")
+    out["deals_flows"] = _table(C.FLOWS, title="deals/flows.json")
+    out["deals_entities"] = _table(C.ENTITIES, title="deals/entities.json")
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},
         "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]}, "etf": {"type": "boolean"},

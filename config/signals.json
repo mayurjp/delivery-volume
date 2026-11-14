@@ -214,6 +214,11 @@
       120
     ],
     "minN": 30,
-    "trackUniverse": "NIFTY500"
+    "trackUniverse": "NIFTY500",
+    "dealsNet": {
+      "aboveA": 10,
+      "belowD": -10,
+      "note": "Rs Cr of FII + DII net value via bulk and block deals over the window; round trips excluded (07 6A, Phase 4)"
+    }
   }
 }

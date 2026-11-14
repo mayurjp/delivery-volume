@@ -129,6 +129,8 @@ export interface Deal {
   type: string;
   client: string;
   entityId: string | null;
+  entityName?: string;
+  entityCategory?: Category;
   side: 'BUY' | 'SELL';
   qty: number;
   price: number;
@@ -154,6 +156,8 @@ export interface SymbolFile {
   rows: unknown[][];
   deals: Deal[];
   corpActions: CorpAction[];
+  /** Per date and category (FII, DII, Other), round trips excluded (03 5.5). */
+  dealFlows: { columns: string[]; rows: unknown[][] };
 }
 
 /** One timeframe block of market.json (weekly / monthly / quarterly): the same groups and fields as the daily block, per period. */
@@ -392,4 +396,98 @@ export interface TrailPerfDoc {
   label: string;
   columns: string[];
   rows: unknown[][];
+}
+
+// ---- Phase 4: institutions and deals (03 5.7, 5.8) -------------------------------------------------------------------
+
+export type Category = 'FII' | 'DII' | 'Other';
+
+/** One deal row of deals/{YYYY}.json (columns as published). */
+export interface DealRow {
+  date: string;
+  type: string;
+  sym: string;
+  client: string;
+  entityId: string;
+  entityName: string;
+  entityType: string;
+  entityCategory: Category;
+  entityTypeInferred: boolean;
+  side: 'BUY' | 'SELL';
+  qty: number;
+  price: number;
+  valueCr: number;
+  roundTrip: boolean;
+}
+
+/** deals/flows.json: per stock, date and category, round trips excluded. */
+export interface FlowRow {
+  date: string;
+  sym: string;
+  category: Category;
+  buyValueCr: number;
+  sellValueCr: number;
+  netValueCr: number;
+}
+
+/** deals/entities.json. disclosedHolding* are filled in by Phase 4B (S16), null until then. */
+export interface EntityRow {
+  entityId: string;
+  entityName: string;
+  entityType: string;
+  entityCategory: Category;
+  aliases: string[];
+  dealCount: number;
+  buyValueCr: number;
+  sellValueCr: number;
+  netValueCr: number;
+  firstDate: string;
+  lastDate: string;
+  topSymbols: string[];
+  disclosedHoldingsCount: number | null;
+  disclosedHoldingsQuarter: string | null;
+}
+
+/** institutional/cash.json (Rs Crore; nulls on days with no S8 record). */
+export interface CashRow {
+  date: string;
+  fiiBuy: number | null;
+  fiiSell: number | null;
+  fiiNet: number | null;
+  diiBuy: number | null;
+  diiSell: number | null;
+  diiNet: number | null;
+}
+
+/** institutional/participants.json, one table for OI and one for volume. */
+export interface ParticipantRow {
+  date: string;
+  participant: 'FII' | 'DII' | 'Pro' | 'Client';
+  futIdxLong: number;
+  futIdxShort: number;
+  futStkLong: number;
+  futStkShort: number;
+  optIdxCallLong: number;
+  optIdxPutLong: number;
+  optIdxCallShort: number;
+  optIdxPutShort: number;
+  optStkCallLong: number;
+  optStkPutLong: number;
+  optStkCallShort: number;
+  optStkPutShort: number;
+  totalLong: number;
+  totalShort: number;
+}
+
+/** institutional/fii_deriv.json (S7): one row per date and category row. */
+export interface FiiDerivRow {
+  date: string;
+  category: string;
+  level: 'total' | 'instrument';
+  buyContracts: number | null;
+  buyAmtCr: number | null;
+  sellContracts: number | null;
+  sellAmtCr: number | null;
+  oiContracts: number | null;
+  oiAmtCr: number | null;
 }

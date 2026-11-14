@@ -1,0 +1,78 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "institutional/cash.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "date",
+    "fiiBuy",
+    "fiiSell",
+    "fiiNet",
+    "diiBuy",
+    "diiSell",
+    "diiNet"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "array",
+    "minItems": 7,
+    "maxItems": 7,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

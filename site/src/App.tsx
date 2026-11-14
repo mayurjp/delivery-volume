@@ -15,6 +15,9 @@ const Stats = lazy(() => import('./pages/Stats'));
 const Trail = lazy(() => import('./pages/Trail'));
 const Placeholder = lazy(() => import('./pages/Placeholder'));
 const Watchlist = lazy(() => import('./pages/Watchlist'));
+const Institutions = lazy(() => import('./pages/Institutions'));
+const Deals = lazy(() => import('./pages/Deals'));
+const EntityPage = lazy(() => import('./pages/Deals').then((m) => ({ default: m.EntityPage })));
 
 function Loaded() {
   const meta = useMeta();
@@ -45,9 +48,9 @@ function Loaded() {
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="compare" element={<Compare />} />
           <Route path="heatmap" element={<Heatmap />} />
-          <Route path="institutions" element={<Placeholder title="Institutions" />} />
-          <Route path="deals" element={<Placeholder title="Deals" />} />
-          <Route path="entity/:id" element={<Placeholder title="Entity" />} />
+          <Route path="institutions" element={<Institutions />} />
+          <Route path="deals" element={<Deals />} />
+          <Route path="entity/:id" element={<EntityPage />} />
           <Route path="stats" element={<Stats />} />
           <Route path="trail" element={<Trail />} />
           <Route path="trail/:sym" element={<Trail />} />

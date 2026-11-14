@@ -178,3 +178,15 @@ so FPI named holders will often be absent.
 
 - Observed publish-time sweep (needs runs at 17:00/18:00/19:00/21:00 IST on a trading day).
 - Fixtures for 2 real XBRL files and parsing code are Phase 4B.
+
+## Phase 4 (2026-11-14): S5 to S10 in the pipeline
+
+| Source | Stored | Result |
+|--------|--------|--------|
+| S5 participant OI | 256 raw files (`store/participant_oi`), 2025-11-03 to 2026-11-13 | The existing S5 parser reads every stored file unchanged (256 of 256 valid; four participants and a TOTAL row, Long equals Short). Backfill from `backfillFrom` skips them. |
+| S6 participant volume | 256 raw files (`store/participant_vol`) | As S5 (256 of 256 valid). |
+| S7 FII derivatives statistics | 256 days fetched with `backfill --sources s5,s6,s7`: 256 stored, 0 failures, 1 request per second. Parsed JSON in `store/fii_stats/YYYY/DATE.json`. | The layout in the section above holds for every day checked (four total rows present; the parser's title-date check passes). The 13-Nov-2026 file is committed as a test fixture (`pipeline/tests/fixtures/fii_stats_sample.xls`). |
+| S8 FII/DII cash | One trade date stored (2026-11-13, `store/fii_dii_cash/2026.jsonl`). Collected by the scheduled job from GitHub Actions. | Unchanged. The five-consecutive-day acceptance is pending the scheduled job; it is verified by the user, not from this PC (cookie-gated calls were not made from this machine, by instruction). |
+| S9 / S10 deals | 19,047 rows in `store/deals/2025.csv` and `2026.csv`, from 2025-11-03 to 2026-11-13. The build keeps 16,599 (SME-only names dropped, DEVIATIONS #77). | The dedupe holds: a re-run on the same day adds 0 rows (tested). **History gap:** the historical endpoint returns at most 70 records per request, so busy days before 2026-11-14 are truncated (`store/deals/_backfill.json`). Daily files are complete from 2026-11-14. |
+
+`verify-sources` was not re-run for this phase: it calls the cookie-gated S8 and S16, and cookie-gated calls are not made from this PC (instruction). S5 to S7 and S9/S10 were checked through the parsers and the backfill above.

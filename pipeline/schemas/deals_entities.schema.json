@@ -1,0 +1,125 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "deals/entities.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "entityId",
+    "entityName",
+    "entityType",
+    "entityCategory",
+    "aliases",
+    "dealCount",
+    "buyValueCr",
+    "sellValueCr",
+    "netValueCr",
+    "firstDate",
+    "lastDate",
+    "topSymbols",
+    "disclosedHoldingsCount",
+    "disclosedHoldingsQuarter"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "array",
+    "minItems": 14,
+    "maxItems": 14,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "array"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "array"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

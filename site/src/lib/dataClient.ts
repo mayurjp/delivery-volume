@@ -19,6 +19,12 @@ import type {
   TrailPerfDoc,
   TrailPerfRow,
   UniverseRow,
+  CashRow,
+  ParticipantRow,
+  FiiDerivRow,
+  DealRow,
+  FlowRow,
+  EntityRow,
 } from '../types/data';
 
 /**
@@ -262,6 +268,46 @@ export class DataClient {
 
   trailPerf(): Promise<TrailPerfRow[]> {
     return this.cached('trailPerf:rows', async () => rowsToObjects<TrailPerfRow>(await this.trailPerfDoc()));
+  }
+
+  /** deals/{YYYY}.json: every deal row of one year (Phase 4, 03 5.8). */
+  dealsYear(year: number): Promise<DealRow[]> {
+    return this.cached(`deals/${year}`, async () =>
+      rowsToObjects<DealRow>(await this.fetchData<Table>(`deals/${year}.json`)),
+    );
+  }
+
+  /** deals/flows.json: per stock, date and category (round trips excluded). */
+  dealFlows(): Promise<FlowRow[]> {
+    return this.table<FlowRow>('deals/flows.json');
+  }
+
+  /** deals/entities.json: one row per entity, with its aliases. */
+  entities(): Promise<EntityRow[]> {
+    return this.table<EntityRow>('deals/entities.json');
+  }
+
+  /** institutional/cash.json: the FII/DII cash table and the first collected day. */
+  async institutionalCash(): Promise<{ rows: CashRow[]; collectingSince: string | null }> {
+    return this.cached('institutional/cash', async () => {
+      const doc = await this.fetchData<Table & { collectingSince?: string | null }>(
+        'institutional/cash.json',
+      );
+      return { rows: rowsToObjects<CashRow>(doc), collectingSince: doc.collectingSince ?? null };
+    });
+  }
+
+  /** institutional/participants.json: participant OI and volume tables (FII, DII, Pro, Client). */
+  participants(): Promise<{ oi: ParticipantRow[]; vol: ParticipantRow[] }> {
+    return this.cached('institutional/participants', async () => {
+      const doc = await this.fetchData<{ oi: Table; vol: Table }>('institutional/participants.json');
+      return { oi: rowsToObjects<ParticipantRow>(doc.oi), vol: rowsToObjects<ParticipantRow>(doc.vol) };
+    });
+  }
+
+  /** institutional/fii_deriv.json: S7 FII derivatives statistics. */
+  fiiDeriv(): Promise<FiiDerivRow[]> {
+    return this.table<FiiDerivRow>('institutional/fii_deriv.json');
   }
 
   symbol(fileKey: string): Promise<{ file: SymbolFile; rows: SymbolRow[] }> {

@@ -374,3 +374,9 @@ There is no holiday API. **A trading day is a date for which S1 exists.**
 | Monthly mutual-fund portfolios | Published by each AMC, not by NSE. Not in v1. |
 | Short-selling reports | Not verified. Do not add without asking. |
 | Historical FII/DII cash data from NSE | Not available from NSE. Collect from day one. |
+
+## Phase 4 notes (as built, 2026-11-14)
+
+- **S5, S6** are stored as downloaded (raw CSV) and parsed by the existing modules. **S7** is parsed to `store/fii_stats/YYYY/DATE.json` (DEVIATIONS #75). All three are in `DAILY_ORDER`, so `update` and `backfill` fetch them.
+- **S9 / S10:** `store/deals` is unchanged. The build drops deal rows of SME-only names and maps renamed symbols (DEVIATIONS #77). The history gap is stated on every deals view (DEVIATIONS #87).
+- **S8:** unchanged. Only the latest day can be collected; the trade dates in `store/fii_dii_cash/2026.jsonl` are the record.

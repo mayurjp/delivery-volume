@@ -6,7 +6,8 @@ import { sectorBarOption, sectorGridOption, stockTrailOption } from '../charts/t
 import { AppLink, Empty, ErrorBox, Skeleton } from '../components/ui';
 import { corpActionSyms } from '../lib/range';
 import { dataClient } from '../lib/dataClient';
-import { fmtDate, fmtInt, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
+import { DEALS_CAVEAT, dealChip, dealsByDate, round2, signedValue } from '../lib/deals';
+import { fmtCr, fmtDate, fmtInt, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
 import { useApp, useAsync, useCum, useSymbol, useTrail, useTrailPerf } from '../lib/hooks';
 import { useDark } from '../lib/theme';
 import {
@@ -21,6 +22,7 @@ import {
 import {
   EVIDENCE_LABEL,
   HISTORICAL_LABEL,
+  MIN_PERF_DATES,
   TRAIL_UNIVERSES,
   WINDOW_LABEL,
   buildInsights,
@@ -29,13 +31,14 @@ import {
   narrative,
   parseTrail,
   perfRow,
+  perfThin,
   rankLists,
   sectorGrid,
   sectorMedian,
   sectorRotation,
   type TrailEntry,
 } from '../lib/trailView';
-import type { TrailDoc, TrailPerfRow } from '../types/data';
+import type { Deal, TrailDoc, TrailPerfRow } from '../types/data';
 
 const CODE_CLASS: Record<string, string> = {
   A: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900',
@@ -54,6 +57,7 @@ const IND_SHORT: Record<string, string> = {
   delivPctTrend: 'Delivery % trend',
   tradeSizeTrend: 'Trade size trend',
   spikePersist: 'Spike persistence',
+  dealsNet: 'Named deals',
 };
 
 function CodeChip({ code }: { code: string }) {
@@ -255,11 +259,14 @@ function TrackRecord({
   const row = (kind: 'list' | 'indicator', id: string, label: string) => {
     const cells = [60, 120].map((h) => {
       const r = perfRow(perf, kind, id, win, h);
-      const thin = !r || r.n < minN || r.medianExcess === null;
+      const thin = perfThin(r, minN);
       return (
         <td key={h} colSpan={1} className="text-right">
-          {thin ? (
-            <span className="text-slate-400">n {r?.n ?? 0}</span>
+          {thin || !r || r.medianExcess === null ? (
+            <span className="text-slate-400" title={thin ?? undefined}>
+              n {r?.n ?? 0}
+              {r && r.dates < MIN_PERF_DATES ? `, ${r.dates} dates` : ''}
+            </span>
           ) : (
             <>
               {fmtPctChg(r.medianExcess, 1)}{' '}
@@ -604,6 +611,18 @@ function TrailMarket() {
                         <th className="font-medium">D</th>
                         <th className="font-medium">Balance</th>
                         <th className="font-medium">Flips A to D / D to A</th>
+                        <th
+                          className="font-medium"
+                          title="FII net via named bulk and block deals over the window"
+                        >
+                          FII via deals, Cr
+                        </th>
+                        <th
+                          className="font-medium"
+                          title="DII net via named bulk and block deals over the window"
+                        >
+                          DII via deals, Cr
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -628,6 +647,8 @@ function TrailMarket() {
                           <td>
                             {r.flipsAD} / {r.flipsDA}
                           </td>
+                          <td>{fmtNum(r.fiiDeals, 1)}</td>
+                          <td>{fmtNum(r.diiDeals, 1)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -657,6 +678,49 @@ function TrailMarket() {
 
 // ---- stock mode ---------------------------------------------------------------------------------------------------------
 
+/** The named deals of the window, with the entity behind each one (Phase 4, 07 6A stock mode). */
+function NamedDealsCard({ deals, startDate, win }: { deals: Deal[]; startDate: string; win: WindowName }) {
+  const rows = deals
+    .filter((d) => !d.roundTrip && d.date >= startDate)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const fii = rows.filter((d) => d.entityCategory === 'FII');
+  const dii = rows.filter((d) => d.entityCategory === 'DII');
+  const net = (xs: Deal[]) => round2(xs.reduce((t, d) => t + signedValue(d), 0));
+  return (
+    <section aria-label="Named deals" className="card min-w-0 p-3" data-testid="stock-named-deals">
+      <h2 className="mb-1 text-sm font-semibold">Named deals, {WINDOW_LABEL[win]}</h2>
+      <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+        {DEALS_CAVEAT} Round trips are excluded from the totals. FII net {fmtCr(net(fii))}, DII net{' '}
+        {fmtCr(net(dii))}.
+      </p>
+      {rows.length === 0 ? (
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          No named bulk or block deals in this window.
+        </p>
+      ) : (
+        <ul className="space-y-1 text-sm">
+          {rows.map((d, i) => (
+            <li key={`${d.date}-${i}`} className="flex flex-wrap items-center gap-2">
+              <span className="num">{fmtDate(d.date)}</span>
+              <span className="chip">{dealChip(d)}</span>
+              {d.entityId ? (
+                <Link
+                  className="text-blue-700 underline dark:text-blue-300"
+                  to={`/entity/${encodeURIComponent(d.entityId)}`}
+                >
+                  {d.entityName ?? d.client}
+                </Link>
+              ) : (
+                <span>{d.client}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function TrailStock({ sym }: { sym: string }) {
   const { meta, bySym } = useApp();
   const dark = useDark();
@@ -670,7 +734,16 @@ function TrailStock({ sym }: { sym: string }) {
   const perf = useTrailPerf();
   const cfg = latest.data?.config as TrailCfg | undefined;
   const result = useMemo(
-    () => (data.data && cfg ? trailForRows(data.data.rows, meta.tradingDays, cfg) : null),
+    () =>
+      data.data && cfg
+        ? trailForRows(
+            data.data.rows,
+            meta.tradingDays,
+            cfg,
+            undefined,
+            dealsByDate(data.data.file.dealFlows),
+          )
+        : null,
     [data.data, cfg, meta.tradingDays],
   );
   const closes = useMemo(() => {
@@ -870,7 +943,9 @@ function TrailStock({ sym }: { sym: string }) {
                                   ? fmtNum(t.delivPctTrend, 1)
                                   : id === 'tradeSizeTrend'
                                     ? fmtNum(t.tradeSizeTrend, 0)
-                                    : (t.spikeDays ?? '—')}
+                                    : id === 'spikePersist'
+                                      ? (t.spikeDays ?? '—')
+                                      : ''}
                             </span>
                           </span>
                         </td>
@@ -884,6 +959,13 @@ function TrailStock({ sym }: { sym: string }) {
               </table>
             </div>
           </section>
+          {data.data && cfg && (
+            <NamedDealsCard
+              deals={data.data.file.deals}
+              startDate={meta.tradingDays[Math.max(0, meta.tradingDays.length - cfg.windows[win].days)] ?? ''}
+              win={win}
+            />
+          )}
           {latest.data && <Slots doc={latest.data} />}
         </>
       )}

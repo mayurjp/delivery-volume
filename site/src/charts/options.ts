@@ -1,6 +1,7 @@
 import { fmtDate, fmtInt, fmtNum, fmtPct, fmtPctChg, fmtPrice, fmtQty, fmtRatio } from '../lib/format';
 import { rollingBand } from '../lib/metrics';
-import type { CorpAction, Market, SymbolRow } from '../types/data';
+import type { CorpAction, Deal, Market, SymbolRow } from '../types/data';
+import { dealMarkPoints } from './deals';
 import type { EChartsOption } from './echarts';
 import type { Palette } from './theme';
 
@@ -50,8 +51,10 @@ export function stockChartOption(
   p: Palette,
   mobile: boolean,
   highlight?: { a: string; b: string },
+  deals: readonly Deal[] = [],
 ): EChartsOption {
   const dates = rows.map((r) => r.date);
+  const dealPts = dealMarkPoints(deals, rows, p);
   const delivered = rows.map((r) => r.delivQty);
   const nonDelivered = rows.map((r) => (r.vol !== null && r.delivQty !== null ? r.vol - r.delivQty : null));
   const dp = rows.map((r) => r.delivPct);
@@ -192,6 +195,7 @@ export function stockChartOption(
         data: rows.map((r) => [nn(r.open), nn(r.close), nn(r.low), nn(r.high)]),
         itemStyle: { color: p.up, color0: p.down, borderColor: p.up, borderColor0: p.down },
         markLine: markLines.length ? { symbol: 'none', silent: true, data: markLines } : undefined,
+        markPoint: dealPts.length ? { silent: false, data: dealPts } : undefined,
         markArea:
           hi && hi.a >= 0 && hi.b >= hi.a
             ? {

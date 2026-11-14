@@ -17,14 +17,14 @@ LISTS = [("strongA", "Strongest accumulation trail"), ("strongD", "Strongest dis
          ("flip", "Taste changing (any flip)"), ("flipAD", "Flip, accumulation to distribution"),
          ("flipDA", "Flip, distribution to accumulation")]
 IND_LABELS = {"delivBal": "Delivery balance (up days vs down days)", "delivPctTrend": "Delivery % trend vs own baseline",
-              "tradeSizeTrend": "Average trade size trend", "spikePersist": "Delivery spike persistence"}
-SLOTS = [{"id": "namedDeals", "label": "Named bulk/block deals (FII + DII net)", "arrives": "Phase 4"},
-         {"id": "holdings", "label": "Holdings change (FII, DII, MF)", "arrives": "Phase 4B"},
+              "tradeSizeTrend": "Average trade size trend", "spikePersist": "Delivery spike persistence",
+              "dealsNet": "Named deals, FII + DII net (bulk and block)"}
+SLOTS = [{"id": "holdings", "label": "Holdings change (FII, DII, MF)", "arrives": "Phase 4B"},
          {"id": "promoter", "label": "Promoter holdings change", "arrives": "Phase 4B"},
          {"id": "fnoOi", "label": "F&O open interest with price", "arrives": "Phase 5"}]
 CONFIG_KEYS = ["windows", "baselineDays", "minBaselineDays", "minWindowFraction", "delivBal", "delivPctTrendPp",
                "tradeSizeTrendPct", "spike", "weekDays", "weekMargin", "flipDays", "flipMinIndicators", "stripWeeks",
-               "listSize", "persistent"]
+               "listSize", "persistent", "dealsNet", "dealsFrom"]
 LABEL = ("Evidence summary, not advice. You decide. Historical, one sample period, today's index membership "
          "(survivorship bias), before costs. Not a prediction.")
 
@@ -35,6 +35,8 @@ def indicator_defs(cfg: dict) -> list[dict]:
         "delivBal": f"A above {cfg['delivBal']['aboveA']}, D below {cfg['delivBal']['belowD']}",
         "delivPctTrend": f"A above +{cfg['delivPctTrendPp']} pp, D below -{cfg['delivPctTrendPp']} pp",
         "tradeSizeTrend": f"A above +{cfg['tradeSizeTrendPct']}%, D below -{cfg['tradeSizeTrendPct']}%",
+        "dealsNet": (f"A above +{cfg['dealsNet']['aboveA']} Cr, D below {cfg['dealsNet']['belowD']} Cr of FII + DII net "
+                     "value via bulk and block deals over the window (round trips excluded); null before the deal history"),
         "spikePersist": (f"persistent when at least {sp['minDays']} spike days and a spike-day rate at least "
                          f"{sp['rateMult']}x the baseline; A when spike days on up days are at least {sp['upDownMult']}x "
                          "those on down days, D for the reverse"),
@@ -54,7 +56,8 @@ def _round_inputs(df: pd.DataFrame) -> dict:
 class TrailInputs:
     """Matrices for one build: cumulative sums, the close matrix and the symbol index."""
 
-    def __init__(self, df: pd.DataFrame, days: list[str], syms: list[str]):
+    def __init__(self, df: pd.DataFrame, days: list[str], syms: list[str], flows: pd.DataFrame | None = None,
+                 cfg: dict | None = None):
         self.days, self.syms = days, syms
         Td, S = len(days), len(syms)
         d = df[df["sym"].isin(set(syms))]
@@ -64,7 +67,10 @@ class TrailInputs:
         sj = d["sym"].map(pos).to_numpy()
         v = _round_inputs(d)
         el = T.eligible(d["series"].to_numpy(dtype=object), v["delivq"], v["vol"], v["trades"], d["flags"].to_numpy())
-        self.cs = T.build_cums(ti, sj, Td, S, v["close"], v["prev"], v["dval"], v["turn"], v["trades"], v["spike"], el)
+        dfii, ddii = _deal_matrices(flows, tix, pos, Td, S)
+        self.cs = T.build_cums(ti, sj, Td, S, v["close"], v["prev"], v["dval"], v["turn"], v["trades"], v["spike"], el,
+                               dfii, ddii)
+        self.cs["_dealFrom"] = T.deal_from_index(days, cfg or {})
         close = np.full((Td, S), np.nan)
         prev = np.full((Td, S), np.nan)
         close[ti, sj] = d["close"].to_numpy(dtype="float64")
@@ -72,6 +78,25 @@ class TrailInputs:
         self.close = close
         adj = signal_perf.adjustment_matrix(close, prev)
         self.adj_cum = np.cumsum(np.nan_to_num(adj, nan=0).astype(int), axis=0)
+
+
+def _deal_matrices(flows, tix: dict, pos: dict, Td: int, S: int) -> tuple[np.ndarray, np.ndarray]:
+    """(T, S) matrices of the daily FII and DII net deal value (Rs Cr, round trips excluded), from deals/flows.json rows."""
+    dfii = np.zeros((Td, S))
+    ddii = np.zeros((Td, S))
+    if flows is None or not len(flows):
+        return dfii, ddii
+    f = flows[flows["category"].isin(["FII", "DII"])]
+    ti = f["date"].map(tix)
+    sj = f["sym"].map(pos)
+    keep = (ti.notna() & sj.notna()).to_numpy()
+    ti = ti[keep].to_numpy(dtype=np.int64)
+    sj = sj[keep].to_numpy(dtype=np.int64)
+    net = f["netValueCr"].to_numpy(dtype=np.float64)[keep]
+    is_fii = (f["category"].to_numpy()[keep] == "FII")
+    dfii[ti[is_fii], sj[is_fii]] = net[is_fii]
+    ddii[ti[~is_fii], sj[~is_fii]] = net[~is_fii]
+    return dfii, ddii
 
 
 def month_ends(days: list[str]) -> list[int]:
@@ -184,11 +209,11 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
 
 
 def write_trail(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, signals: dict, out: Path, pub_first: str,
-                n500_bit: int) -> tuple[int, dict]:
-    cfg = T.trail_cfg(signals)
+                n500_bit: int, flows: pd.DataFrame | None = None, deals_from: str | None = None) -> tuple[int, dict]:
+    cfg = {**T.trail_cfg(signals), "dealsFrom": deals_from}
     ud = uni.set_index("sym")
     syms = sorted(set(df["sym"]) & set(ud.index))
-    inp = TrailInputs(df, days, syms)
+    inp = TrailInputs(df, days, syms, flows, cfg)
     idx = ud.loc[syms, "idx"].to_numpy(dtype=np.int64)
     n500 = (idx >> n500_bit) & 1 == 1
     any_index = idx != 0

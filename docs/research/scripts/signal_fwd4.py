@@ -1,13 +1,16 @@
 """Named FII/DII bulk/block deals -> forward returns (read-only over daily JSON + store/deals).
 
 Usage: python -I signal_fwd4.py <project root>
-Clients are classified with the 04 §5.3 keyword heuristic (no entities.json yet):
-  MF / Insurance / Pension / Bank -> DII ; FPI-like -> FII ; everything else (incl. prop/trading) -> Other.
-Same-day round trips (same client, symbol, date, |buy-sell| <= 10% of max) are dropped.
-Event = stock-day with category net value via deals > 0 (buy) or < 0 (sell).
-Forward excess returns vs the daily median of all liquid EQ stocks, entry at close(t) [lag0]
-and at close(t+1) [lag1, realistic: deals are published after the close].
+
+Phase 4 version: the entity categories come from config/entities.json through pipeline/entities.py (the same code the
+build uses), and round trips and the per-stock category net come from pipeline/deals.py (the same flows as
+deals/flows.json). Earlier runs used a keyword heuristic; the old tables are kept in the study document.
+
+Event = stock-day with category net value via deals > 0 (net bought) or < 0 (net sold). Forward excess returns vs the
+daily median of all liquid EQ stocks, entry at close(t) [lag0] and at close(t+1) [lag1: deals are published after the
+close]. Liquidity and flags as in signal_fwd.py.
 """
+import glob
 import json
 import sys
 from pathlib import Path
@@ -15,7 +18,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-root = Path(sys.argv[1])
+root = Path(sys.argv[1]).resolve()
+sys.path.insert(0, str(root))  # -I ignores the script directory, so the project package is added explicitly
+
+from pipeline import deals as D  # noqa: E402
+from pipeline.entities import EntityIndex, load_seeds  # noqa: E402
+
 data = root / "site/public/data"
 frames = []
 for f in sorted((data / "daily").glob("20*.json")):
@@ -27,31 +35,18 @@ daily = pd.concat(frames, ignore_index=True)
 days = sorted(daily["date"].unique())
 tix = {x: i for i, x in enumerate(days)}
 
-deals = pd.concat([pd.read_csv(f) for f in sorted((root / "store/deals").glob("20*.csv"))], ignore_index=True)
-deals["client"] = deals["client"].astype(str).str.upper().str.replace(r"\s+", " ", regex=True).str.strip()
-
-
-def ctype(c):
-    if "MUTUAL FUND" in c or c.endswith(" MF"):
-        return "DII"
-    if "INSURANCE" in c or "ASSURANCE" in c or "PENSION" in c or "PROVIDENT" in c or " BANK" in c:
-        return "DII"
-    if any(k in c for k in ("PTE", " PLC", " LLC", " FUND", "- ODI", "SICAV", "MAURITIUS", "SINGAPORE")):
-        return "FII"
-    return "Other"
-
-
-deals["cat"] = deals["client"].map(ctype)
-deals["val"] = deals["qty"] * deals["price"] / 1e7 * np.where(deals["side"].str.upper() == "BUY", 1, -1)
-deals["bq"] = np.where(deals["side"].str.upper() == "BUY", deals["qty"], 0)
-deals["sq"] = np.where(deals["side"].str.upper() == "SELL", deals["qty"], 0)
-g = deals.groupby(["date", "symbol", "client"]).agg(bq=("bq", "sum"), sq=("sq", "sum"), val=("val", "sum"),
-                                                     cat=("cat", "first")).reset_index()
-rt = (g["bq"] > 0) & (g["sq"] > 0) & ((g["bq"] - g["sq"]).abs() <= 0.1 * np.maximum(g["bq"], g["sq"]))
-print(f"deal rows={len(deals)}  client-stock-days={len(g)}  round trips dropped={int(rt.sum())}")
-print("client-stock-days by category (after RT):", g[~rt]["cat"].value_counts().to_dict())
-net = g[~rt].groupby(["date", "symbol", "cat"])["val"].sum().unstack(fill_value=0.0).reset_index()
-net = net.rename(columns={"symbol": "sym"})
+raw = D.load_raw([pd.read_csv(f, dtype=str, keep_default_na=False)
+                  for f in sorted(glob.glob(str(root / "store/deals/20*.csv")))])
+ds = D.build_deals(raw, EntityIndex(load_seeds(root)), None, None)
+ds = ds[ds["sym"].isin(set(daily["sym"]))]
+print(f"deal rows={len(ds)}  round trips dropped={int(ds['roundTrip'].sum())}  "
+      f"entities={ds['entityId'].nunique()}")
+share = ds.groupby("entityCategory")["valueCr"].sum() / ds["valueCr"].sum()
+print("share of gross deal value by entity category:", {k: round(float(v), 4) for k, v in share.items()})
+fl = D.flows(ds)
+print("stock-days with a category net, by category:", fl["category"].value_counts().to_dict())
+net = fl.pivot_table(index=["date", "sym"], columns="category", values="netValueCr", aggfunc="sum",
+                     fill_value=0.0).reset_index().rename(columns={"sym": "sym"})
 for c in ("FII", "DII", "Other"):
     if c not in net:
         net[c] = 0.0
@@ -94,18 +89,18 @@ def line(name, m):
 
 print(f"  {'event (stock-day, net value via deals)':50s} {'n':>5s} {'days':>4s} | "
       f"{'+20d @close t':>12s} | {'+5d @t+1':>12s} | {'+20d @t+1':>12s}")
-F, D, O = df["FII"], df["DII"], df["Other"]
+F, D_, O = df["FII"], df["DII"], df["Other"]
 heavy = df["spike"] >= 2
 for name, m in [
     ("FII net BUY via deals", F > 0), ("FII net SELL via deals", F < 0),
-    ("DII net BUY via deals", D > 0), ("DII net SELL via deals", D < 0),
-    ("FII buy >= Rs 25 Cr", F >= 25), ("DII buy >= Rs 25 Cr", D >= 25),
-    ("FII sell <= -Rs 25 Cr", F <= -25), ("DII sell <= -Rs 25 Cr", D <= -25),
-    ("FII + DII both net buy", (F > 0) & (D > 0)),
-    ("FII sell, DII buy (handover to DII)", (F < 0) & (D > 0)),
-    ("FII buy, DII sell", (F > 0) & (D < 0)),
-    ("Institutional (FII+DII) net buy + delivery >= 2x", (F + D > 0) & heavy),
-    ("Institutional net buy + price up (ACC)", (F + D > 0) & (df["signal"] == "ACC")),
-    ("Other/unclassified net buy only", (O > 0) & (F == 0) & (D == 0)),
+    ("DII net BUY via deals", D_ > 0), ("DII net SELL via deals", D_ < 0),
+    ("FII buy >= Rs 25 Cr", F >= 25), ("DII buy >= Rs 25 Cr", D_ >= 25),
+    ("FII sell <= -Rs 25 Cr", F <= -25), ("DII sell <= -Rs 25 Cr", D_ <= -25),
+    ("FII + DII both net buy", (F > 0) & (D_ > 0)),
+    ("FII sell, DII buy (handover to DII)", (F < 0) & (D_ > 0)),
+    ("FII buy, DII sell", (F > 0) & (D_ < 0)),
+    ("Institutional (FII+DII) net buy + delivery >= 2x", (F + D_ > 0) & heavy),
+    ("Institutional net buy + price up (ACC)", (F + D_ > 0) & (df["signal"] == "ACC")),
+    ("Other/unclassified net buy only", (O > 0) & (F == 0) & (D_ == 0)),
 ]:
     line(name, m)

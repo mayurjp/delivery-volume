@@ -112,6 +112,9 @@ export interface SectorRow {
   balance: number | null;
   flipsAD: number;
   flipsDA: number;
+  /** Named deals over the window (Rs Cr): FII and DII net of the sector's stocks; null when no stock has deal history. */
+  fiiDeals: number | null;
+  diiDeals: number | null;
 }
 
 export function sectorRotation(
@@ -121,14 +124,26 @@ export function sectorRotation(
 ): SectorRow[] {
   const acc = new Map<
     string,
-    { n: number; nA: number; nD: number; up: number; dn: number; ad: number; da: number }
+    {
+      n: number;
+      nA: number;
+      nD: number;
+      up: number;
+      dn: number;
+      ad: number;
+      da: number;
+      fii: number | null;
+      dii: number | null;
+    }
   >();
   for (const e of entries) {
     const v = e.w[win];
     const sec = bySym.get(e.sym)?.sector;
     if (!v || !sec) continue;
-    const a = acc.get(sec) ?? { n: 0, nA: 0, nD: 0, up: 0, dn: 0, ad: 0, da: 0 };
+    const a = acc.get(sec) ?? { n: 0, nA: 0, nD: 0, up: 0, dn: 0, ad: 0, da: 0, fii: null, dii: null };
     a.n++;
+    if (v.dealsFii !== null) a.fii = (a.fii ?? 0) + v.dealsFii;
+    if (v.dealsDii !== null) a.dii = (a.dii ?? 0) + v.dealsDii;
     if (leansA(v)) a.nA++;
     if (leansD(v)) a.nD++;
     a.up += v.upCr ?? 0;
@@ -147,6 +162,8 @@ export function sectorRotation(
       balance: a.dn > 0 ? a.up / a.dn : null,
       flipsAD: a.ad,
       flipsDA: a.da,
+      fiiDeals: a.fii === null ? null : round2(a.fii),
+      diiDeals: a.dii === null ? null : round2(a.dii),
     }))
     .sort((x, y) => y.netPp - x.netPp || x.sector.localeCompare(y.sector));
 }
@@ -210,6 +227,20 @@ export function perfRow(
   return rows.find((r) => r.kind === kind && r.id === id && r.window === win && r.horizon === horizon);
 }
 
+/**
+ * Minimum distinct month-end as-of dates behind a track-record cell. The n of a cell counts overlapping stock-dates, so
+ * a large n from 3 dates (e.g. the deals indicator, whose history starts 2025-11) is still only 3 observations of the market.
+ */
+export const MIN_PERF_DATES = 6;
+
+/** Why a cell cannot be shown, or null when it can: too few cases (n below minN) or too few as-of dates. */
+export function perfThin(r: TrailPerfRow | undefined, minN = 30): string | null {
+  if (!r || r.n < minN || r.medianExcess === null || r.hitRate === null)
+    return `too few cases${r ? ` (n ${r.n})` : ''}`;
+  if (r.dates < MIN_PERF_DATES) return `too few dates (${r.dates} month-ends)`;
+  return null;
+}
+
 /** "Historically: 60 days +1.5% median excess, 54% hit rate (n 437); 120 days ..." read from stats/trail_perf.json. */
 export function historyLine(
   rows: readonly TrailPerfRow[] | null,
@@ -223,8 +254,9 @@ export function historyLine(
   const parts: string[] = [];
   for (const h of horizons) {
     const r = perfRow(rows, kind, id, win, h);
-    if (!r || r.n < minN || r.medianExcess === null || r.hitRate === null) {
-      parts.push(`${h} days: too few cases${r ? ` (n ${r.n})` : ''}`);
+    const thin = perfThin(r, minN);
+    if (thin || !r || r.medianExcess === null || r.hitRate === null) {
+      parts.push(`${h} days: ${thin}`);
     } else {
       parts.push(
         `${h} days ${fmtPctChg(r.medianExcess, 1)} median excess, ${fmtPct(r.hitRate, 0)} hit rate (n ${r.n})`,
@@ -251,9 +283,15 @@ export interface InsightCtx {
   sectorLabel: string | null;
   perf: readonly TrailPerfRow[] | null;
   minN: number;
+  /** Indicators computed (defaults to INDICATOR_COUNT). */
+  indicatorCount?: number;
 }
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+const round2 = (x: number): number => Math.round((x + Number.EPSILON) * 100) / 100;
+
+/** The number of indicators the trail computes (five since Phase 4: delivery x4 and named deals). */
+export const INDICATOR_COUNT = 5;
 
 function topSectors(syms: readonly string[], bySym: ReadonlyMap<string, UniverseRow>, k: number) {
   const c = new Map<string, number>();
@@ -288,7 +326,7 @@ export function buildInsights(
     out.push({
       id,
       syms,
-      text: `${syms.length} ${scope} ${plural(syms.length, 'stock shows', 'stocks show')} at least 3 of 4 ${what} footprints over ${wl}${where}.`,
+      text: `${syms.length} ${scope} ${plural(syms.length, 'stock shows', 'stocks show')} at least 3 of ${ctx.indicatorCount ?? INDICATOR_COUNT} ${what} footprints over ${wl}${where}.`,
       numbers: { count: syms.length, ...(tops[0] ? { top1: tops[0][1] } : {}) },
     });
   };
@@ -351,7 +389,14 @@ export function buildInsights(
   if (ctx.perf) {
     const a = perfRow(ctx.perf, 'list', 'strongA', win, 60);
     const d = perfRow(ctx.perf, 'list', 'strongD', win, 60);
-    if (a && d && a.n >= ctx.minN && d.n >= ctx.minN && a.medianExcess !== null && d.medianExcess !== null) {
+    if (
+      a &&
+      d &&
+      !perfThin(a, ctx.minN) &&
+      !perfThin(d, ctx.minN) &&
+      a.medianExcess !== null &&
+      d.medianExcess !== null
+    ) {
       out.push({
         id: 'history',
         syms: [],
@@ -360,10 +405,23 @@ export function buildInsights(
       });
     }
   }
+  // Via deals: the sector where FIIs sold the most through named deals while DIIs bought (both net, the window)
+  const sectors = sectorRotation(entries, bySym, win);
+  const handover = sectors
+    .filter((r) => r.fiiDeals !== null && r.diiDeals !== null && r.fiiDeals < 0 && r.diiDeals > 0)
+    .sort((a, b) => a.fiiDeals! - b.fiiDeals! || a.sector.localeCompare(b.sector))[0];
+  if (handover) {
+    out.push({
+      id: 'dealsSector',
+      syms: [],
+      text: `Via deals, FIIs net sold ₹${Math.round(-handover.fiiDeals!).toLocaleString('en-IN')} Cr in ${handover.sector} while DIIs bought ₹${Math.round(handover.diiDeals!).toLocaleString('en-IN')} Cr over ${wl}. Named deals are a small slice of activity.`,
+      numbers: { fii: handover.fiiDeals!, dii: handover.diiDeals! },
+    });
+  }
   out.push({
     id: 'slots',
     syms: [],
-    text: 'Named deals, holdings and F&O footprints arrive in Phase 4, 4B and 5; until then the trail reads delivery footprints only.',
+    text: 'Holdings and F&O footprints arrive in Phase 4B and 5; until then the trail reads delivery and named-deal footprints only.',
     numbers: {},
   });
   return out.slice(0, 10);

@@ -247,3 +247,11 @@ Static content written from 04 §0, §4 and §8:
 - Vitest covers `filters.ts`, `metrics.ts`, the formatters and the dataClient caching.
 - Lighthouse on mobile: Performance ≥ 85 and Accessibility ≥ 95 on the Dashboard.
 - No console errors. Every page works at 360 px width with no horizontal page scroll.
+
+## Phase 4 as built (2026-11-14)
+
+- **P6 Institutions** (`#/institutions`, tabs `tab=cash|deriv|s7|holdings`): the provisional banner on tabs 1 to 3; cash summary, daily and cumulative chart, monthly table, the "Collecting since" note; derivatives (latest positioning table, FII index-futures long share with its own 10th to 90th percentile band, net index futures by participant, volume share); FII derivatives (S7 net bought value by category, OI value trend). The Holdings tab says "arrives in Phase 4B".
+- **P7 Deals** (`#/deals`): filters in the URL (from, to, type, side, category, minimum value, symbol, hide round trips); totals by category; top entities by net value; "FII vs DII by stock" with the two lists and an all-stocks table; the deal list (first 200 rows). **Entity** (`#/entity/:id`): totals, category and an "inferred" note, per-stock net, timeline (bought above zero, sold below), disclosed holdings placeholder (4B), aliases.
+- **Stock page:** deal markers on the price chart (triangles above the high for bought, below the low for sold, sized by value); the deal list with entity links and round-trip notes; the monthly net via deals bar chart.
+- **Trail:** the sector table gains "FII via deals" and "DII via deals"; the stock mode gains a "Named deals" card with the entity behind each deal (DEVIATIONS #81, #82).
+- **Caveat and history gap:** every deals view shows the large-trades caveat (04 5.3) and the history-gap note (DEVIATIONS #87).
