@@ -18,6 +18,10 @@ BC_HEADER = ["SERIES", "SYMBOL", "SECURITY", "RECORD_DT", "BC_STRT_DT", "BC_END_
              "ND_END_DT", "PURPOSE"]
 BH_HEADER = ["SYMBOL", "SERIES", "SECURITY", "HIGH/LOW"]
 EQUITY_SERIES = ("EQ", "BE", "BZ")  # SM/ST excluded by user decision
+ETF_HEADER = ["MARKET", "SERIES", "SYMBOL", "SECURITY", "PREVIOUS CLOSE PRICE", "OPEN PRICE", "HIGH PRICE",
+              "LOW PRICE", "CLOSE PRICE", "NET TRADED VALUE", "NET TRADED QTY", "TRADES", "52 WEEK HIGH",
+              "52 WEEK LOW", "UNDERLYING"]
+ETF_COLUMNS = ["symbol", "series"]  # the stored daily extract (store/etf/)
 
 
 def url(d: date) -> str:
@@ -116,6 +120,20 @@ def parse(body: bytes, d: date, label: str = "") -> Parsed:
         else:
             out["bh_text"] = t
             out["bh_rows"] = len(rows)
+    # etf: the list of ETFs / index funds traded that day. Optional: a missing or changed member never fails the day
+    t = _csv_member(z, "etf", d)
+    if t is None:
+        p.notes.append("etf member missing")
+    else:
+        h, rows = _read(t)
+        headers["etf"] = h
+        if h != ETF_HEADER:
+            p.notes.append(f"etf header changed, extract skipped: {h}")
+        else:
+            df = pd.DataFrame([[c.strip() for c in r] for r in rows if r], columns=h)
+            df = df.rename(columns={"SYMBOL": "symbol", "SERIES": "series"})
+            df = df[df["symbol"] != ""][ETF_COLUMNS].drop_duplicates().sort_values(ETF_COLUMNS)
+            out["etf"] = df.reset_index(drop=True)
     p.header = headers.get("mcap")
     p.notes.append(f"bh header: {headers.get('bh')}; bh rows {out.get('bh_rows')}; bc header: {headers.get('bc')}")
     p.data = out

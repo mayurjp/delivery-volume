@@ -23,6 +23,7 @@
 | Min 20D avg turnover | ₹ Cr input | `meta.settings.minTurnoverAvg20Cr` (1) |
 | Min price | ₹ | 0 |
 | Hide event-driven rows | toggle; hides rows with `corpAction`, `bulkDeal`, `blockDeal` or `bandHit` | off (flag icons are still shown) |
+| Hide ETFs | toggle; hides ETFs and index funds (universe `etf` / flag 512). URL param `hetf=1` | off (ETFs show with an "ETF" badge) |
 
 Show this small note under the Universe and Market cap filters: "Uses current index constituents and today's market-cap ranks."
 
@@ -65,11 +66,11 @@ Two mini charts:
 - market delivery % over 60 days, with Nifty 50 on a second axis;
 - FII/DII net over the last 20 days, as bars.
 
-Each card row shows the symbol, sector chip, close, `ret1`, `delivPct`, `spike` and flag icons. Tapping a row opens the stock page.
+Each card row shows the symbol, an "ETF" badge when the symbol is an ETF, sector chip, close, `ret1`, `delivPct`, `spike` and flag icons. Tapping a row opens the stock page.
 
 ### P2 Screener `#/screener`
 
-- A virtualised table of the filtered universe.
+- A virtualised table of the filtered universe. The symbol cell carries the small "ETF" badge for ETFs (the same badge appears on Dashboard cards, the stock header, search results and the Watchlist).
 - **Day mode** columns: every `daily/` field. Range mode columns: the §3 range fields of 04.
 - Column chooser, with a default set of about 10 columns and the choice saved locally. Multi-column sort. Symbol and name search.
 - Preset chips for every list in 04 §2, including "New 52-week high, low delivery", "New 52-week high, heavy delivery" and "Large cap: down on heavy delivery". "Delivery ↑ + Long build-up" is added in Phase 5.
@@ -110,7 +111,7 @@ Colour scales: a diverging blue↔orange scale with a neutral midpoint that work
 
 **Header:**
 
-- name, symbol, sector, index badges, market cap and bucket, an F&O badge, and the watchlist star;
+- name, symbol, an "ETF" badge for ETFs and index funds (they have no market-cap bucket and no signal), sector, index badges, market cap and bucket, an F&O badge, and the watchlist star;
 - today's close, `ret1`, `delivPct` (with its 20-day average), `spike`;
 - the signal badge with its explanation and its historical follow-through line for the stock's cap bucket (04 §4.1), plus confluence badges and flags.
 

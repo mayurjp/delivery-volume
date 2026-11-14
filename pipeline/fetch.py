@@ -105,6 +105,8 @@ def fetch_s4(client: Client, d: date, force: bool) -> str:
     out = parsed.data
     store.write_atomic(store.path_for("corp_actions", d), csv_gz(out["bc"]), force=True)
     store.write_atomic(store.path_for("band_hits", d), store.gz_bytes(out["bh_text"].encode("utf-8")), force=True)
+    if "etf" in out and len(out["etf"]):
+        store.write_atomic(store.path_for("etf", d), csv_gz(out["etf"]), force=True)
     # mcap last: its presence marks the day as complete
     store.write_atomic(store.path_for("mcap", d), csv_gz(out["mcap"]), force=True)
     return STORED

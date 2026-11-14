@@ -16,7 +16,8 @@ from pipeline.sources import s1_cm_delivery
 pytestmark = pytest.mark.skipif(len(store.list_dates("cm_delivery")) < 45, reason="needs a backfilled store")
 
 KINDS = [("cm_delivery", "csv.gz"), ("cm_isin", "csv.gz"), ("mcap", "csv.gz"), ("corp_actions", "csv.gz"),
-         ("band_hits", "csv.gz"), ("indices_close", "csv.gz"), ("hl52", "csv.gz"), ("fo_ban", "txt")]
+         ("band_hits", "csv.gz"), ("indices_close", "csv.gz"), ("hl52", "csv.gz"), ("fo_ban", "txt"),
+         ("etf", "csv.gz")]
 
 
 @pytest.fixture(scope="module")
@@ -79,6 +80,20 @@ def test_universe_counts(built):
     assert {u["bucket"] for u in uni} <= {"L", "M", "S", "U", None}
     assert sum(1 for u in uni if u["bucket"] == "L") == 100
     assert all(u["f"] for u in uni) and next(u for u in uni if u["sym"] == "RELIANCE")["mcapRank"] <= 10
+
+
+def test_etfs_flagged_unranked_and_signal_free(built):
+    out, _, days, *_ = built
+    uni = rows(json.loads((out / "universe.json").read_text()))
+    etf = {u["sym"] for u in uni if u["etf"]}
+    assert {"NIFTYBEES", "GOLDBEES"} <= etf and 300 <= len(etf) <= 450  # PR list + commodity ETFs
+    assert "RELIANCE" not in etf and all(u["bucket"] is None and u["mcapRank"] is None for u in uni if u["etf"])
+    daily = rows(json.loads((out / "daily" / f"{days[-1]}.json").read_text()))
+    assert all((r["flags"] & 512) != 0 for r in daily if r["sym"] in etf)
+    assert all((r["flags"] & 512) == 0 for r in daily if r["sym"] not in etf)
+    assert all(r["signal"] is None for r in daily if r["sym"] in etf)
+    sym = json.loads((out / "symbols" / "NIFTYBEES.json").read_text())
+    assert sym["etf"] is True and json.loads((out / "symbols" / "RELIANCE.json").read_text())["etf"] is False
 
 
 def test_cum_final_equals_sum_of_daily(built):

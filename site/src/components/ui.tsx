@@ -132,6 +132,19 @@ export function SignalBadge({
   );
 }
 
+/** Small "ETF" badge for exchange-traded funds / index funds (no signal, no market-cap rank). */
+export function EtfBadge({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span
+      title="Exchange-traded fund or index fund. Its delivery reflects creation/redemption and arbitrage, so it gets no signal and no market-cap rank."
+      className="shrink-0 rounded bg-slate-200 px-1 text-[10px] font-medium leading-4 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+    >
+      ETF
+    </span>
+  );
+}
+
 export function FlagIcons({ flags, only, plain = false }: { flags: number; only?: number; plain?: boolean }) {
   const list = flagsOf(only === undefined ? flags : flags & only);
   if (!list.length) return null;

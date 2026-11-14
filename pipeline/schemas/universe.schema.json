@@ -24,7 +24,8 @@
     "bucket",
     "listedOn",
     "aliases",
-    "mcapEstimated"
+    "mcapEstimated",
+    "etf"
    ]
   },
   "rows": {
@@ -37,8 +38,8 @@
  "$defs": {
   "row": {
    "type": "array",
-   "minItems": 12,
-   "maxItems": 12,
+   "minItems": 13,
+   "maxItems": 13,
    "prefixItems": [
     {
      "type": [
@@ -103,6 +104,11 @@
     {
      "type": [
       "array"
+     ]
+    },
+    {
+     "type": [
+      "boolean"
      ]
     },
     {

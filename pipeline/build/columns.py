@@ -5,7 +5,7 @@ from __future__ import annotations
 INDICES = ["NIFTY50", "NIFTYNEXT50", "NIFTY100", "NIFTY200", "NIFTY500", "MIDCAP150", "SMALLCAP250",
            "MICROCAP250", "TOTALMARKET", "FNO"]
 FLAG = {"t2t": 1, "corpAction": 2, "bulkDeal": 4, "blockDeal": 8, "bandHit": 16, "fnoBan": 32, "high52": 64,
-        "low52": 128, "lowLiquidity": 256, "newListing": 1024, "expiryWeek": 2048}
+        "low52": 128, "lowLiquidity": 256, "etf": 512, "newListing": 1024, "expiryWeek": 2048}
 
 # (name, kind, decimals)
 DAILY = [
@@ -29,7 +29,8 @@ CUM = [("sym", "s", None), ("lastClose", "f", 2), ("lastTradeDate", "s", None), 
        ("cTurnoverCr", "f", 2), ("cDelivQty", "i", None), ("cVol", "i", None), ("cDays", "i", None)]
 UNIVERSE = [("sym", "s", None), ("f", "s", None), ("name", "s", None), ("isin", "s", None), ("sector", "s", None),
             ("idx", "i", None), ("mcapCr", "f", 2), ("mcapRank", "i", None), ("bucket", "s", None),
-            ("listedOn", "s", None), ("aliases", "j", None), ("mcapEstimated", "b", None)]
+            ("listedOn", "s", None), ("aliases", "j", None), ("mcapEstimated", "b", None),
+            ("etf", "b", None)]
 HOLDINGS_COLS = ["quarter", "filedOn", "promoterPct", "fiiPct", "diiPct", "mfPct", "insurancePct", "bankPct",
                  "pensionPct", "otherDiiPct", "retailPct", "othersPct", "totalShares"]
 NAMED_HOLDER_COLS = ["quarter", "category", "subType", "holder", "entityId", "shares", "pct"]

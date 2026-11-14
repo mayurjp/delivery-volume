@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import { marketOption } from '../charts/options';
 import EChart from '../charts/EChart';
-import { AppLink, Empty, ErrorBox, FlagIcons, Skeleton, Sparkline } from '../components/ui';
+import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, Skeleton, Sparkline } from '../components/ui';
 import { applyFilters } from '../lib/filters';
 import { fmtCr, fmtDate, fmtInt, fmtPct, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
 import { useApp, useDaily, useGlobalState, useMarket } from '../lib/hooks';
@@ -85,6 +85,7 @@ function TopCard({ spec, bySym }: { spec: CardSpec; bySym: ReturnType<typeof use
                   <span className="min-w-0">
                     <span className="flex items-center gap-1.5">
                       <span className="truncate font-semibold">{r.sym}</span>
+                      <EtfBadge show={(r.flags & FLAG.etf) !== 0} />
                       <FlagIcons flags={r.flags} plain />
                     </span>
                     <span className="block truncate text-xs text-slate-500 dark:text-slate-400">

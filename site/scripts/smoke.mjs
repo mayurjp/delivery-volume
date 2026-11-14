@@ -8,11 +8,12 @@ import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const BASE = process.env.VITE_BASE ?? '/delivery-volume/';
-const PORT = 4173;
+const PORT = Number(process.env.SMOKE_PORT ?? 4173);
+const OUTDIR = process.env.SMOKE_OUTDIR; // optional: preview a build made with --outDir (default: dist)
 const ORIGIN = `http://localhost:${PORT}`;
 const SHOTS = process.env.SMOKE_SHOTS;
 
-const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', ...(OUTDIR ? ['--outDir', OUTDIR] : [])], {
   env: { ...process.env, VITE_BASE: BASE },
   shell: true,
   stdio: 'ignore',

@@ -20,6 +20,7 @@ function uni(sym: string, p: Partial<UniverseRow> = {}): UniverseRow {
     listedOn: null,
     aliases: [],
     mcapEstimated: false,
+    etf: false,
     ...p,
   };
 }
@@ -32,6 +33,7 @@ const universe = new Map([
   ['BBB', uni('BBB', { idx: 2 | 4, bucket: 'M', sector: 'Financial Services', mcapCr: 20000 })],
   ['CCC', uni('CCC', { idx: 0, bucket: 'S', sector: 'Unclassified', mcapCr: 800 })],
   ['DDD', uni('DDD', { idx: 0, bucket: null, mcapCr: null })],
+  ['ETF1', uni('ETF1', { etf: true, bucket: null, mcapCr: null, mcapRank: null })],
 ]);
 const rows = ['AAA', 'BBB', 'CCC', 'DDD'].map((s) => row(s));
 const def = defaultFilters(1);
@@ -41,6 +43,12 @@ const run = (f: Partial<Filters>, r = rows) =>
 describe('applyFilters', () => {
   it('defaults keep everything in the universe', () => {
     expect(run({})).toEqual(['AAA', 'BBB', 'CCC', 'DDD']);
+  });
+  it('shows ETFs by default and hides them when asked (universe flag or row flag)', () => {
+    const r = [...rows, row('ETF1', { flags: FLAG.etf }), row('AAA', { flags: FLAG.etf })];
+    expect(run({}, r)).toContain('ETF1');
+    expect(run({ hideEtfs: true }, r)).toEqual(['AAA', 'BBB', 'CCC', 'DDD']);
+    expect(run({ hideEtfs: true }, [row('ETF1')])).toEqual([]); // universe etf=true alone is enough
   });
   it('drops symbols missing from the universe', () => {
     expect(run({}, [...rows, row('ZZZ')])).not.toContain('ZZZ');
@@ -100,6 +108,7 @@ describe('helpers and URL state', () => {
   it('counts active filters', () => {
     expect(activeFilterCount(def, def)).toBe(0);
     expect(activeFilterCount({ ...def, u: 'NIFTY50', b: ['L'], hideEvents: true }, def)).toBe(3);
+    expect(activeFilterCount({ ...def, hideEtfs: true }, def)).toBe(1);
   });
   it('round-trips filters through the query string and omits defaults', () => {
     const f: Filters = {
@@ -109,12 +118,20 @@ describe('helpers and URL state', () => {
       sec: ['Financial Services'],
       minTurn: 5,
       hideEvents: true,
+      hideEtfs: true,
     };
     const p = writeFilters(new URLSearchParams(), f, 1);
-    expect(p.toString()).toBe('u=NIFTY100&b=L%2CM&sec=Financial+Services&mt=5&he=1');
+    expect(p.toString()).toBe('u=NIFTY100&b=L%2CM&sec=Financial+Services&mt=5&he=1&hetf=1');
     expect(parseFilters(p, 1, INDICES)).toEqual(f);
     expect(writeFilters(new URLSearchParams('d=2026-11-13'), def, 1).toString()).toBe('d=2026-11-13');
     expect(hasFilterParams(new URLSearchParams('d=2026-11-13'))).toBe(false);
+  });
+  it('Hide ETFs is off by default and only hetf=1 turns it on', () => {
+    expect(parseFilters(new URLSearchParams(''), 1, INDICES).hideEtfs).toBe(false);
+    expect(parseFilters(new URLSearchParams('hetf=0'), 1, INDICES).hideEtfs).toBe(false);
+    expect(parseFilters(new URLSearchParams('hetf=1'), 1, INDICES).hideEtfs).toBe(true);
+    expect(writeFilters(new URLSearchParams(), def, 1).has('hetf')).toBe(false);
+    expect(hasFilterParams(new URLSearchParams('hetf=1'))).toBe(true);
   });
   it('ignores garbage parameters', () => {
     const f = parseFilters(new URLSearchParams('u=NOPE&b=X,L&mt=abc&cmin=-3'), 1, INDICES);

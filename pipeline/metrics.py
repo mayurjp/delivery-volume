@@ -90,8 +90,11 @@ def classify_signal(d: pd.DataFrame, thr: dict) -> pd.Series:
 
 # ---- full daily computation ----------------------------------------------------------------------------------------
 
-def compute_daily(df: pd.DataFrame, settings: dict, signals: dict) -> pd.DataFrame:
-    """Adds all per-stock daily metrics (04 section 2) and the signal. Returns a copy."""
+def compute_daily(df: pd.DataFrame, settings: dict, signals: dict, etf: set[str] | frozenset[str] = frozenset()) -> pd.DataFrame:
+    """Adds all per-stock daily metrics (04 section 2) and the signal. Returns a copy.
+
+    Symbols in `etf` keep every metric but never get a signal (04 section 4.1: their delivery reflects
+    creation/redemption and arbitrage, not investor interest)."""
     w = settings["windows"]
     frac = settings["minPeriodsFraction"]
     liq = settings["liquidity"]
@@ -146,7 +149,7 @@ def compute_daily(df: pd.DataFrame, settings: dict, signals: dict) -> pd.DataFra
     # flags that depend only on S1-derived values
     v["lowLiquidity"] = v["turnoverAvg20Cr"].notna() & (v["turnoverAvg20Cr"] < liq["minTurnoverAvg20Cr"])
     v["newListing"] = v["priorDays"] < 20
-    v["sigOk"] = ~v["lowLiquidity"] & (v["priorDays"] >= signals["minHistoryDays"])
+    v["sigOk"] = ~v["lowLiquidity"] & (v["priorDays"] >= signals["minHistoryDays"]) & ~v["sym"].isin(etf)
     v["signal"] = classify_signal(v, signals["daily"])
 
     new_cols = ["delivValCr", "delivValAvg5", "delivValAvg20", "delivValAvg50", "delivPctAvg20", "volAvg20",

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { calendarOption, stockChartOption } from '../charts/options';
 import EChart from '../charts/EChart';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
-import { AppLink, Empty, ErrorBox, FlagIcons, SignalBadge, Skeleton, Tip } from '../components/ui';
+import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, SignalBadge, Skeleton, Tip } from '../components/ui';
 import { BUCKET_LABEL } from '../lib/labels';
 import { fmtCr, fmtDate, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtPrice, fmtQty, fmtRatio } from '../lib/format';
 import { useApp, useSymbol } from '../lib/hooks';
@@ -65,7 +65,7 @@ function NotFound({ sym }: { sym: string }) {
               to={`/stock/${encodeURIComponent(u.sym)}`}
               className="block py-1 text-blue-700 hover:underline dark:text-blue-300"
             >
-              {u.sym} <span className="text-slate-500">{u.name}</span>
+              {u.sym} <EtfBadge show={u.etf} /> <span className="text-slate-500">{u.name}</span>
             </AppLink>
           </li>
         ))}
@@ -90,6 +90,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
         <div className="min-w-0">
           <h1 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
             {u.sym}
+            <EtfBadge show={u.etf} />
             <button
               type="button"
               aria-pressed={starred}

@@ -71,7 +71,7 @@ Every rolling window and cumulative sum uses valid days only. "Prior N" means th
 
 ### Daily top lists (Dashboard and Screener presets)
 
-Every list excludes these by default: `lowLiquidity`, `t2t` and `newListing`.
+Every list excludes these by default: `lowLiquidity`, `t2t` and `newListing`. ETFs (flag `etf`) stay in the lists with an "ETF" badge, and the global "Hide ETFs" filter (05 §2) removes them. They never appear in the signal-based lists, because they have no signal (4.1).
 
 | List | Sort | Extra filter |
 |------|------|--------------|
@@ -138,7 +138,7 @@ All thresholds live in `config/signals.json`. These are the defaults.
 
 ### 4.1 Daily signal (`signal` column)
 
-Evaluated only when the row is valid and not `lowLiquidity` or `t2t`, and it has at least 10 prior valid days. The first matching rule wins, in this order:
+Evaluated only when the row is valid, not `lowLiquidity` or `t2t`, **not an ETF** (`etf` flag), and it has at least 10 prior valid days. **ETF rows always have `signal = null`**: ETF delivery reflects creation/redemption and authorised-participant arbitrage, not investor interest, so a delivery-based reading would mislead. ETF rows keep every other metric (`spike`, `delivPctDiff`, `ret1`, ...). The first matching rule wins, in this order:
 
 | Code | Label shown | Condition | Meaning shown in tooltip (describes the day only) |
 |------|-------------|-----------|--------------------------|

@@ -6,7 +6,7 @@ import { defaultFilters, type Filters } from './filters';
  * Only values that differ from the defaults are written, so URLs stay short and stable.
  */
 
-export const FILTER_KEYS = ['u', 'b', 'cmin', 'cmax', 'sec', 'mt', 'mp', 'he'] as const;
+export const FILTER_KEYS = ['u', 'b', 'cmin', 'cmax', 'sec', 'mt', 'mp', 'he', 'hetf'] as const;
 const BUCKETS: readonly string[] = ['L', 'M', 'S', 'U'];
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -40,6 +40,7 @@ export function parseFilters(
     minTurn: num(p.get('mt')) ?? d.minTurn,
     minPrice: num(p.get('mp')) ?? d.minPrice,
     hideEvents: p.get('he') === '1',
+    hideEtfs: p.get('hetf') === '1',
   };
 }
 
@@ -55,6 +56,7 @@ export function writeFilters(p: URLSearchParams, f: Filters, minTurnoverAvg20Cr:
   if (f.minTurn !== d.minTurn) p.set('mt', String(f.minTurn));
   if (f.minPrice !== d.minPrice) p.set('mp', String(f.minPrice));
   if (f.hideEvents) p.set('he', '1');
+  if (f.hideEtfs) p.set('hetf', '1');
   return p;
 }
 

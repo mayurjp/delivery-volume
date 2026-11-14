@@ -40,6 +40,8 @@ export interface UniverseRow {
   listedOn: string | null;
   aliases: string[];
   mcapEstimated: boolean;
+  /** ETF / index fund (03 section 5.2): keeps its metrics, has no signal, mcap rank or bucket. */
+  etf: boolean;
 }
 
 export type SignalCode = 'ACC' | 'DIS' | 'ABS' | 'SPU' | 'SPD';
@@ -143,6 +145,7 @@ export interface SymbolFile {
   sector: string;
   idx: number;
   bucket: Bucket | null;
+  etf: boolean;
   columns: string[];
   rows: unknown[][];
   deals: Deal[];
@@ -178,6 +181,7 @@ export const FLAG = {
   high52: 64,
   low52: 128,
   lowLiquidity: 256,
+  etf: 512,
   newListing: 1024,
   expiryWeek: 2048,
 } as const;

@@ -61,6 +61,7 @@ store/
   cm_isin/2026/2026-11-13.csv.gz         S2 reduced: symbol, series, isin
   fo_extract/2026/2026-11-13.csv.gz      S3 reduced extract (below)
   mcap/2026/2026-11-13.csv.gz            S4 mcap: symbol, series, issueSize, mcapRs
+  etf/2026/2026-11-13.csv.gz             S4 etf (ETFs traded that day): symbol, series. Written from 2026-11-13 onward; the build unions all days
   corp_actions/2026/2026-11-13.csv.gz    S4 bc, equity series only, + `kind` column
   band_hits/2026/2026-11-13.csv.gz       S4 bh as downloaded
   participant_oi/2026/2026-11-13.csv     S5 as downloaded
@@ -136,9 +137,11 @@ There is one row per symbol in the latest day's universe. Symbols with no trade 
 
 ```json
 { "schemaVersion": 1,
-  "columns": ["sym","f","name","isin","sector","idx","mcapCr","mcapRank","bucket","listedOn","aliases"],
+  "columns": ["sym","f","name","isin","sector","idx","mcapCr","mcapRank","bucket","listedOn","aliases","mcapEstimated","etf"],
   "rows": [["RELIANCE","RELIANCE","Reliance Industries Ltd.","INE002A01018","Oil Gas & Consumable Fuels",1023,1712345.67,1,"L","1995-11-29",[]]] }
 ```
+
+`etf` (bool) marks ETFs and index funds (flag bit 512 in the daily files). An ETF keeps its metrics but has `mcapRank = null` and `bucket = null`: ETFs are excluded from market-cap ranking, so real companies keep correct Large/Mid/Small ranks. Detection rule: DEVIATIONS #32. Each `symbols/{f}.json` carries the same `etf` boolean in its meta (next to `bucket`).
 
 ### 5.3 `daily/{YYYY-MM-DD}.json`, one per trading day
 
@@ -156,7 +159,7 @@ Each file has one row per universe symbol that traded that day, plus t2t-series 
 | `spike`, `delivPctDiff`, `relVol`, `ret1`, `clv`, `vwapGap` | |
 | `delivPctZ60`, `delivPctPctile` | |
 | `streak` | signed int: +k means k consecutive days above `delivPctAvg20`; −k means below |
-| `signal` | `ACC` `DIS` `ABS` `SPU` `SPD` or null (04 §4) |
+| `signal` | `ACC` `DIS` `ABS` `SPU` `SPD` or null (04 §4). Always null for ETF rows (04 §4.1) |
 | `flags` | bitmask, see the table below |
 | `futOi`, `futOiChgPct`, `buildup`, `pcr` | F&O stocks only, otherwise null |
 
@@ -173,7 +176,7 @@ Flags bitmask:
 | 64 | `high52` | today's high > `Adjusted_52_Week_High` in today's S13 file. S13 file(T) holds the 52-week values through T−1, so the rule is high(T) > file(T), never "the high date is today". Skip `-`/missing. |
 | 128 | `low52` | low(T) < `Adjusted_52_Week_Low` in today's S13 file (same rule) |
 | 256 | `lowLiquidity` | `turnoverAvg20Cr < minTurnoverAvg20Cr` |
-| 512 | (reserved) | unused, because SME stocks are excluded |
+| 512 | `etf` | the symbol is an ETF / index fund (set on every row of the symbol; rule in DEVIATIONS #32) |
 | 1024 | `newListing` | fewer than 20 valid prior days |
 | 2048 | `expiryWeek` | an F&O monthly expiry (any `STF` expiry date) within the next 5 trading days |
 

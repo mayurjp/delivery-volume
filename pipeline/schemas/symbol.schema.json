@@ -11,6 +11,7 @@
   "sector",
   "idx",
   "bucket",
+  "etf",
   "deals",
   "corpActions",
   "holdings",
@@ -69,6 +70,9 @@
     "string",
     "null"
    ]
+  },
+  "etf": {
+   "type": "boolean"
   },
   "deals": {
    "type": "array"

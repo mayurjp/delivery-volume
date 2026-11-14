@@ -150,6 +150,19 @@ export default function FilterPanel({ onClose }: { onClose: () => void }) {
         Hides rows with a corporate action, bulk/block deal or price-band hit. Flag icons stay visible when
         off.
       </p>
+
+      <label className="mt-3 flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={f.hideEtfs}
+          onChange={(e) => setFilters({ ...f, hideEtfs: e.target.checked })}
+        />
+        Hide ETFs
+      </label>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        ETFs and index funds are shown with an ETF badge by default. They have no signal and no market-cap
+        rank.
+      </p>
     </div>
   );
 }

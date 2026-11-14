@@ -69,6 +69,14 @@ def load_mcap_history(days: list[date], root: Path | None = None) -> pd.DataFram
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame(columns=["symbol", "date", "issueSize"])
 
 
+def load_etf_symbols(alias: dict[str, str], root: Path | None = None) -> set[str]:
+    """Union of the ETF symbols of every stored PR-zip `etf` extract (store/etf/), alias-resolved."""
+    out: set[str] = set()
+    for d in store.list_dates("etf", root=root):
+        out |= set(_csv(store.path_for("etf", d, root=root))["symbol"].str.strip())
+    return {alias.get(s, s) for s in out}
+
+
 def load_corp_actions(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
     """Union of every daily `bc` extract, deduplicated on (symbol, exDate, purpose)."""
     frames = []

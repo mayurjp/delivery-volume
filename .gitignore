@@ -10,3 +10,4 @@ reports/
 
 # operational request logs (kept locally, not committed)
 store/logs/
+.tmp/

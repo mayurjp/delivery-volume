@@ -115,7 +115,7 @@ About 1.4 MB zipped. Same header as S2.
 https://nsearchives.nseindia.com/archives/equities/bhavcopy/pr/PR{DDMMYY}.zip
 ```
 
-About 680 KB. Verified contents: `an, bc, bh, bm, corpbond, etf, gl, hl, mcap, pd, pr, readme, sme, tt`, each named `{prefix}{DDMMYYYY}.csv|txt`. Use these three:
+About 680 KB. Verified contents: `an, bc, bh, bm, corpbond, etf, gl, hl, mcap, pd, pr, readme, sme, tt`, each named `{prefix}{DDMMYYYY}.csv|txt`. Use these four (`mcap`, `bc`, `bh` and `etf`):
 
 **mcap{DDMMYYYY}.csv**: full market cap per security.
 
@@ -126,6 +126,17 @@ Trade Date,Symbol,Series,Security Name,Category,Last Trade Date,Face Value(Rs.),
 
 - Every field is space-padded, so strip them all. `Trade Date` has the format `13 NOV 2026`. `Market Cap(Rs.)` is in rupees and is *full* market cap, not free-float. `Issue Size` is shares outstanding.
 - Store only `symbol, series, issueSize, mcapRs`.
+
+**etf{DDMMYYYY}.csv**: the ETFs and index funds that traded that day (312 rows on 2026-11-13, all series EQ). Verified 2026-11-14.
+
+```
+MARKET,SERIES,SYMBOL,SECURITY,PREVIOUS CLOSE PRICE,OPEN PRICE,HIGH PRICE,LOW PRICE,CLOSE PRICE,NET TRADED VALUE,NET TRADED QTY,TRADES,52 WEEK HIGH,52 WEEK LOW,UNDERLYING
+N,EQ,ABSLBANETF,BIRLASLAMC - ABSLBANETF,        63.00,        62.97,        62.97,        62.36,        62.52,                  2294095.61,36713,967,        64.94,        50.97,NIFTY BANK
+```
+
+- Padded fields: strip them. Store only `symbol, series` per day in `store/etf/` (03 section 3). The member is optional: a missing member or a changed header skips the extract and never fails the day.
+- It is the exact list of ETFs that traded, **but it omits the 45 gold/silver commodity ETFs** (GOLDBEES, SILVERBEES, ...), which are also EQ-series funds. See DEVIATIONS #32 for the combined detection rule.
+- **ETFs have no row in `mcap{DDMMYYYY}.csv`** (0 of 357 on 2026-11-13), so they never get a market cap from S4.
 
 **bc{DDMMYYYY}.csv**: corporate actions (announced and upcoming).
 
@@ -286,6 +297,8 @@ SYMBOL,NAME OF COMPANY, SERIES, DATE OF LISTING, PAID UP VALUE, MARKET LOT, ISIN
 ```
 
 The header has leading spaces. Gives company names, ISIN and listing date. Fetch weekly and snapshot when it changes.
+
+**Equities only: ETFs, index funds and commodity ETFs are not listed here.** On 2026-11-13, 357 EQ-series symbols that traded were absent from this file, and all 357 are ETFs. An EQ symbol missing from S15 that also never appears in any S4 `mcap` file is therefore an ETF (used together with the S4 `etf` list, see S4 and DEVIATIONS #32).
 
 ## S16 — Shareholding pattern (quarterly, SEBI LODR Regulation 31)
 

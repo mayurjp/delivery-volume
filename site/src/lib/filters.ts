@@ -15,6 +15,8 @@ export interface Filters {
   minTurn: number;
   minPrice: number;
   hideEvents: boolean;
+  /** Hide ETFs / index funds (default off: they show, badged "ETF"). */
+  hideEtfs: boolean;
 }
 
 export const EVENT_FLAGS = FLAG.corpAction | FLAG.bulkDeal | FLAG.blockDeal | FLAG.bandHit;
@@ -29,6 +31,7 @@ export function defaultFilters(minTurnoverAvg20Cr: number): Filters {
     minTurn: minTurnoverAvg20Cr,
     minPrice: 0,
     hideEvents: false,
+    hideEtfs: false,
   };
 }
 
@@ -48,6 +51,7 @@ export function activeFilterCount(f: Filters, def: Filters): number {
   if (f.minTurn !== def.minTurn) n++;
   if (f.minPrice !== def.minPrice) n++;
   if (f.hideEvents !== def.hideEvents) n++;
+  if (f.hideEtfs !== def.hideEtfs) n++;
   return n;
 }
 
@@ -85,6 +89,7 @@ export function applyFilters(
     if (f.minTurn > 0 && r.turnoverAvg20Cr !== null && r.turnoverAvg20Cr < f.minTurn) continue;
     if (f.minPrice > 0 && (r.close === null || r.close < f.minPrice)) continue;
     if (f.hideEvents && (r.flags & EVENT_FLAGS) !== 0) continue;
+    if (f.hideEtfs && (u.etf || (r.flags & FLAG.etf) !== 0)) continue;
     out.push(r);
   }
   return out;

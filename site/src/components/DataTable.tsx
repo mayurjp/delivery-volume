@@ -10,7 +10,8 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { COLUMN_BY_KEY, type ColumnSpec, type ScreenRow } from '../lib/columns';
-import { FlagIcons, AppLink, SignalBadge } from './ui';
+import { EtfBadge, FlagIcons, AppLink, SignalBadge } from './ui';
+import { FLAG } from '../types/data';
 
 const ROW_H = 36;
 const helper = createColumnHelper<ScreenRow>();
@@ -36,12 +37,15 @@ function cell(spec: ColumnSpec, r: ScreenRow): ReactNode {
   switch (spec.key) {
     case 'sym':
       return (
-        <AppLink
-          to={`/stock/${encodeURIComponent(r.sym)}`}
-          className="font-semibold text-blue-700 hover:underline dark:text-blue-300"
-        >
-          {r.sym}
-        </AppLink>
+        <span className="inline-flex items-center gap-1.5">
+          <AppLink
+            to={`/stock/${encodeURIComponent(r.sym)}`}
+            className="font-semibold text-blue-700 hover:underline dark:text-blue-300"
+          >
+            {r.sym}
+          </AppLink>
+          <EtfBadge show={(r.flags & FLAG.etf) !== 0} />
+        </span>
       );
     case 'signal':
       return <SignalBadge signal={r.signal} plain />;

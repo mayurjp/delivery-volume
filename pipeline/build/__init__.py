@@ -31,15 +31,17 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     mcap_latest = loader.load_mcap(days[-1], root)
     mcap_hist = loader.load_mcap_history(days, root)
     uni = outputs.build_universe_frame(df, days, settings, mcap_latest, mcap_hist, constituents, eq_list,
-                                       loader.load_isin_latest(alias, root), alias)
+                                       loader.load_isin_latest(alias, root), alias, loader.load_etf_symbols(alias, root))
     df = df[df["sym"].isin(set(uni["sym"]))]
     lap(f"universe: {len(uni)} symbols")
 
-    df = metrics.compute_daily(df, settings, signals)
+    etf = set(uni.loc[uni["etf"], "sym"])
+    lap(f"etf: {len(etf)} symbols flagged")
+    df = metrics.compute_daily(df, settings, signals, etf)
     lap("metrics computed")
     corp = loader.load_corp_actions(alias, root)
     df = outputs.add_flags(df, days, corp, loader.load_band_hits(alias, root), loader.load_ban(alias, root),
-                           loader.load_hl52(alias, root))
+                           loader.load_hl52(alias, root), etf)
 
     if out.exists():
         for sub in ("daily", "cum", "symbols"):

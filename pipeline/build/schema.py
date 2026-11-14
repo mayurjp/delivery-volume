@@ -70,7 +70,7 @@ def schemas() -> dict[str, dict]:
     }
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},
-        "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]},
+        "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]}, "etf": {"type": "boolean"},
         "deals": {"type": "array"}, "corpActions": {"type": "array", "items": {
             "type": "object", "required": ["exDate", "kind", "purpose"]}},
         "holdings": {"type": "object", "required": ["columns", "rows"],
@@ -79,7 +79,7 @@ def schemas() -> dict[str, dict]:
                          "properties": {"columns": {"const": C.NAMED_HOLDER_COLS}, "rows": {"type": "array"}}},
         "dealFlows": {"type": "object", "required": ["columns", "rows"],
                       "properties": {"columns": {"const": C.DEAL_FLOW_COLS}, "rows": {"type": "array"}}},
-    }, ["sym", "name", "sector", "idx", "bucket", "deals", "corpActions", "holdings", "namedHolders", "dealFlows"],
+    }, ["sym", "name", "sector", "idx", "bucket", "etf", "deals", "corpActions", "holdings", "namedHolders", "dealFlows"],
         "symbols/{f}.json")
     out["symbol"] = sym
     return out

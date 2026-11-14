@@ -13,6 +13,7 @@ import pandas as pd
 
 from .. import calendar as cal_mod
 from .. import store
+from ..etf import detect_etf
 from ..sources.base import parse_dmy_mon
 from ..symbols import file_key
 from . import columns as C
@@ -115,7 +116,8 @@ def mcap_bucket(rank: float, b: dict) -> str | None:
 
 def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mcap_latest: pd.DataFrame | None,
                          mcap_hist: pd.DataFrame, constituents: dict[str, pd.DataFrame], eq_list: pd.DataFrame,
-                         isin_latest: dict[str, str], alias: dict[str, str]) -> pd.DataFrame:
+                         isin_latest: dict[str, str], alias: dict[str, str],
+                         pr_etf: set[str] | None = None) -> pd.DataFrame:
     T = len(days)
     carry = settings["carryForwardMaxDays"]
     idx_of = {d.isoformat(): i for i, d in enumerate(days)}
@@ -145,7 +147,14 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
         est = u["sym"].map(issue["issueSize"]) * u["lastClose"] / 1e7
         u.loc[miss, "mcapCr"] = est[miss]
         u.loc[miss & est.notna(), "mcapEstimated"] = True
-    u["mcapRank"] = u["mcapCr"].rank(ascending=False, method="first")
+    # ETFs (flagged, DEVIATIONS #32) never take a market-cap rank or bucket, so real companies keep correct ranks
+    mcap_syms = set(mcap_hist["symbol"].replace(alias) if alias else mcap_hist["symbol"])
+    if mcap_latest is not None:
+        mcap_syms |= set(mcap_latest["symbol"].replace(alias) if alias else mcap_latest["symbol"])
+    eq_syms = sorted(set(u["sym"]) & has_eq)
+    etf_syms = detect_etf(eq_syms, pr_etf or set(), set(eq_list["SYMBOL"]) if len(eq_list) else set(), mcap_syms)
+    u["etf"] = u["sym"].isin(etf_syms)
+    u["mcapRank"] = u["mcapCr"].where(~u["etf"]).rank(ascending=False, method="first")
     u["bucket"] = [mcap_bucket(r, settings["mcapBuckets"]) for r in u["mcapRank"]]
 
     # sector (TOTALMARKET Industry), index bitmask, names, ISIN, listing date
@@ -177,7 +186,7 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
 # ---- flags ---------------------------------------------------------------------------------------------------------
 
 def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.DataFrame, ban: pd.DataFrame,
-              hl: pd.DataFrame) -> pd.DataFrame:
+              hl: pd.DataFrame, etf: set[str] | frozenset[str] = frozenset()) -> pd.DataFrame:
     iso = np.array([d.isoformat() for d in days])
     T = len(iso)
     df = df.copy()
@@ -214,6 +223,7 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
         flags += np.where(hi, C.FLAG["high52"], 0) + np.where(lo, C.FLAG["low52"], 0)
     flags += np.where(df["lowLiquidity"], C.FLAG["lowLiquidity"], 0)
     flags += np.where(df["newListing"], C.FLAG["newListing"], 0)
+    flags += np.where(df["sym"].isin(etf), C.FLAG["etf"], 0)
     df["flags"] = flags
     return df
 
@@ -308,7 +318,7 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
                 actions.append({"exDate": r.exDate, "kind": r.kind, "purpose": r.purpose})
         doc = {
             "schemaVersion": 1, "sym": sym, "name": u["name"], "sector": u["sector"], "idx": int(u["idx"]),
-            "bucket": u["bucket"] if isinstance(u["bucket"], str) else None,
+            "bucket": u["bucket"] if isinstance(u["bucket"], str) else None, "etf": bool(u["etf"]),
             "columns": C.names(C.SYMBOL_HIST), "rows": ft.rows(a, b),
             "deals": [], "corpActions": actions,
             "holdings": {"columns": C.HOLDINGS_COLS, "rows": []},
