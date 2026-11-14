@@ -56,7 +56,7 @@ oi.loc[oi["expiryGap"] | (oi["prevT"] != oi["t"] - 1), "dOi"] = np.nan
 df = df.merge(oi[["sym", "date", "dOi"]], on=["sym", "date"], how="inner")   # F&O stocks only
 df["t"] = df["date"].map(tix)
 df["flags"] = df["flags"].fillna(0).astype(int)
-df = df[((df["flags"] & (256 | 1)) == 0) & (df["series"] == "EQ")].copy()
+df = df[((df["flags"] & (256 | 1 | 512)) == 0) & (df["series"] == "EQ")].copy()
 up, dn = df["ret1"] > 0, df["ret1"] < 0
 df["bu"] = np.select([up & (df["dOi"] >= 2), dn & (df["dOi"] >= 2), up & (df["dOi"] <= -2), dn & (df["dOi"] <= -2)],
                      ["LB", "SB", "SC", "LU"], default="")

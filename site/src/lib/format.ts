@@ -22,6 +22,11 @@ export function fmtCr(v: number | null | undefined): string {
   return isNum(v) ? `${neg(nf2.format(v))} Cr` : DASH;
 }
 
+/** Signed price change in rupees: "+12.35", "−3.10" (two decimals). */
+export function fmtSigned(v: number | null | undefined, digits = 2): string {
+  return isNum(v) ? signed(v, digits) : DASH;
+}
+
 /** Plain en-IN number with up to `digits` decimals. */
 export function fmtNum(v: number | null | undefined, digits = 2): string {
   if (!isNum(v)) return DASH;

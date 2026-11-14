@@ -3,6 +3,9 @@ import type {
   DailyRow,
   Market,
   Meta,
+  SignalPerfDoc,
+  SignalPerfRow,
+  SplitBonusRow,
   SymbolFile,
   SymbolRow,
   Table,
@@ -122,6 +125,20 @@ export class DataClient {
 
   market(): Promise<Market> {
     return this.getJson<Market>('market.json');
+  }
+
+  signalPerf(): Promise<SignalPerfRow[]> {
+    return this.cached('signalPerf:rows', async () =>
+      rowsToObjects<SignalPerfRow>(await this.getJson<SignalPerfDoc>('stats/signal_perf.json')),
+    );
+  }
+
+  signalPerfDoc(): Promise<SignalPerfDoc> {
+    return this.getJson<SignalPerfDoc>('stats/signal_perf.json');
+  }
+
+  splitBonus(): Promise<SplitBonusRow[]> {
+    return this.table<SplitBonusRow>('stats/split_bonus.json');
   }
 
   symbol(fileKey: string): Promise<{ file: SymbolFile; rows: SymbolRow[] }> {

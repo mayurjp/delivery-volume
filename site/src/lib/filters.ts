@@ -35,6 +35,13 @@ export function defaultFilters(minTurnoverAvg20Cr: number): Filters {
   };
 }
 
+/** Fields of a range row that the global filters read (the range view has no daily flags). */
+export interface RangeFilterRow {
+  sym: string;
+  lastClose: number | null;
+  avgTurnoverR: number | null;
+}
+
 export interface FilterContext {
   /** meta.indices, in bit order. */
   indices: readonly string[];
@@ -59,6 +66,36 @@ export function activeFilterCount(f: Filters, def: Filters): number {
 export function universeBit(u: string, indices: readonly string[]): number | null {
   const i = indices.indexOf(u);
   return i >= 0 ? 2 ** i : null;
+}
+
+/**
+ * Global filters for range rows. "Hide event-driven rows" needs daily flags and does not apply in range mode;
+ * the minimum-turnover filter uses the range's average daily turnover.
+ */
+export function applyRangeFilters<R extends RangeFilterRow>(
+  rows: readonly R[],
+  universe: ReadonlyMap<string, UniverseRow>,
+  f: Filters,
+  ctx: FilterContext,
+): R[] {
+  const bit = universeBit(f.u, ctx.indices);
+  const buckets = new Set<Bucket>(f.b);
+  const sectors = new Set(f.sec);
+  return rows.filter((r) => {
+    const u = universe.get(r.sym);
+    if (!u) return false;
+    if (f.u === 'WATCHLIST') {
+      if (!ctx.watchlist.has(r.sym)) return false;
+    } else if (bit !== null && (u.idx & bit) === 0) return false;
+    if (buckets.size > 0 && (u.bucket === null || !buckets.has(u.bucket))) return false;
+    if (f.capMin !== null && (u.mcapCr === null || u.mcapCr < f.capMin)) return false;
+    if (f.capMax !== null && (u.mcapCr === null || u.mcapCr > f.capMax)) return false;
+    if (sectors.size > 0 && !sectors.has(u.sector)) return false;
+    if (f.minTurn > 0 && r.avgTurnoverR !== null && r.avgTurnoverR < f.minTurn) return false;
+    if (f.minPrice > 0 && (r.lastClose === null || r.lastClose < f.minPrice)) return false;
+    if (f.hideEtfs && u.etf) return false;
+    return true;
+  });
 }
 
 /**

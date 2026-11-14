@@ -7,7 +7,8 @@ import time
 from pathlib import Path
 
 from .. import config, metrics
-from . import loader, outputs
+from . import columns as C
+from . import loader, outputs, signal_perf
 from .schema import validate
 
 
@@ -44,7 +45,7 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
                            loader.load_hl52(alias, root), etf)
 
     if out.exists():
-        for sub in ("daily", "cum", "symbols"):
+        for sub in ("daily", "cum", "symbols", "stats"):
             shutil.rmtree(out / sub, ignore_errors=True)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -70,5 +71,11 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     validate("market", market)
     outputs.dump(out / "market.json", market)
     outputs.flush()
-    lap("market written; build complete")
+    outputs.dump(out / "stats" / "split_bonus.json", outputs.build_split_bonus(corp))
+    validate("split_bonus", outputs.build_split_bonus(corp))
+    perf = signal_perf.compute(df, [d.isoformat() for d in days], uni, C.INDICES.index("NIFTY200"))
+    validate("signal_perf", perf)
+    outputs.dump(out / "stats" / "signal_perf.json", perf)
+    outputs.flush()
+    lap("market, split/bonus and signal_perf written; build complete")
     return {"universe": len(uni), "days": len(days), "sizes": sizes, "seconds": time.monotonic() - t0}

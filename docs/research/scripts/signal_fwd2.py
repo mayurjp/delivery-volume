@@ -42,20 +42,25 @@ for f in sorted((root / "store/hl52").rglob("*.csv.gz")):
     hl.append(h.rename(columns={"symbol": "sym", "high52": "prior52h"}))
 hl = pd.concat(hl, ignore_index=True)
 hl["prior52h"] = pd.to_numeric(hl["prior52h"], errors="coerce")
+# the store keeps pre-rename symbols; universe.json lists each symbol's old names (aliases)
+alias = {old: r.sym for r in u.itertuples() for old in r.aliases}
+hl["sym"] = hl["sym"].replace(alias)
+hl = hl.drop_duplicates(["sym", "date"], keep="last")
 df = df.merge(hl, on=["sym", "date"], how="left")
 df["breakout"] = df["high"] > df["prior52h"]
 
 days = sorted(df["date"].unique())
 df["t"] = df["date"].map({x: i for i, x in enumerate(days)})
 df["flags"] = df["flags"].fillna(0).astype(int)
-df = df[((df["flags"] & (256 | 1)) == 0) & (df["series"] == "EQ")].copy()
+allrows = df[["t", "sym", "close", "prevClose"]]   # prices come from every row, whatever its liquidity flag that day
+df = df[((df["flags"] & (256 | 1 | 512)) == 0) & (df["series"] == "EQ")].copy()
 
-T, syms = len(days), sorted(df["sym"].unique())
+T, syms = len(days), sorted(allrows["sym"].unique())
 si = {s: i for i, s in enumerate(syms)}
 C = np.full((T, len(syms)), np.nan)
 P = np.full((T, len(syms)), np.nan)
-C[df["t"], df["sym"].map(si)] = df["close"]
-P[df["t"], df["sym"].map(si)] = df["prevClose"]
+C[allrows["t"], allrows["sym"].map(si)] = allrows["close"]
+P[allrows["t"], allrows["sym"].map(si)] = allrows["prevClose"]
 prev_c = np.vstack([np.full((1, len(syms)), np.nan), C[:-1]])
 adj_cum = np.cumsum(np.nan_to_num(np.abs(P / prev_c - 1) > 0.03, nan=0).astype(int), axis=0)
 ti, sj = df["t"].to_numpy(), df["sym"].map(si).to_numpy()

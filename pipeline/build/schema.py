@@ -14,6 +14,8 @@ from . import columns as C
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
 SAMPLE_ROWS = 40  # files over 40 rows: cell types are validated on ~40 sampled rows (spread across the file); shape on all rows
 
+SIGNAL_PERF_COLS = ["event", "group", "entry", "horizon", "events", "n", "days", "medianExcess",
+                    "meanExcess", "hitRate"]
 _T = {"s": ["string", "null"], "i": ["integer", "null"], "f": ["number", "null"], "b": ["boolean"],
       "j": ["array"]}
 
@@ -68,6 +70,22 @@ def schemas() -> dict[str, dict]:
                                "additionalProperties": {"type": "array", "items": {"type": ["number", "null"]}}},
             }},
     }
+    out["signal_perf"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "stats/signal_perf.json", "type": "object",
+        "required": ["schemaVersion", "asOf", "window", "horizons", "entries", "groups", "minN", "events", "label",
+                     "columns", "rows"],
+        "properties": {
+            "schemaVersion": {"const": 1}, "asOf": iso, "minN": {"type": "integer"},
+            "window": {"type": "object", "required": ["from", "to"]},
+            "horizons": {"type": "array", "items": {"type": "integer"}},
+            "entries": {"type": "array", "items": {"type": "string"}},
+            "groups": {"type": "array", "items": {"type": "string"}},
+            "events": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
+            "label": {"type": "string"}, "columns": {"const": SIGNAL_PERF_COLS},
+            "rows": {"type": "array", "items": {"type": "array", "minItems": len(SIGNAL_PERF_COLS),
+                                                "maxItems": len(SIGNAL_PERF_COLS)}},
+        }}
+    out["split_bonus"] = _table(C.SPLIT_BONUS, title="stats/split_bonus.json")
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},
         "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]}, "etf": {"type": "boolean"},

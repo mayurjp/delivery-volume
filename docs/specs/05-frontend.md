@@ -8,7 +8,7 @@
   - the date control (§3);
   - a filter button with a badge showing how many filters are active;
   - a theme toggle.
-- **Navigation:** a left rail on desktop (≥ 1024 px) and a bottom tab bar on mobile. The tab bar holds Dashboard, Screener, Compare, Heatmap and More; More holds Institutions, Deals, Stats, Learn and Watchlist.
+- **Navigation:** a left rail on desktop (≥ 1024 px) and a bottom tab bar on mobile. The tab bar holds Dashboard, Screener, Compare, Heatmap and More; More holds Institutions, Deals, Stats, Learn and Watchlist (Institutions and Deals appear once those pages exist).
 - **Footer:** the disclaimer from 01 §7, on every page.
 - **Routing:** HashRouter. Routes are `#/`, `#/screener`, `#/compare`, `#/heatmap`, `#/stock/:sym`, `#/institutions`, `#/deals`, `#/entity/:id`, `#/stats`, `#/learn`, `#/watchlist`.
 - **State in the URL:** all filter and date state lives in query params, e.g. `#/screener?u=NIFTY200&b=L,M&sec=Financial%20Services&d=2026-11-13`. Links are therefore shareable, and Back/Forward work. Store the last-used filters in `localStorage` (inside try/catch) and apply them only when the URL has none.
@@ -32,8 +32,9 @@ Filtering is a pure function, `applyFilters(rows, universe, filters)`, in `src/l
 ## 3. Date controls
 
 - **Day mode** (default): a single trading-day picker. Only dates in `meta.tradingDays` are enabled. Defaults to `latestDate`. Add previous/next-day arrows.
-- **Range mode** (Compare, and Screener when it is switched to Range):
-  - presets 1W, 2W, 1M, 3M, 6M, 1Y, MTD, YTD and Custom;
+- **Range mode** (Compare, the Screener when switched to Range, and the Treemap):
+  - the range ends on the date picked in the top bar; presets 1W (5 trading days), 2W (10), 1M (21), 3M (63), 6M (126), 1Y (252 or all stored days), MTD, YTD and Custom (two dates, snapped to trading days);
+  - URL params: `r` (preset, default 1M), `ra`/`rb` (custom range), `bl` (`p` previous equal period, `20`, `50`, `c`), `ba`/`bb` (custom baseline); Screener range mode adds `rng=1`;
   - a baseline selector: "previous equal period" (default), "prior 20 days", "prior 50 days" or "custom";
   - always state the resolved ranges in words, e.g. "Range 15 Oct–13 Nov 2026 (21 days) vs baseline 15 Sep–14 Oct (21 days)".
 
@@ -71,10 +72,13 @@ Each card row shows the symbol, an "ETF" badge when the symbol is an ETF, sector
 ### P2 Screener `#/screener`
 
 - A virtualised table of the filtered universe. The symbol cell carries the small "ETF" badge for ETFs (the same badge appears on Dashboard cards, the stock header, search results and the Watchlist).
-- **Day mode** columns: every `daily/` field. Range mode columns: the §3 range fields of 04.
-- Column chooser, with a default set of about 10 columns and the choice saved locally. Multi-column sort. Symbol and name search.
-- Preset chips for every list in 04 §2, including "New 52-week high, low delivery", "New 52-week high, heavy delivery" and "Large cap: down on heavy delivery". "Delivery ↑ + Long build-up" is added in Phase 5.
-- Every preset that matches a `signal_perf` event shows a one-line "Historically: …" note under the chips (04 §6).
+- **Day mode** columns: every `daily/` field, plus the derived `Change (₹)` = close − prevClose. Range mode columns: the §3 range fields of 04 (plus the ⚠ corporate-action column and the range signal).
+- **Default Day columns:** Symbol, **Prev close, Close, Change (₹), Change (%)** (side by side, in that order), Turnover, Deliv %, Deliv % 20D, Deliv % diff, Deliv value, Spike, Signal, Flags. The column chooser lists `prevClose` and `Change (₹)` too. The saved column set is stored under the versioned key `dv.cols.v2`; a set saved under the old key `dv.cols` is migrated once by merging the four price columns in right after the symbol.
+- Column chooser with the choice saved locally. Multi-column sort. Symbol and name search.
+- **Daily delivery watch** button, first and visually primary (above the chips). One tap sets Universe = Nifty 500, min 20-day average turnover = ₹5 Cr, Hide ETFs = on, Hide event-driven rows = on and the preset Delivery spikes, as shareable URL state (`u=NIFTY500&mt=5&he=1&hetf=1&p=spikes`; the date is kept, other filters, sort, search and range state are replaced or cleared). Under it: "Unusual delivery in liquid Nifty 500 stocks, excluding record dates, deal days and circuits."
+- **Preset chips in four labelled groups** (04 §2): Start here (Delivery spikes, Unusual vs own history, Largest delivery value), Direction (Up on heavy delivery, Down on heavy delivery), Patterns (New 52-week high, low delivery; New 52-week high, heavy delivery) and More (collapsed by default: Highest delivery %, Delivery % jump, Delivery % fall, Sustained rise, Delivery drops, Large cap: down on heavy delivery). On mobile the groups stack and More stays collapsed. "Delivery ↑ + Long build-up" is added in Phase 5.
+- Under each preset in Start here, Direction and Patterns, a one-line "Historically: …" note from `signal_perf` (04 §6). Lists that have no measured event say so ("a ranking, not an event"). The "Not a prediction" label sits under the groups.
+- **Flag badges use plain words** (the tooltip keeps the explanation): T2T, Corp action, Bulk deal, Block deal, Circuit, F&O ban, 52W high, 52W low, Low liquidity, New listing, Expiry week. The Learn page carries a flag legend.
 - Ownership columns, joined from `holdings/latest.json` (Phase 4B): `promoterPct, fiiPct, diiPct, mfPct, fiiChgPp, diiChgPp, mfChgPp`, plus a quarter label in the column header tooltip.
 - Ownership presets: "FII stake up last quarter", "DII stake up last quarter", "FII→DII handover", and "Delivery spike + FII stake up".
 - In Range mode, add the deal-flow columns `fiiDealNetCr` and `diiDealNetCr`.
@@ -92,7 +96,7 @@ Each card row shows the symbol, an "ETF" badge when the symbol is an ETF, sector
 ### P4 Heatmaps `#/heatmap` (three tabs)
 
 1. **Treemap**
-   - grouped by sector, then stock;
+   - grouped by sector, then stock; stocks only (ETFs are not drawn);
    - size: turnover, market cap or delivery value (toggle);
    - colour: `spike` on a log2 scale (diverging at 1×, clamped to [0.25×, 4×]), `delivPctDiff` (±25 pp) or `ret1` (±5%);
    - works in Day and Range mode;

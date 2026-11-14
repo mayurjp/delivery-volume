@@ -1,0 +1,90 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "stats/signal_perf.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "asOf",
+  "window",
+  "horizons",
+  "entries",
+  "groups",
+  "minN",
+  "events",
+  "label",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "asOf": {
+   "type": "string",
+   "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+  },
+  "minN": {
+   "type": "integer"
+  },
+  "window": {
+   "type": "object",
+   "required": [
+    "from",
+    "to"
+   ]
+  },
+  "horizons": {
+   "type": "array",
+   "items": {
+    "type": "integer"
+   }
+  },
+  "entries": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "groups": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "events": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "label"
+    ]
+   }
+  },
+  "label": {
+   "type": "string"
+  },
+  "columns": {
+   "const": [
+    "event",
+    "group",
+    "entry",
+    "horizon",
+    "events",
+    "n",
+    "days",
+    "medianExcess",
+    "meanExcess",
+    "hitRate"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "array",
+    "minItems": 10,
+    "maxItems": 10
+   }
+  }
+ }
+}

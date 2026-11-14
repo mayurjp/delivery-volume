@@ -9,6 +9,9 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Screener = lazy(() => import('./pages/Screener'));
 const Stock = lazy(() => import('./pages/Stock'));
 const Learn = lazy(() => import('./pages/Learn'));
+const Compare = lazy(() => import('./pages/Compare'));
+const Heatmap = lazy(() => import('./pages/Heatmap'));
+const Stats = lazy(() => import('./pages/Stats'));
 const Placeholder = lazy(() => import('./pages/Placeholder'));
 const Watchlist = lazy(() => import('./pages/Watchlist'));
 
@@ -39,12 +42,12 @@ function Loaded() {
           <Route path="stock/:sym" element={<Stock />} />
           <Route path="learn" element={<Learn />} />
           <Route path="watchlist" element={<Watchlist />} />
-          <Route path="compare" element={<Placeholder title="Period Compare" />} />
-          <Route path="heatmap" element={<Placeholder title="Heatmaps" />} />
+          <Route path="compare" element={<Compare />} />
+          <Route path="heatmap" element={<Heatmap />} />
           <Route path="institutions" element={<Placeholder title="Institutions" />} />
           <Route path="deals" element={<Placeholder title="Deals" />} />
           <Route path="entity/:id" element={<Placeholder title="Entity" />} />
-          <Route path="stats" element={<Placeholder title="Market Statistics" />} />
+          <Route path="stats" element={<Stats />} />
           <Route path="*" element={<Placeholder title="Page not found" />} />
         </Route>
       </Routes>

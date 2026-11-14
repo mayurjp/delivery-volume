@@ -333,18 +333,21 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
 def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_close: pd.DataFrame) -> dict:
     iso = [d.isoformat() for d in days]
     v = df[df["valid"] & df["sym"].isin(set(uni["sym"]))].copy()
+    stocks = uni[~uni["etf"]]  # DEVIATIONS #36: every group except ETF is stocks-only
     v["isSpike2"] = (v["spike"] >= 2) & ~v["lowLiquidity"] & ~v["newListing"]
     v["isAdv"], v["isDec"], v["isUnch"] = v["ret1"] > 0, v["ret1"] < 0, v["ret1"] == 0
-    groups: dict[str, set] = {"ALL": set(uni["sym"])}
-    mask = uni["idx"].to_numpy()
+    groups: dict[str, set] = {"ALL": set(stocks["sym"])}
+    mask = stocks["idx"].to_numpy()
     for bit, key in enumerate(C.INDICES):
-        sel = uni.loc[(mask >> bit) & 1 == 1, "sym"]
+        sel = stocks.loc[(mask >> bit) & 1 == 1, "sym"]
         if len(sel):
             groups[f"IDX:{key}"] = set(sel)
-    for sec, g in uni.groupby("sector"):
+    for sec, g in stocks.groupby("sector"):
         groups[f"SEC:{sec}"] = set(g["sym"])
-    for b, g in uni.dropna(subset=["bucket"]).groupby("bucket"):
+    for b, g in stocks.dropna(subset=["bucket"]).groupby("bucket"):
         groups[f"MC:{b}"] = set(g["sym"])
+    if uni["etf"].any():
+        groups["ETF"] = set(uni.loc[uni["etf"], "sym"])
     out = {}
     for name, members in groups.items():
         g = v[v["sym"].isin(members)]
@@ -367,6 +370,13 @@ def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_clos
         s = idx_close[idx_close["Index Name"] == name].drop_duplicates("date").set_index("date")["close"]
         index_close[name] = col_list(s.reindex(iso), "f", 2)
     return {"schemaVersion": 1, "dates": iso, "groups": out, "indexClose": index_close}
+
+
+def build_split_bonus(corp: pd.DataFrame) -> dict:
+    """Split and bonus ex-dates, for the range view's corporate-action warning (DEVIATIONS #39)."""
+    c = corp[corp["kind"].isin(("SPLIT", "BONUS"))].sort_values(["exDate", "sym"])
+    return {"schemaVersion": 1, "columns": ["sym", "exDate", "kind", "purpose"],
+            "rows": [[r.sym, r.exDate, r.kind, r.purpose] for r in c.itertuples()]}
 
 
 def source_status(days: list[date], root: Path | None = None) -> dict:

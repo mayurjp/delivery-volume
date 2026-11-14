@@ -1,4 +1,4 @@
-// Playwright smoke test (headless Chromium): every Phase 2 route at 360 px and 1280 px.
+// Playwright smoke test (headless Chromium): every Phase 2-3 route at 360 px and 1280 px.
 // Checks: no console errors / page errors / failed requests, no horizontal page scroll, key content present.
 // Also reports the gzip transfer size of the initial Dashboard load.
 // Usage: VITE_BASE=/delivery-volume/ npm run build && node scripts/smoke.mjs   (starts `vite preview` itself)
@@ -53,7 +53,53 @@ const ROUTES = [
   { path: '#/stock/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
   { path: '#/learn', wait: 'h1:has-text("Learn")', expect: async (p) => (await p.locator('text=Every delivered share has both a buyer and a seller').count()) > 0 },
   { path: '#/watchlist', wait: 'h1:has-text("Watchlist")', expect: async () => true },
-  { path: '#/compare', wait: 'h1:has-text("Period Compare")', expect: async () => true },
+  {
+    path: '#/compare',
+    wait: 'h1:has-text("Period Compare")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Delivery increased"] tbody tr', { timeout: 20000 });
+      return (await p.locator('canvas').count()) >= 1 && /vs baseline/.test(await p.locator('[data-testid=range-text]').innerText());
+    },
+  },
+  {
+    path: '#/compare?r=1W&bl=20&u=NIFTY500',
+    wait: 'h1:has-text("Period Compare")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Delivery decreased"] tbody tr', { timeout: 20000 });
+      return true;
+    },
+  },
+  {
+    path: '#/screener?rng=1',
+    wait: 'h1:has-text("Screener")',
+    expect: async (p) => {
+      await p.waitForSelector('[aria-label="Screener table"] a', { timeout: 20000 });
+      return /vs baseline/.test(await p.locator('[data-testid=range-text]').innerText());
+    },
+  },
+  {
+    path: '#/heatmap?u=TOTALMARKET',
+    wait: 'h1:has-text("Heatmaps")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=tree-ms]:has-text("drawn in")', { timeout: 20000 });
+      const t = await p.locator('[data-testid=tree-ms]').innerText();
+      const ms = Number(/drawn in (\d+) ms/.exec(t)?.[1]);
+      console.log(`     treemap (Total Market): ${t.split('.')[0]}`);
+      if (ms >= 1000) fail(`treemap took ${ms} ms (limit 1000)`);
+      return (await p.locator('canvas').count()) >= 1;
+    },
+  },
+  { path: '#/heatmap?t=grid', wait: 'h1:has-text("Heatmaps")', expect: async (p) => (await p.locator('canvas').count()) >= 1 },
+  { path: '#/heatmap?t=grid&u=NIFTY50&gr=stocks', wait: 'h1:has-text("Heatmaps")', expect: async (p) => (await p.locator('canvas').count()) >= 1 },
+  { path: '#/heatmap?t=cal&cs=RELIANCE', wait: 'h1:has-text("Heatmaps")', expect: async (p) => { await p.waitForSelector('canvas', { timeout: 20000 }); return true; } },
+  {
+    path: '#/stats',
+    wait: 'h1:has-text("Market Statistics")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Signal performance"] tbody tr', { timeout: 20000 });
+      return (await p.locator('canvas').count()) >= 3 && /Not a prediction/.test(await p.locator('[data-testid=perf-label]').innerText());
+    },
+  },
 ];
 
 let initial = null;
@@ -100,6 +146,30 @@ try {
         await page.screenshot({ path: `${SHOTS}/${vp.w}-${route.path.replace(/[^a-z0-9]+/gi, '_')}.png`, fullPage: false });
       }
       await page.close();
+    }
+
+    // Daily delivery watch: one tap sets the approved filters and the Delivery spikes preset in the URL
+    {
+      const wp = await ctx.newPage();
+      const werr = [];
+      wp.on('console', (m) => m.type() === 'error' && werr.push(`console: ${m.text()}`));
+      wp.on('pageerror', (e) => werr.push(`pageerror: ${e.message}`));
+      await wp.goto(`${ORIGIN}${BASE}#/screener`);
+      await wp.waitForSelector('[data-testid=daily-watch]');
+      await wp.click('[data-testid=daily-watch]');
+      await wp.waitForSelector('[aria-label="Screener table"] a', { timeout: 20000 });
+      const q = new URLSearchParams(wp.url().split('?')[1] ?? '');
+      const want = { u: 'NIFTY500', mt: '5', he: '1', hetf: '1', p: 'spikes' };
+      for (const [k, v] of Object.entries(want)) if (q.get(k) !== v) fail(`${vp.w}px watch: ${k}=${q.get(k)} (want ${v})`);
+      const count = Number(/([\d,]+) stocks/.exec(await wp.locator('h1 + p').innerText())?.[1]?.replace(/,/g, ''));
+      if (!(count > 0 && count <= 500)) fail(`${vp.w}px watch: ${count} stocks`);
+      if ((await wp.locator('[data-testid="history-acc"]').count()) !== 1) fail(`${vp.w}px: history line missing under the ACC preset`);
+      const sw2 = await wp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+      if (!sw2) fail(`${vp.w}px: horizontal scroll on the screener with presets`);
+      if (SHOTS) await wp.screenshot({ path: `${SHOTS}/${vp.w}-screener-watch.png` });
+      for (const e of werr) fail(`${vp.w}px watch: ${e}`);
+      console.log(`${werr.length ? 'FAIL' : 'ok  '} ${vp.w}px Daily delivery watch (${count} stocks, ${wp.url().split('?')[1]})`);
+      await wp.close();
     }
 
     // interactions: filter drawer, theme toggle, star + watchlist, date control

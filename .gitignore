@@ -11,3 +11,6 @@ reports/
 # operational request logs (kept locally, not committed)
 store/logs/
 .tmp/
+
+# extra history staged for merge into store/ (see docs/specs/07 §8)
+.history_staging/

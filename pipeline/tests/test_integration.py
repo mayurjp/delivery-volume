@@ -124,3 +124,20 @@ def test_build_time_budget(built):
 
 def test_loader_alias_map_is_nonempty():
     assert isinstance(loader.load_alias_map(), dict)
+
+
+def test_market_groups_are_stocks_only_and_etf_has_its_own_group(built):
+    """03 section 5.6: ALL and every IDX/SEC/MC group exclude ETFs (flag 512); the ETF group holds them."""
+    out, root, days, *_ = built
+    market = json.loads((out / "market.json").read_text())
+    daily = rows(json.loads((out / "daily" / f"{days[-1]}.json").read_text()))
+    valid = [r for r in daily if r["delivValCr"] is not None]
+    etf_turn = sum(r["turnoverCr"] for r in valid if r["flags"] & C.FLAG["etf"])
+    stock_turn = sum(r["turnoverCr"] for r in valid if not r["flags"] & C.FLAG["etf"])
+    assert etf_turn > 0
+    assert market["groups"]["ETF"]["turnoverCr"][-1] == pytest.approx(etf_turn, abs=0.5)
+    # SEC:Unclassified holds only non-ETF symbols now; the stock-only groups together never exceed the stock total
+    assert market["groups"]["ALL"]["turnoverCr"][-1] == pytest.approx(stock_turn, abs=0.5)
+    sectors = sum(g["turnoverCr"][-1] or 0 for k, g in market["groups"].items() if k.startswith("SEC:"))
+    assert sectors == pytest.approx(stock_turn, abs=0.5)
+    assert (out / "stats" / "signal_perf.json").exists() and (out / "stats" / "split_bonus.json").exists()

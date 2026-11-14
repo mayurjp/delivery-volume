@@ -2,7 +2,9 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, type LinkProps } from 'react-router-dom';
 import { carryParams } from '../lib/urlState';
 import { DELIVERY_TRUTH, flagsOf, SIGNAL_LABEL, SIGNAL_MEANING } from '../lib/signals';
-import type { SignalCode } from '../types/data';
+import { useSignalPerf } from '../lib/hooks';
+import { signalHistory } from '../lib/signalPerf';
+import type { Bucket, SignalCode } from '../types/data';
 
 /** A router link that carries the global filter and date params to the next page. */
 export function AppLink({ to, children, ...rest }: Omit<LinkProps, 'to'> & { to: string }) {
@@ -98,19 +100,24 @@ const SIGNAL_TONE: Record<SignalCode, string> = {
 export function SignalBadge({
   signal,
   history,
+  bucket = null,
   plain = false,
 }: {
   signal: SignalCode | null;
   history?: string;
+  /** The stock's cap bucket: picks the signal_perf group for the "Historically" line. */
+  bucket?: Bucket | null;
   plain?: boolean;
 }) {
+  const perf = useSignalPerf();
   if (!signal) return null;
+  history = history ?? signalHistory(perf.data, signal, bucket);
   if (plain) {
     // inside virtualised table rows a bubble would be painted under the next row, so use the native title
     return (
       <span
         className={`chip whitespace-nowrap ${SIGNAL_TONE[signal]}`}
-        title={`${SIGNAL_MEANING[signal]} ${DELIVERY_TRUTH}`}
+        title={`${SIGNAL_MEANING[signal]} ${DELIVERY_TRUTH}${history ? ` ${history}` : ''}`}
       >
         {SIGNAL_LABEL[signal]}
       </span>
@@ -150,7 +157,7 @@ export function FlagIcons({ flags, only, plain = false }: { flags: number; only?
   if (!list.length) return null;
   if (plain) {
     return (
-      <span className="inline-flex gap-0.5">
+      <span className="inline-flex gap-1 whitespace-nowrap">
         {list.map((f) => (
           <span
             key={f.bit}

@@ -31,6 +31,8 @@ UNIVERSE = [("sym", "s", None), ("f", "s", None), ("name", "s", None), ("isin", 
             ("idx", "i", None), ("mcapCr", "f", 2), ("mcapRank", "i", None), ("bucket", "s", None),
             ("listedOn", "s", None), ("aliases", "j", None), ("mcapEstimated", "b", None),
             ("etf", "b", None)]
+SPLIT_BONUS = [("sym", "s", None), ("exDate", "s", None), ("kind", "s", None),
+              ("purpose", "s", None)]
 HOLDINGS_COLS = ["quarter", "filedOn", "promoterPct", "fiiPct", "diiPct", "mfPct", "insurancePct", "bankPct",
                  "pensionPct", "otherDiiPct", "retailPct", "othersPct", "totalShares"]
 NAMED_HOLDER_COLS = ["quarter", "category", "subType", "holder", "entityId", "shares", "pct"]

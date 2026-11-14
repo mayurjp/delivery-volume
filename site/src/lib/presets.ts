@@ -1,4 +1,6 @@
 import { FLAG, type DailyRow, type UniverseRow } from '../types/data';
+import { defaultFilters } from './filters';
+import { writeFilters } from './urlState';
 
 /** Daily top lists (04 section 2). Thresholds mirror config/signals.json -> lists. */
 
@@ -92,6 +94,56 @@ export const PRESETS: Preset[] = [
 ];
 
 export const PRESET_BY_ID = new Map(PRESETS.map((p) => [p.id, p]));
+
+/** Screener preset chips, grouped (05 section 4, P2). "More" is collapsed by default. */
+export interface PresetGroup {
+  id: string;
+  label: string;
+  ids: string[];
+  collapsed?: boolean;
+}
+
+export const PRESET_GROUPS: PresetGroup[] = [
+  { id: 'start', label: 'Start here', ids: ['spikes', 'unusual', 'value'] },
+  { id: 'direction', label: 'Direction', ids: ['acc', 'dis'] },
+  { id: 'patterns', label: 'Patterns', ids: ['high52low', 'high52heavy'] },
+  {
+    id: 'more',
+    label: 'More',
+    ids: ['highpct', 'jump', 'fall', 'streak', 'drops', 'largedis'],
+    collapsed: true,
+  },
+];
+
+/** signal_perf event (and optional group) that a preset's history line reads. Presets without one are rankings. */
+export const PRESET_EVENT: Record<string, { event: string; group?: string }> = {
+  spikes: { event: 'SPIKE2' },
+  unusual: { event: 'Z2' },
+  acc: { event: 'ACC' },
+  dis: { event: 'DIS' },
+  high52low: { event: 'BO_LOW' },
+  high52heavy: { event: 'BO_HEAVY' },
+  largedis: { event: 'DIS', group: 'L' },
+};
+
+/** The one-tap "Daily delivery watch" (Screener): liquid Nifty 500 stocks, no ETFs or event-driven rows, spikes list. */
+export const DAILY_WATCH_NOTE =
+  'Unusual delivery in liquid Nifty 500 stocks, excluding record dates, deal days and circuits.';
+
+export function dailyWatchParams(current: URLSearchParams, minTurnoverDefault: number): URLSearchParams {
+  const next = new URLSearchParams(current);
+  next.delete('p'); // re-added last, so the URL always reads filters first, then the preset
+  writeFilters(
+    next,
+    { ...defaultFilters(minTurnoverDefault), u: 'NIFTY500', minTurn: 5, hideEtfs: true, hideEvents: true },
+    minTurnoverDefault,
+  );
+  next.set('p', 'spikes');
+  next.delete('s');
+  next.delete('q');
+  for (const k of ['rng', 'r', 'ra', 'rb', 'bl', 'ba', 'bb']) next.delete(k);
+  return next;
+}
 
 /** Rows of a preset: its filter, minus the default exclusions (low liquidity, T2T, new listings), sorted. */
 export function runPreset(

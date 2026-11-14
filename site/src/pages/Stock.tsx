@@ -5,8 +5,19 @@ import EChart from '../charts/EChart';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, SignalBadge, Skeleton, Tip } from '../components/ui';
 import { BUCKET_LABEL } from '../lib/labels';
-import { fmtCr, fmtDate, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtPrice, fmtQty, fmtRatio } from '../lib/format';
-import { useApp, useSymbol } from '../lib/hooks';
+import {
+  fmtCr,
+  fmtDate,
+  fmtNum,
+  fmtPct,
+  fmtPctChg,
+  fmtPp,
+  fmtPrice,
+  fmtQty,
+  fmtRatio,
+  fmtSigned,
+} from '../lib/format';
+import { useApp, useDaily, useSymbol } from '../lib/hooks';
 import { stockStats } from '../lib/metrics';
 import { useDark } from '../lib/theme';
 import { toggleWatch, useWatchlist } from '../lib/watchlist';
@@ -80,7 +91,13 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
   const starred = watch.includes(u.sym);
   const last = rows?.rows[rows.rows.length - 1];
   const prev = rows?.rows[rows.rows.length - 2];
-  const ret = last?.close && prev?.close ? (last.close / prev.close - 1) * 100 : null;
+  // exact previous close and change come from the day's daily file; the symbol file only has closes
+  const dailyRows = useDaily(meta.latestDate, meta.latestDate);
+  const day =
+    last && last.date === meta.latestDate ? dailyRows.data?.find((d) => d.sym === u.sym) : undefined;
+  const prevClose = day?.prevClose ?? prev?.close ?? null;
+  const ret = day?.ret1 ?? (last?.close && prev?.close ? (last.close / prev.close - 1) * 100 : null);
+  const chg = last?.close != null && prevClose !== null ? last.close - prevClose : null;
   const idx = meta.indices.filter((_, i) => (u.idx & (2 ** i)) !== 0 && meta.indices[i] !== 'TOTALMARKET');
   const diff =
     last && last.delivPct !== null && last.delivPctAvg20 !== null ? last.delivPct - last.delivPctAvg20 : null;
@@ -105,7 +122,10 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
         </div>
         <div className="num text-right">
           <div className="text-xl font-semibold">{fmtPrice(last?.close)}</div>
-          <div className={`text-sm ${priceClass(ret)}`}>{fmtPctChg(ret, 2)}</div>
+          <div className={`text-sm ${priceClass(ret)}`}>
+            {fmtSigned(chg)} ({fmtPctChg(ret, 2)})
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Prev close {fmtPrice(prevClose)}</div>
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs">
@@ -134,7 +154,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
           <span>
             Spike <b className={`num ${deliveryClass((last.spike ?? 1) - 1)}`}>{fmtRatio(last.spike)}</b>
           </span>
-          <SignalBadge signal={last.signal} />
+          <SignalBadge signal={last.signal} bucket={u.bucket} />
           <FlagIcons flags={last.flags} />
           <span className="text-xs text-slate-500">{fmtDate(last.date)}</span>
         </div>
@@ -312,7 +332,7 @@ export default function Stock() {
                     <td>{fmtRatio(r.spike)}</td>
                     <td className="pl-2 text-left">
                       <span className="inline-flex items-center gap-1">
-                        <SignalBadge signal={r.signal} />
+                        <SignalBadge signal={r.signal} bucket={u.bucket} />
                         <FlagIcons flags={r.flags} />
                       </span>
                     </td>

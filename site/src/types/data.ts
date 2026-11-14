@@ -170,6 +170,47 @@ export interface Market {
   indexClose: Record<string, (number | null)[]>;
 }
 
+export interface SignalPerfEvent {
+  id: string;
+  label: string;
+}
+
+/** stats/signal_perf.json (04 section 6): one row per event x group x entry x horizon. */
+export interface SignalPerfDoc {
+  schemaVersion: 1;
+  asOf: string;
+  window: { from: string; to: string };
+  horizons: number[];
+  entries: ('t1' | 't0')[];
+  groups: string[];
+  minN: number;
+  events: SignalPerfEvent[];
+  label: string;
+  columns: string[];
+  rows: unknown[][];
+}
+
+export interface SignalPerfRow {
+  event: string;
+  group: string;
+  entry: 't1' | 't0';
+  horizon: number;
+  events: number;
+  n: number;
+  days: number;
+  medianExcess: number | null;
+  meanExcess: number | null;
+  hitRate: number | null;
+}
+
+/** stats/split_bonus.json row. */
+export interface SplitBonusRow {
+  sym: string;
+  exDate: string;
+  kind: 'SPLIT' | 'BONUS';
+  purpose: string;
+}
+
 /** Flag bits (03 section 5.3). */
 export const FLAG = {
   t2t: 1,

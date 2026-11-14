@@ -12,6 +12,10 @@
 | 4 | [04-analytics.md](04-analytics.md) | Formula and threshold for every metric and signal |
 | 5 | [05-frontend.md](05-frontend.md) | Pages, filters, charts, heat maps, data loading, UX rules |
 | 6 | [06-phases-and-acceptance.md](06-phases-and-acceptance.md) | Build order, acceptance criteria per phase, tests, CI |
+| 7 | [07-run-forensics.md](07-run-forensics.md) | Phase 5B: per-stock run forensics, market-wide run library, smart-money footprint panel; §8 the 3-year history and publishing rules (built in Phase 3B) |
+| 8 | [08-timeframes.md](08-timeframes.md) | Phase 3B: Daily / Weekly / Monthly timeframes across every analysis view |
+
+**Build order:** 0 → 1 → 2 → 3 → **3B** (3-year history merge + publishing rules from 07 §8, plus timeframes from 08) → **3C** (Smart Money Trail v1, delivery footprints: 07 §6A) → 4 → 4B → 5 (each wires its indicator into the trail) → **5B** (run forensics, 07) → 6 (optional, ask first).
 
 ## Fixed decisions (do not change without asking the user)
 

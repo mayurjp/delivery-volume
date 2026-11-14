@@ -212,10 +212,13 @@ There is one row per universe symbol. A symbol that did not trade that day is **
 
 Groups:
 
-- `ALL` (the whole universe);
+- `ALL` (every **stock** in the universe, ETFs excluded);
 - `IDX:<key>` for each index in `meta.indices`;
-- `SEC:<sector>`;
-- `MC:L|M|S|U`.
+- `SEC:<sector>` (including `SEC:Unclassified`);
+- `MC:L|M|S|U`;
+- `ETF` (every ETF / index fund, flag 512, as its own group).
+
+**Stocks only:** `ALL` and every `IDX:*`, `SEC:*` and `MC:*` group exclude ETFs (flag 512), so delivery %, turnover, advance/decline and spike counts describe companies. ETF creation/redemption activity would otherwise distort them. ETFs are only in the `ETF` group.
 
 Membership for every date uses the *current* constituents and buckets.
 
@@ -240,9 +243,27 @@ Membership for every date uses the *current* constituents and buckets.
 - `deals/entities.json`: one row per entity: `entityId, entityName, entityType, entityCategory, aliases[], dealCount, buyValueCr, sellValueCr, netValueCr, firstDate, lastDate, topSymbols[]` (top 10 by gross value), plus `disclosedHoldingsCount` and `disclosedHoldingsQuarter` (from S16).
 - `deals/flows.json`: per stock per category, for fast range maths. Columns `date, sym, category, buyValueCr, sellValueCr, netValueCr`, round trips excluded. The frontend sums over any range.
 
-### 5.9 `stats/signal_perf.json` (Phase 5)
+### 5.9 `stats/signal_perf.json` (Phase 3)
 
-For each signal code × bucket (`ALL, L, M, S, U`): `count, fwdRet1/5/20` with `mean`, `median` and `hitRate` (share > 0), and `asOf`. Forward returns use close-to-close and skip signals whose forward window crosses a split or bonus ex-date.
+Forward excess returns after each delivery event, per 04 §6 (method, events, groups and the replication check live there).
+
+```json
+{ "schemaVersion": 1, "asOf": "2026-11-13", "window": { "from": "2025-11-03", "to": "2026-11-13" },
+  "horizons": [1, 5, 20], "entries": ["t1", "t0"], "groups": ["ALL","L","M","S","U","IDX:NIFTY200"], "minN": 30,
+  "events": [{ "id": "ACC", "label": "Up on heavy delivery (ACC)" }],
+  "label": "Historical, one sample period, ...",
+  "columns": ["event","group","entry","horizon","events","n","days","medianExcess","meanExcess","hitRate"],
+  "rows": [["ACC","L","t1",20, 414, 400, 140, -1.04, 0.2, 44.2]] }
+```
+
+- `entry`: `t1` = enter at close(t+1) (the default), `t0` = enter at close(t).
+- `events` = event count in the group; `n` = observations with a valid window at that horizon; `days` = distinct dates among them. `medianExcess` and `meanExcess` are in percent; `hitRate` is the percent of observations with excess > 0. All three are null when `n` = 0.
+- The UI hides every cell with `n` < `minN`.
+- Forward returns are close-to-close and drop any window that crosses a price adjustment (04 §6).
+
+### 5.9b `stats/split_bonus.json`
+
+Columns `sym, exDate, kind, purpose`: every SPLIT and BONUS ex-date in the stored corporate actions (alias-resolved). Period Compare and range mode use it for the ⚠ "corporate action in range" marker (04 §3), because the symbol files that also carry corporate actions are too many to load for a ranking.
 
 ### 5.10 Holdings files (S16, Phase 4B)
 

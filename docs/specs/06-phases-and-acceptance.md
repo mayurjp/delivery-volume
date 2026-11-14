@@ -82,7 +82,7 @@ Build strictly in this order. Each phase ends with its acceptance checks passing
 - TS range maths matches the shared Python test vectors.
 - The treemap of the Total Market universe renders in < 1 s on a laptop.
 - The ⚠ corporate-action marker appears for a stock with a split or bonus inside the range. Pick a real example from the backfilled data and record it in a test.
-- `signal_perf.json` replicates docs/research/2026-11-delivery-signal-study.md (04 §6 replication check). Add it as a pytest using the store up to 2026-11-13.
+- `signal_perf.json` replicates the research scripts (04 §6 replication check): a pytest (marked `slow`) runs `docs/research/scripts/signal_fwd.py` and `signal_fwd2.py` on the same store with matching entry timing and compares their output with the shipped file programmatically. The study's tables are those scripts' output.
 - No UI string calls a signal bullish, bearish, buy, sell or "confirmed". Add a test that greps the built bundle's locale strings.
 
 ## Phase 4: Institutions and deals

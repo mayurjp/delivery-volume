@@ -1,4 +1,11 @@
-import { BarChart, CandlestickChart, HeatmapChart, LineChart } from 'echarts/charts';
+import {
+  BarChart,
+  CandlestickChart,
+  HeatmapChart,
+  LineChart,
+  ScatterChart,
+  TreemapChart,
+} from 'echarts/charts';
 import {
   CalendarComponent,
   DataZoomComponent,
@@ -18,6 +25,8 @@ echarts.use([
   CandlestickChart,
   HeatmapChart,
   LineChart,
+  ScatterChart,
+  TreemapChart,
   CalendarComponent,
   DataZoomComponent,
   GridComponent,

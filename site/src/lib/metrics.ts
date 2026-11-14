@@ -22,6 +22,9 @@ export interface RangeRow {
   delivPctChgPp: number | null;
   turnoverChgPct: number | null;
   ret: number | null;
+  /** Last close in the range and average daily turnover (₹ Cr) of the range: used by the global filters. */
+  lastClose: number | null;
+  avgTurnoverR: number | null;
   coverage: number;
   listedDuringRange: boolean;
   excluded: boolean;
@@ -100,6 +103,8 @@ export function computeRange(
         R.lastClose !== null && R.priorClose !== null && R.priorClose > 0
           ? (R.lastClose / R.priorClose - 1) * 100
           : null,
+      lastClose: R.lastClose,
+      avgTurnoverR: turnR,
       coverage,
       listedDuringRange: R.listed,
       excluded: reasons.length > 0,

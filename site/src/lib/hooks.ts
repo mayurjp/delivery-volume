@@ -4,6 +4,7 @@ import type { DailyRow, CumRow, Market, Meta, SymbolRow, SymbolFile, UniverseRow
 import { dataClient } from './dataClient';
 import { activeFilterCount, defaultFilters, type Filters } from './filters';
 import { readJson, writeJson } from './storage';
+import { indexPerf, type PerfIndex } from './signalPerf';
 import { hasFilterParams, parseDate, parseFilters, writeFilters } from './urlState';
 
 export interface Async<T> {
@@ -39,6 +40,8 @@ export function useAsync<T>(key: string | null, fn: () => Promise<T>): Async<T> 
 
 export const useMeta = (): Async<Meta> => useAsync('meta', () => dataClient.getMeta());
 export const useUniverse = (): Async<UniverseRow[]> => useAsync('universe', () => dataClient.universe());
+export const useSignalPerf = (): Async<PerfIndex> =>
+  useAsync('signalPerf', async () => indexPerf(await dataClient.signalPerf()));
 export const useMarket = (): Async<Market> => useAsync('market', () => dataClient.market());
 export const useDaily = (date: string | null, latest: string): Async<DailyRow[]> =>
   useAsync(date ? `daily:${date}` : null, () => dataClient.daily(date as string, latest));
@@ -66,6 +69,11 @@ export function useApp(): AppData {
 // ---- filters and date, kept in the URL --------------------------------------------------------------------------------
 
 const LAST_KEY = 'dv.lastFilters';
+
+/** Remembers the last-used filters (applied only when a URL carries none). */
+export function saveLastFilters(f: Filters, minTurn: number): void {
+  writeJson(LAST_KEY, writeFilters(new URLSearchParams(), f, minTurn).toString());
+}
 
 export interface GlobalState {
   filters: Filters;

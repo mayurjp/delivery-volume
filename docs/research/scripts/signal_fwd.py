@@ -24,7 +24,7 @@ days = sorted(df["date"].unique())
 di = {x: i for i, x in enumerate(days)}
 df["t"] = df["date"].map(di)
 df["flags"] = df["flags"].fillna(0).astype(int)
-liquid = ((df["flags"] & 256) == 0) & ((df["flags"] & 1) == 0) & (df["series"] == "EQ")
+liquid = ((df["flags"] & (256 | 1 | 512)) == 0) & (df["series"] == "EQ")  # 512 = ETF (excluded)
 
 T, syms = len(days), sorted(df["sym"].unique())
 si = {s: i for i, s in enumerate(syms)}

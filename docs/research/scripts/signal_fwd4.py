@@ -59,7 +59,7 @@ for c in ("FII", "DII", "Other"):
 df = daily.copy()
 df["t"] = df["date"].map(tix)
 df["flags"] = df["flags"].fillna(0).astype(int)
-df = df[((df["flags"] & (256 | 1)) == 0) & (df["series"] == "EQ")].copy()
+df = df[((df["flags"] & (256 | 1 | 512)) == 0) & (df["series"] == "EQ")].copy()
 df = df.merge(net, on=["date", "sym"], how="left").fillna({"FII": 0.0, "DII": 0.0, "Other": 0.0})
 
 T, syms = len(days), sorted(daily["sym"].unique())

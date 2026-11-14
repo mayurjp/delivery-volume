@@ -8,3 +8,4 @@ ignore = ["E501", "E741"]
 
 [tool.pytest.ini_options]
 testpaths = ["pipeline/tests"]
+markers = ["slow: runs the research scripts end to end (about a minute)"]

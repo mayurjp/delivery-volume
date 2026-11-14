@@ -8,18 +8,25 @@ interface Props {
   height: number;
   className?: string;
   ariaLabel?: string;
+  /** Called with the clicked data item (series data entry). */
+  onItemClick?: (data: unknown) => void;
 }
 
 /** The single ECharts wrapper: init, theme switch, resize and dispose. */
-export default function EChart({ option, height, className, ariaLabel }: Props) {
+export default function EChart({ option, height, className, ariaLabel, onItemClick }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.ECharts | null>(null);
   const dark = useDark();
+  const click = useRef(onItemClick);
+  useEffect(() => {
+    click.current = onItemClick;
+  });
 
   useEffect(() => {
     if (!el.current) return;
     const c = echarts.init(el.current, dark ? 'dark' : undefined, { renderer: 'canvas' });
     chart.current = c;
+    c.on('click', (e: unknown) => click.current?.((e as { data?: unknown }).data));
     const ro = new ResizeObserver(() => c.resize());
     ro.observe(el.current);
     return () => {

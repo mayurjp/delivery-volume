@@ -14,13 +14,61 @@ export const DISCLAIMER =
 const NAV: { to: string; label: string; icon: string }[] = [
   { to: '/', label: 'Dashboard', icon: '▦' },
   { to: '/screener', label: 'Screener', icon: '☰' },
+  { to: '/compare', label: 'Compare', icon: '⇄' },
+  { to: '/heatmap', label: 'Heatmap', icon: '▩' },
+];
+
+/** Pages under "More" on the mobile tab bar (also listed in the desktop rail). */
+const MORE: { to: string; label: string; icon: string }[] = [
+  { to: '/stats', label: 'Stats', icon: '∿' },
   { to: '/watchlist', label: 'Watchlist', icon: '★' },
   { to: '/learn', label: 'Learn', icon: '?' },
 ];
 
+function MoreMenu({ q }: { q: string }) {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const active = MORE.some((m) => pathname.startsWith(m.to));
+  return (
+    <div className="relative flex flex-1">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex min-h-[48px] flex-1 flex-col items-center justify-center text-xs ${active ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}
+      >
+        <span aria-hidden className="text-base leading-none">
+          ⋯
+        </span>
+        More
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="card absolute bottom-full right-1 z-40 mb-1 w-40 p-1 text-sm shadow-lg"
+          onClick={() => setOpen(false)}
+        >
+          {MORE.map((m) => (
+            <NavLink
+              key={m.to}
+              role="menuitem"
+              to={`${m.to}${q}`}
+              className="block rounded px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              {m.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Nav({ rail }: { rail: boolean }) {
   const { search } = useLocation();
   const q = carryParams(new URLSearchParams(search));
+  const items = rail ? [...NAV, ...MORE] : NAV;
   return (
     <nav
       aria-label="Main"
@@ -30,7 +78,7 @@ function Nav({ rail }: { rail: boolean }) {
           : 'fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:hidden'
       }
     >
-      {NAV.map((n) => (
+      {items.map((n) => (
         <NavLink
           key={n.to}
           to={`${n.to}${q}`}
@@ -47,6 +95,7 @@ function Nav({ rail }: { rail: boolean }) {
           {n.label}
         </NavLink>
       ))}
+      {!rail && <MoreMenu q={q} />}
     </nav>
   );
 }

@@ -1,6 +1,17 @@
 import { deliveryClass, priceClass } from '../charts/theme';
-import type { Bucket, DailyRow } from '../types/data';
-import { fmtCr, fmtInt, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtPrice, fmtQty, fmtRatio } from './format';
+import type { Bucket, DailyRow, SignalCode } from '../types/data';
+import {
+  fmtCr,
+  fmtInt,
+  fmtSigned,
+  fmtNum,
+  fmtPct,
+  fmtPctChg,
+  fmtPp,
+  fmtPrice,
+  fmtQty,
+  fmtRatio,
+} from './format';
 import { SIGNAL_LABEL } from './signals';
 
 /** A Screener row: one daily row joined with its universe row. */
@@ -9,30 +20,44 @@ export type ScreenRow = DailyRow & {
   sector: string;
   mcapCr: number | null;
   bucket: Bucket | null;
+  /** Close minus previous close, ₹. */
+  chg: number | null;
 };
 
-export interface ColumnSpec {
-  key: keyof ScreenRow;
+/** What every Screener row type (day or range) provides for the shared table. */
+export interface RowLike {
+  sym: string;
+  flags?: number;
+  signal?: SignalCode | null;
+  etf?: boolean;
+  bucket?: Bucket | null;
+  caWarn?: boolean;
+}
+
+export interface ColumnSpec<R = ScreenRow> {
+  key: keyof R & string;
   label: string;
   tip: string;
   width: number;
   align?: 'left' | 'right';
+  /** Special cell renderers handled by the table: symbol link, signal badge, flag chips, ⚠ marker. */
+  kind?: 'sym' | 'signal' | 'flags' | 'warn';
   /** Display text. */
-  fmt: (r: ScreenRow) => string;
+  fmt: (r: R) => string;
   /** CSS colour class (price green/red, delivery blue/orange). */
-  tone?: (r: ScreenRow) => string;
+  tone?: (r: R) => string;
   /** Plain value for CSV export (defaults to the raw field). */
-  csv?: (r: ScreenRow) => string | number | null;
+  csv?: (r: R) => string | number | null;
 }
 
-const num = (
-  k: keyof ScreenRow,
+export const numCol = <R>(
+  k: keyof R & string,
   label: string,
   tip: string,
   width: number,
   f: (v: number | null) => string,
   tone?: (v: number | null) => string,
-): ColumnSpec => ({
+): ColumnSpec<R> => ({
   key: k,
   label,
   tip,
@@ -42,9 +67,19 @@ const num = (
   tone: tone ? (r) => tone(r[k] as number | null) : undefined,
 });
 
+const num = (
+  k: keyof ScreenRow & string,
+  label: string,
+  tip: string,
+  width: number,
+  f: (v: number | null) => string,
+  tone?: (v: number | null) => string,
+): ColumnSpec => numCol<ScreenRow>(k, label, tip, width, f, tone);
+
 export const COLUMNS: ColumnSpec[] = [
   {
     key: 'sym',
+    kind: 'sym',
     label: 'Symbol',
     tip: 'NSE symbol. Click to open the stock page.',
     width: 120,
@@ -76,8 +111,9 @@ export const COLUMNS: ColumnSpec[] = [
   num('open', 'Open', 'Open price, ₹', 84, fmtPrice),
   num('high', 'High', 'High price, ₹', 84, fmtPrice),
   num('low', 'Low', 'Low price, ₹', 84, fmtPrice),
-  num('close', 'Close', 'Close price, ₹', 90, fmtPrice),
   num('prevClose', 'Prev close', 'Previous close, ₹', 90, fmtPrice),
+  num('close', 'Close', 'Close price, ₹', 90, fmtPrice),
+  num('chg', 'Change (₹)', 'Close minus previous close, ₹', 90, fmtSigned, priceClass),
   num('vwap', 'VWAP', 'Volume-weighted average price, ₹', 84, fmtPrice),
   num('vol', 'Volume', 'Traded quantity (shares)', 90, fmtQty),
   num('turnoverCr', 'Turnover', 'Traded value, ₹ Cr', 96, fmtCr),
@@ -106,7 +142,7 @@ export const COLUMNS: ColumnSpec[] = [
     deliveryClass,
   ),
   num('relVol', 'Rel vol', 'Traded quantity / its prior 20-day average', 70, fmtRatio),
-  num('ret1', 'Return 1D', 'Close vs previous close', 84, (v) => fmtPctChg(v, 2), priceClass),
+  num('ret1', 'Change (%)', 'Close vs previous close, %', 84, (v) => fmtPctChg(v, 2), priceClass),
   num('clv', 'CLV', 'Close location in the day’s range: +1 closed at the high, -1 at the low', 66, (v) =>
     fmtNum(v),
   ),
@@ -120,6 +156,7 @@ export const COLUMNS: ColumnSpec[] = [
   ),
   {
     key: 'signal',
+    kind: 'signal',
     label: 'Signal',
     tip: 'Describes what happened on the day; it does not predict anything.',
     width: 190,
@@ -128,9 +165,10 @@ export const COLUMNS: ColumnSpec[] = [
   },
   {
     key: 'flags',
+    kind: 'flags',
     label: 'Flags',
     tip: 'Context flags (corporate action, deals, circuit, 52-week break, ...)',
-    width: 150,
+    width: 260,
     fmt: (r) => String(r.flags),
   },
   num('futOi', 'Fut OI', 'Futures open interest (Phase 5)', 90, fmtQty),
@@ -145,11 +183,13 @@ export const COLUMNS: ColumnSpec[] = [
   num('pcr', 'PCR', 'Put-call ratio (Phase 5)', 66, (v) => fmtNum(v)),
 ];
 
-export const COLUMN_BY_KEY = new Map(COLUMNS.map((c) => [c.key as string, c]));
+export const COLUMN_BY_KEY = new Map<string, ColumnSpec>(COLUMNS.map((c) => [c.key as string, c]));
 
 export const DEFAULT_COLUMNS: string[] = [
   'sym',
+  'prevClose',
   'close',
+  'chg',
   'ret1',
   'turnoverCr',
   'delivPct',
@@ -161,13 +201,27 @@ export const DEFAULT_COLUMNS: string[] = [
   'flags',
 ];
 
+/** Column set saved by builds before the price columns (localStorage key dv.cols). */
+export const COLS_KEY = 'dv.cols.v2';
+export const OLD_COLS_KEY = 'dv.cols';
+const PRICE_BLOCK = ['prevClose', 'close', 'chg', 'ret1'];
+
+/**
+ * Merges the price columns into a column set saved before they existed: Prev close, Close, Change (₹) and Change (%)
+ * go together right after the symbol; every other saved column keeps its place.
+ */
+export function migrateColumns(saved: readonly string[]): string[] {
+  const rest = saved.filter((c) => c !== 'sym' && !PRICE_BLOCK.includes(c));
+  return ['sym', ...PRICE_BLOCK, ...rest];
+}
+
 export function csvEscape(v: string | number | null): string {
   if (v === null) return '';
   const s = String(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-export function toCsv(rows: readonly ScreenRow[], cols: readonly ColumnSpec[]): string {
+export function toCsv<R>(rows: readonly R[], cols: readonly ColumnSpec<R>[]): string {
   const head = cols.map((c) => csvEscape(c.label)).join(',');
   const body = rows.map((r) =>
     cols.map((c) => csvEscape(c.csv ? c.csv(r) : (r[c.key] as string | number | null))).join(','),

@@ -90,6 +90,17 @@ Every list excludes these by default: `lowLiquidity`, `t2t` and `newListing`. ET
 
 The thresholds in the "Extra filter" column live in `config/signals.json → lists`.
 
+**How the Screener presents them (05 §4, P2):** the preset chips sit in four labelled groups, in this order.
+
+| Group | Lists |
+|-------|-------|
+| Start here | Delivery spikes, Unusual vs own history, Largest delivery value |
+| Direction | Up on heavy delivery, Down on heavy delivery |
+| Patterns | New 52-week high, low delivery; New 52-week high, heavy delivery |
+| More (collapsed by default) | Highest delivery %, Delivery % jump, Delivery % fall, Sustained rise, Delivery drops, Large cap: down on heavy delivery |
+
+A **Daily delivery watch** button comes first and is visually primary. One tap sets Universe = Nifty 500, minimum 20-day average turnover = ₹5 Cr, Hide ETFs = on, Hide event-driven rows = on (corporate action, bulk/block deal and circuit days) and the preset Delivery spikes, as ordinary shareable URL state (`u=NIFTY500&mt=5&he=1&hetf=1&p=spikes`). Its one-line explanation: "Unusual delivery in liquid Nifty 500 stocks, excluding record dates, deal days and circuits."
+
 ## 3. Range metrics (computed client-side from `cum/` files)
 
 Inputs: range R = [a, b] and baseline B = [a′, b′] (trading days). Let `prev(x)` be the trading day before *x*. For each symbol and each cumulative field X:
@@ -314,19 +325,21 @@ Exclude stocks with `dilutionFlag` from the pp rankings by default.
   - each daily signal code;
   - "delivery ≥ 2× and price up ≥ 1%";
   - 52-week-high breakout: all, with low delivery (spike < 1), and with heavy delivery (spike ≥ 2);
-  - delivery streak reaching 5 and reaching 10;
+  - delivery streak reaching 5 and reaching 10, any price and with the price up over the last 5 days;
+  - "Delivery spike 2× or more" (any price move) and "Delivery % z-score 2 or more": the events behind the Delivery spikes and Unusual vs own history lists (not in the research study, so not part of the replication check);
   - Phase 5 F&O combinations (F&O-stock benchmark): LB, SB, SC and LU alone; ACC+LB; ACC+SC; DIS+SB; DIS+LU. They are tracked live because the 1-year samples are small (see the study);
   - Phase 4 deals combinations: FII net buy/sell, DII net buy/sell, ≥ ₹25 Cr variants, FII-sells-DII-buys, and other-only net buy. Measure from close(t+1), because deals are published after the close;
-- **Entry timing:** report every event at close(t+1) entry by default, since delivery and deals data are published after the close. Close(t) entry is available as a toggle.
+- **Entry timing:** report every event at close(t+1) entry by default, since delivery and deals data are published after the close. Close(t) entry is available as a toggle. For entry lag L and horizon k the forward return is close(t+L+k) / close(t+L) − 1.
 - **Groups:** `ALL`, `L`, `M`, `S`, `U` and `IDX:NIFTY200`.
-- **Excess return** = the stock's forward return minus the **median** forward return of the same group on the same day. Drop any window that crosses a price adjustment (prevClose(t) vs close(t−1) differs by more than 3%).
+- **Eligible rows:** EQ series, and not `lowLiquidity`, T2T or ETF. Thresholds are applied to the published (rounded) daily values, so anyone can reproduce them from `daily/*.json`.
+- **Excess return** = the stock's forward return minus the **median** forward return, on the same day, of every eligible stock in the same group with a valid window. Drop any window that crosses a price adjustment (prevClose(t) vs close(t−1) differs by more than 3%, anywhere in t+1 … t+L+k). Prices come from every stored row, whatever that day's liquidity flag.
 - **Per event × group × horizon (1, 5, 20 days):** `n`, `days` (distinct dates), `medianExcess`, `meanExcess`, `hitRate` (share with excess > 0), `asOf`, and the sample window.
 - **Display:**
   - lead with the median and the hit rate;
   - show the mean only on hover;
   - hide any cell with n < 30.
 - **Label:** "Historical, one sample period, current index/cap membership, before costs. Not a prediction."
-- **Replication check:** with the store as of 2026-11-13, the output must match the study's tables. Same sign, and within ±0.1 pp for the median rows.
+- **Replication check:** a pytest (`pipeline/tests/test_signal_perf.py`, marked `slow`) runs `docs/research/scripts/signal_fwd.py` and `signal_fwd2.py` (entry lag 0 and 1) on the same store and compares their printed output with the shipped `stats/signal_perf.json`, programmatically. Event counts must be equal, median excess within ±0.1 pp and hit rate within 1 pp, for every cell the scripts print (cells with n < 30 must also be thin in the JSON). The scripts are the reference, and the research study's tables are their output on the same data.
 
 ## 7. Formatting
 
