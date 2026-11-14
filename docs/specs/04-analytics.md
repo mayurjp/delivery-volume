@@ -12,6 +12,19 @@ Each formula here is implemented once in Python (`pipeline/metrics.py`). The ran
 
 So every "buying vs selling" label combines a delivery metric with a price metric. Show this text on the Learn page, and in a short tooltip wherever a signal badge appears.
 
+**What a year of data showed** ([docs/research/2026-11-delivery-signal-study.md](../research/2026-11-delivery-signal-study.md)):
+
+- A heavy-delivery up day did **not** predict further outperformance. It was flat to negative in every cap bucket.
+- In large caps, the heavy-delivery day's move tended to reverse.
+- A rise on low delivery faded in small and micro caps.
+- New 52-week highs on **low** delivery did better than those on heavy delivery.
+
+Therefore:
+
+- signal labels **describe what happened** and never predict;
+- every signal badge shows that signal's historical follow-through for the stock's cap bucket (§6);
+- the UI must never call a signal bullish, bearish, a buy or a sell.
+
 ## 1. Notation and valid days
 
 For symbol *s* on trading day *t*, from S1:
@@ -70,7 +83,10 @@ Every list excludes these by default: `lowLiquidity`, `t2t` and `newListing`.
 | Largest delivery value | `delivValCr` desc | |
 | Sustained rise | `streak` desc | `streak ≥ 5` |
 | Unusual vs own history | `delivPctZ60` desc | `delivPctZ60 ≥ 2` |
-| Accumulation / Distribution | `spike` desc within `signal = ACC` / `DIS` | |
+| Up / Down on heavy delivery | `spike` desc within `signal = ACC` / `DIS` | |
+| New 52-week high, low delivery | `ret1` desc | `high52` flag AND `spike < 1` |
+| New 52-week high, heavy delivery | `spike` desc | `high52` flag AND `spike ≥ 2` |
+| Large cap: down on heavy delivery | `spike` desc | bucket `L` AND `signal = DIS` |
 
 The thresholds in the "Extra filter" column live in `config/signals.json → lists`.
 
@@ -124,13 +140,15 @@ All thresholds live in `config/signals.json`. These are the defaults.
 
 Evaluated only when the row is valid and not `lowLiquidity` or `t2t`, and it has at least 10 prior valid days. The first matching rule wins, in this order:
 
-| Code | Label shown | Condition | Meaning shown in tooltip |
+| Code | Label shown | Condition | Meaning shown in tooltip (describes the day only) |
 |------|-------------|-----------|--------------------------|
-| `ACC` | Accumulation | ret1 ≥ +1.0% AND spike ≥ 1.5 AND delivPctDiff ≥ +5 AND clv ≥ +0.3 | The price rose on unusually high delivery and closed near the high: holders bought into strength |
-| `DIS` | Distribution | ret1 ≤ −1.0% AND spike ≥ 1.5 AND delivPctDiff ≥ +5 AND clv ≤ −0.3 | The price fell on unusually high delivery and closed near the low: holders sold |
-| `ABS` | Absorption | \|ret1\| < 1.0% AND spike ≥ 2.0 AND delivPctDiff ≥ +10 | A large transfer of shares with little price change; often one big buyer meeting one big seller |
-| `SPU` | Speculative rise | ret1 ≥ +2.0% AND relVol ≥ 2 AND delivPctDiff ≤ −10 | The rise was driven by intraday traders, with little delivery |
-| `SPD` | Speculative fall | ret1 ≤ −2.0% AND relVol ≥ 2 AND delivPctDiff ≤ −10 | The fall was driven by traders, not by holders exiting |
+| `ACC` | Up on heavy delivery | ret1 ≥ +1.0% AND spike ≥ 1.5 AND delivPctDiff ≥ +5 AND clv ≥ +0.3 | The price rose on unusually high delivery and closed near the high |
+| `DIS` | Down on heavy delivery | ret1 ≤ −1.0% AND spike ≥ 1.5 AND delivPctDiff ≥ +5 AND clv ≤ −0.3 | The price fell on unusually high delivery and closed near the low |
+| `ABS` | Heavy delivery, flat price | \|ret1\| < 1.0% AND spike ≥ 2.0 AND delivPctDiff ≥ +10 | A large transfer of shares with little price change |
+| `SPU` | Up on low delivery | ret1 ≥ +2.0% AND relVol ≥ 2 AND delivPctDiff ≤ −10 | The rise came mostly from intraday trading; little of it ended in delivery |
+| `SPD` | Down on low delivery | ret1 ≤ −2.0% AND relVol ≥ 2 AND delivPctDiff ≤ −10 | The fall came mostly from intraday trading; little of it ended in delivery |
+
+Every tooltip ends with one line from `stats/signal_perf.json` for the stock's cap bucket, e.g. "Historically (Large caps, 1 yr): 20-day median vs peers −1.0%, beat peers 44% of the time (n=414)."
 
 **Context flags shown next to any signal** (they do not suppress it):
 
@@ -158,10 +176,10 @@ The same structure, using range fields:
 
 | Quadrant | Label |
 |----------|-------|
-| Top-right | "Price ↑ Delivery ↑: buying with conviction" |
-| Top-left | "Price ↓ Delivery ↑: selling with conviction" |
-| Bottom-right | "Price ↑ Delivery ↓: speculative rally" |
-| Bottom-left | "Price ↓ Delivery ↓: low-conviction dip" |
+| Top-right | "Price ↑ on rising delivery" |
+| Top-left | "Price ↓ on rising delivery" |
+| Bottom-right | "Price ↑ on falling delivery" |
+| Bottom-left | "Price ↓ on falling delivery" |
 
 Draw dashed axes at 0. Clamp the axes at the 2nd and 98th percentiles so outliers don't squash the plot, and pin outliers to the edge with a marker.
 
@@ -183,9 +201,11 @@ Draw dashed axes at 0. Clamp the axes at the 2nd and 98th percentiles so outlier
 
 **Confluence badges:**
 
-- `ACC` + `LB` → "Confirmed long interest".
-- `DIS` + `SB` → "Confirmed short interest".
-- `ACC` + `SC` → "Up-move partly short covering".
+- `ACC` + `LB` → "Heavy delivery + long build-up".
+- `DIS` + `SB` → "Heavy delivery + short build-up".
+- `ACC` + `SC` → "Heavy delivery + short covering".
+
+Their follow-through is to be measured with the S3 history (study still pending). Until it is, the badges get no "confirmed" wording.
 
 ## 5. Institutional analytics
 
@@ -288,10 +308,25 @@ Exclude stocks with `dilutionFlag` from the pp rankings by default.
 - longest above-average streak;
 - correlation of daily delivery % with the next day's return (label it "historical, descriptive").
 
-**Signal performance (Phase 5, `stats/signal_perf.json`):**
+**Signal performance (Phase 3, `stats/signal_perf.json`).** Reproduce the method of the research study exactly.
 
-- For each signal: count, mean and median forward return over 1, 5 and 20 days, and hit rate, split by cap bucket.
-- It must carry the label "Historical, survivorship-biased (current constituents), not a prediction."
+- **Events:**
+  - each daily signal code;
+  - "delivery ≥ 2× and price up ≥ 1%";
+  - 52-week-high breakout: all, with low delivery (spike < 1), and with heavy delivery (spike ≥ 2);
+  - delivery streak reaching 5 and reaching 10;
+  - Phase 5 F&O combinations (F&O-stock benchmark): LB, SB, SC and LU alone; ACC+LB; ACC+SC; DIS+SB; DIS+LU. They are tracked live because the 1-year samples are small (see the study);
+  - Phase 4 deals combinations: FII net buy/sell, DII net buy/sell, ≥ ₹25 Cr variants, FII-sells-DII-buys, and other-only net buy. Measure from close(t+1), because deals are published after the close;
+- **Entry timing:** report every event at close(t+1) entry by default, since delivery and deals data are published after the close. Close(t) entry is available as a toggle.
+- **Groups:** `ALL`, `L`, `M`, `S`, `U` and `IDX:NIFTY200`.
+- **Excess return** = the stock's forward return minus the **median** forward return of the same group on the same day. Drop any window that crosses a price adjustment (prevClose(t) vs close(t−1) differs by more than 3%).
+- **Per event × group × horizon (1, 5, 20 days):** `n`, `days` (distinct dates), `medianExcess`, `meanExcess`, `hitRate` (share with excess > 0), `asOf`, and the sample window.
+- **Display:**
+  - lead with the median and the hit rate;
+  - show the mean only on hover;
+  - hide any cell with n < 30.
+- **Label:** "Historical, one sample period, current index/cap membership, before costs. Not a prediction."
+- **Replication check:** with the store as of 2026-11-13, the output must match the study's tables. Same sign, and within ±0.1 pp for the median rows.
 
 ## 7. Formatting
 

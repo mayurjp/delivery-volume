@@ -111,19 +111,17 @@ def load_ban(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
 
 
 def load_hl52(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
-    """Rows where the 52-week high / low date equals the file's date (new high / low flags)."""
+    """52-week high/low per symbol and file date. file(T) holds values through T-1 (see outputs.hl52_breaks)."""
     frames = []
     for d in store.list_dates("hl52", root=root):
         df = _csv(store.path_for("hl52", d, root=root))
-        today = f"{d.day:02d}-{MON[d.month - 1]}-{d.year}"  # NSE format, e.g. 13-NOV-2026
         frames.append(pd.DataFrame({
             "sym": df["symbol"], "date": d.isoformat(),
             "high52": pd.to_numeric(df["high52"], errors="coerce"),
             "low52": pd.to_numeric(df["low52"], errors="coerce"),
-            "hiToday": df["high52Date"].str.upper() == today, "loToday": df["low52Date"].str.upper() == today,
         }))
     out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(
-        columns=["sym", "date", "high52", "low52", "hiToday", "loToday"])
+        columns=["sym", "date", "high52", "low52"])
     if alias:
         out["sym"] = out["sym"].replace(alias)
     return out.drop_duplicates(["sym", "date"], keep="last")

@@ -210,13 +210,20 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
     flags += np.where(member(ban), C.FLAG["fnoBan"], 0)
     if len(hl):
         m = df[["sym", "date", "high", "low"]].merge(hl, on=["sym", "date"], how="left")
-        hi = (m["hiToday"].fillna(False).astype(bool) & (m["high"] >= m["high52"])).to_numpy()
-        lo = (m["loToday"].fillna(False).astype(bool) & (m["low"] <= m["low52"])).to_numpy()
+        hi, lo = hl52_breaks(m["high"], m["low"], m["high52"], m["low52"])
         flags += np.where(hi, C.FLAG["high52"], 0) + np.where(lo, C.FLAG["low52"], 0)
     flags += np.where(df["lowLiquidity"], C.FLAG["lowLiquidity"], 0)
     flags += np.where(df["newListing"], C.FLAG["newListing"], 0)
     df["flags"] = flags
     return df
+
+
+def hl52_breaks(high, low, high52, low52) -> tuple[np.ndarray, np.ndarray]:
+    """S13 file(T) holds the 52-week high/low through T-1 (its newest high date is T-1), so a new high/low on day T
+    is simply high(T) > file(T).high52 or low(T) < file(T).low52. Missing ('-') values never flag."""
+    hi = (pd.to_numeric(high) > pd.to_numeric(high52)).fillna(False).to_numpy(dtype=bool)
+    lo = (pd.to_numeric(low) < pd.to_numeric(low52)).fillna(False).to_numpy(dtype=bool)
+    return hi, lo
 
 
 # ---- writers -------------------------------------------------------------------------------------------------------
@@ -361,6 +368,18 @@ def source_status(days: list[date], root: Path | None = None) -> dict:
         mine = sorted(have & set(days))
         out[key] = {"latest": mine[-1].isoformat() if mine else None,
                     "gaps": [d.isoformat() for d in days if d not in have]}
+    base = root or store.STORE_DIR
+    s8 = sorted(json.loads(ln)["date"] for f in (base / "fii_dii_cash").glob("*.jsonl")
+                for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip())
+    if s8:
+        since = s8[0]
+        out["fii_dii_cash"] = {"latest": s8[-1], "collectingSince": since,
+                               "gaps": [d.isoformat() for d in days if d.isoformat() >= since
+                                        and d.isoformat() not in s8]}
+    deal_dates = sorted({r for f in (base / "deals").glob("*.csv")
+                         for r in pd.read_csv(f, dtype=str, usecols=["date"])["date"]})
+    if deal_dates:
+        out["deals"] = {"latest": deal_dates[-1], "gaps": [], "collectingSince": deal_dates[0]}
     return out
 
 

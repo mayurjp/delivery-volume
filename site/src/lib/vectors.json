@@ -1,0 +1,258 @@
+{
+ "cumA0": [
+  {
+   "cDays": 20,
+   "cDelivQty": 0,
+   "cDelivValCr": 828.8694,
+   "cTurnoverCr": 2013.7974,
+   "cVol": 0,
+   "lastClose": 96.57,
+   "lastTradeDate": "d20",
+   "sym": "AAA"
+  },
+  {
+   "cDays": 9,
+   "cDelivQty": 0,
+   "cDelivValCr": 205.6538,
+   "cTurnoverCr": 449.6483,
+   "cVol": 0,
+   "lastClose": 101.99,
+   "lastTradeDate": "d20",
+   "sym": "BBB"
+  },
+  {
+   "cDays": 20,
+   "cDelivQty": 0,
+   "cDelivValCr": 4.3178,
+   "cTurnoverCr": 10.4529,
+   "cVol": 0,
+   "lastClose": 141.2,
+   "lastTradeDate": "d20",
+   "sym": "DDD"
+  },
+  {
+   "cDays": 17,
+   "cDelivQty": 0,
+   "cDelivValCr": 526.7852,
+   "cTurnoverCr": 1166.27,
+   "cVol": 0,
+   "lastClose": 102.63,
+   "lastTradeDate": "d20",
+   "sym": "EEE"
+  }
+ ],
+ "cumA1": [
+  {
+   "cDays": 30,
+   "cDelivQty": 0,
+   "cDelivValCr": 1255.8702,
+   "cTurnoverCr": 3002.6683,
+   "cVol": 0,
+   "lastClose": 101.58,
+   "lastTradeDate": "d30",
+   "sym": "AAA"
+  },
+  {
+   "cDays": 19,
+   "cDelivQty": 0,
+   "cDelivValCr": 399.1141,
+   "cTurnoverCr": 945.1124,
+   "cVol": 0,
+   "lastClose": 98.97,
+   "lastTradeDate": "d30",
+   "sym": "BBB"
+  },
+  {
+   "cDays": 10,
+   "cDelivQty": 0,
+   "cDelivValCr": 316.7711,
+   "cTurnoverCr": 819.702,
+   "cVol": 0,
+   "lastClose": 116.92,
+   "lastTradeDate": "d30",
+   "sym": "CCC"
+  },
+  {
+   "cDays": 30,
+   "cDelivQty": 0,
+   "cDelivValCr": 6.3317,
+   "cTurnoverCr": 15.3619,
+   "cVol": 0,
+   "lastClose": 147.71,
+   "lastTradeDate": "d30",
+   "sym": "DDD"
+  },
+  {
+   "cDays": 23,
+   "cDelivQty": 0,
+   "cDelivValCr": 662.8541,
+   "cTurnoverCr": 1496.9863,
+   "cVol": 0,
+   "lastClose": 110.54,
+   "lastTradeDate": "d29",
+   "sym": "EEE"
+  }
+ ],
+ "cumB0": [
+  {
+   "cDays": 10,
+   "cDelivQty": 0,
+   "cDelivValCr": 406.0181,
+   "cTurnoverCr": 999.0381,
+   "cVol": 0,
+   "lastClose": 92.0,
+   "lastTradeDate": "d10",
+   "sym": "AAA"
+  },
+  {
+   "cDays": 10,
+   "cDelivQty": 0,
+   "cDelivValCr": 2.2833,
+   "cTurnoverCr": 5.6113,
+   "cVol": 0,
+   "lastClose": 110.15,
+   "lastTradeDate": "d10",
+   "sym": "DDD"
+  },
+  {
+   "cDays": 10,
+   "cDelivQty": 0,
+   "cDelivValCr": 288.5041,
+   "cTurnoverCr": 664.2637,
+   "cVol": 0,
+   "lastClose": 108.83,
+   "lastTradeDate": "d10",
+   "sym": "EEE"
+  }
+ ],
+ "cumB1": [
+  {
+   "cDays": 20,
+   "cDelivQty": 0,
+   "cDelivValCr": 828.8694,
+   "cTurnoverCr": 2013.7974,
+   "cVol": 0,
+   "lastClose": 96.57,
+   "lastTradeDate": "d20",
+   "sym": "AAA"
+  },
+  {
+   "cDays": 9,
+   "cDelivQty": 0,
+   "cDelivValCr": 205.6538,
+   "cTurnoverCr": 449.6483,
+   "cVol": 0,
+   "lastClose": 101.99,
+   "lastTradeDate": "d20",
+   "sym": "BBB"
+  },
+  {
+   "cDays": 20,
+   "cDelivQty": 0,
+   "cDelivValCr": 4.3178,
+   "cTurnoverCr": 10.4529,
+   "cVol": 0,
+   "lastClose": 141.2,
+   "lastTradeDate": "d20",
+   "sym": "DDD"
+  },
+  {
+   "cDays": 17,
+   "cDelivQty": 0,
+   "cDelivValCr": 526.7852,
+   "cTurnoverCr": 1166.27,
+   "cVol": 0,
+   "lastClose": 102.63,
+   "lastTradeDate": "d20",
+   "sym": "EEE"
+  }
+ ],
+ "expected": [
+  {
+   "avgDelivValB": 42.28513,
+   "avgDelivValR": 42.70008,
+   "coverage": 1.0,
+   "delivPctChgPp": 1.510533309771823,
+   "delivPctWB": 41.67010836954143,
+   "delivPctWR": 43.180641679313254,
+   "delivValChgPct": 0.9813142350514115,
+   "excluded": false,
+   "listedDuringRange": false,
+   "nB": 10,
+   "nR": 10,
+   "ret": 5.187946567256918,
+   "sym": "AAA",
+   "turnoverChgPct": -2.551186276390871
+  },
+  {
+   "avgDelivValB": 22.85042222222222,
+   "avgDelivValR": 19.346030000000003,
+   "coverage": 1.0,
+   "delivPctChgPp": -6.690310087256364,
+   "delivPctWB": 45.73659013055315,
+   "delivPctWR": 39.04628004329678,
+   "delivValChgPct": -15.336225248451507,
+   "excluded": false,
+   "listedDuringRange": false,
+   "nB": 9,
+   "nR": 10,
+   "ret": -2.9610746151583434,
+   "sym": "BBB",
+   "turnoverChgPct": -0.8296728798930286
+  },
+  {
+   "avgDelivValB": null,
+   "avgDelivValR": 31.67711,
+   "coverage": 1.0,
+   "delivPctChgPp": null,
+   "delivPctWB": null,
+   "delivPctWR": 38.644665988371386,
+   "delivValChgPct": null,
+   "excluded": true,
+   "listedDuringRange": true,
+   "nB": 0,
+   "nR": 10,
+   "ret": null,
+   "sym": "CCC",
+   "turnoverChgPct": null
+  },
+  {
+   "avgDelivValB": 0.20345,
+   "avgDelivValR": 0.20138999999999996,
+   "coverage": 1.0,
+   "delivPctChgPp": -0.9965840457597395,
+   "delivPctWB": 42.021232650363515,
+   "delivPctWR": 41.024648604603776,
+   "delivValChgPct": -1.012533792086523,
+   "excluded": true,
+   "listedDuringRange": false,
+   "nB": 10,
+   "nR": 10,
+   "ret": 4.610481586402271,
+   "sym": "DDD",
+   "turnoverChgPct": 1.392101784534061
+  },
+  {
+   "avgDelivValB": 34.04015714285715,
+   "avgDelivValR": 22.67815,
+   "coverage": 0.6,
+   "delivPctChgPp": -6.322065645778842,
+   "delivPctWB": 47.4657588958545,
+   "delivPctWR": 41.14369325007566,
+   "delivValChgPct": -33.37824527417409,
+   "excluded": false,
+   "listedDuringRange": false,
+   "nB": 7,
+   "nR": 6,
+   "ret": 7.707298060995815,
+   "sym": "EEE",
+   "turnoverChgPct": -23.14126668662656
+  }
+ ],
+ "opts": {
+  "minBaseDelivValCr": 0.5,
+  "minTurnoverAvg20Cr": 1.0,
+  "tradingDaysB": 10,
+  "tradingDaysR": 10
+ }
+}

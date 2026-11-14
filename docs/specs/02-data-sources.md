@@ -199,7 +199,14 @@ block: Date,Symbol,Security Name,Client Name,Buy/Sell,Quantity Traded,Trade Pric
 
 - **These URLs hold only the most recent trading day.** Take the date from the `Date` column (format `13-NOV-2026`), never from the run date. If the job runs before NSE publishes, it receives the previous day's file again. Dedupe on `(date, type, symbol, client, side, qty, price)`.
 - A bulk deal is any client trading more than 0.5% of a company's listed shares in one day. A block deal is a large single trade done in the separate block-deal window. These are the **only NSE daily data that name the institution**.
-- Optional historical backfill (UNVERIFIED, cookie-gated like S8): `https://www.nseindia.com/api/historical/bulk-deals?from=DD-MM-YYYY&to=DD-MM-YYYY` and `.../block-deals?...`. Offer it as a one-time local command, `pipeline backfill-deals`. It is not required.
+- **Historical backfill (VERIFIED from a local PC on 2026-11-14; user-approved for `pipeline backfill-deals`).** The old `https://www.nseindia.com/api/historical/bulk-deals` URL returned HTTP 503 and is retired. The working endpoint is cookie-gated like S8 (warm up `https://www.nseindia.com/` and `https://www.nseindia.com/report-detail/display-bulk-and-block-deals`, send that page as `Referer`):
+
+  ```
+  https://www.nseindia.com/api/historicalOR/bulk-block-short-deals?optionType=bulk_deals|block_deals&from=DD-MM-YYYY&to=DD-MM-YYYY
+  ```
+
+  It returns `{"data":[{BD_DT_DATE, BD_DT_ORDER, BD_SYMBOL, BD_SCRIP_NAME, BD_CLIENT_NAME, BD_BUY_SELL, BD_QTY_TRD, BD_TP_WATP, BD_REMARKS}]}`, with `BD_DT_DATE` as `13-NOV-2026`, numbers as JSON numbers and `BD_REMARKS` null for block deals. **Quirk: it returns at most 70 records per request, earliest dates first**, so the backfill splits any capped window in halves down to single days. A single day with 70 or more records is truncated (bulk days can have more than 100 rows, SME included); such days are listed in `store/deals/_backfill.json` under `truncated`, and only the daily files are complete. `short_selling` is not used (not in the specs). Rows are merged with the same dedupe as the daily files (whole-row multiset: `date,type,symbol,securityName,client,side,qty,price,remarks`).
+- The bulk/block files include SME symbols (no series column). They are stored as downloaded; SME exclusion for derived deal files is applied at build time in Phase 4.
 
 ## S11 — Index constituents (and sector)
 
@@ -251,6 +258,8 @@ Two quoted disclaimer lines come first, then:
 ```
 
 `-` means no value. Values are adjusted for corporate actions. Used for the new-52-week-high/low flags.
+
+**Quirk (found in Phase 2):** the file for date T holds the 52-week high/low **through T−1** (on 13-Nov-2026 the newest high date is 12-NOV-2026, and no row is dated 13-NOV). A new high on T is therefore `high(T) > Adjusted_52_Week_High` in file(T), and a new low is `low(T) < Adjusted_52_Week_Low`; the "date equals T" test can never match.
 
 ## S14 — F&O ban list
 

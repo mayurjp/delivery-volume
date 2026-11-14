@@ -170,8 +170,8 @@ Flags bitmask:
 | 8 | `blockDeal` | the symbol has a block deal today |
 | 16 | `bandHit` | in S4 `bh` today |
 | 32 | `fnoBan` | in S14 today |
-| 64 | `high52` | today's high ≥ the adjusted 52-week high and the 52-week high date is today |
-| 128 | `low52` | the same test for the low |
+| 64 | `high52` | today's high > `Adjusted_52_Week_High` in today's S13 file. S13 file(T) holds the 52-week values through T−1, so the rule is high(T) > file(T), never "the high date is today". Skip `-`/missing. |
+| 128 | `low52` | low(T) < `Adjusted_52_Week_Low` in today's S13 file (same rule) |
 | 256 | `lowLiquidity` | `turnoverAvg20Cr < minTurnoverAvg20Cr` |
 | 512 | (reserved) | unused, because SME stocks are excluded |
 | 1024 | `newListing` | fewer than 20 valid prior days |
@@ -338,7 +338,7 @@ The push then triggers the build and deploy jobs. README.md must document:
 | S1, S2, S3, S4, S5, S6, S7, S12, S13, S14 | From `backfillFrom` |
 | S11, S15 | Current snapshot only |
 | S8 (FII/DII cash) | **None possible.** Starts on the first scheduled run. `meta.sources.fii_dii_cash.collectingSince` tells the UI. |
-| S9/S10 (deals) | Forward only, unless the user runs `backfill-deals` locally |
+| S9/S10 (deals) | Forward from the daily files, plus `backfill-deals` (historicalOR endpoint; user-approved 2026-11-14, bulk and block only, capped at 70 records per request, so it is split to single days and a day above the cap is recorded as truncated in `store/deals/_backfill.json`) |
 | S16 (shareholding) | 4 quarters via `fetch-shareholding --backfill`. About 4 hours, resumable, ideally run locally. Commit every 250 companies. |
 
 - About 260 trading days × 10 files ≈ 2,600 requests ≈ 45–60 minutes at 1 request/second.

@@ -1,0 +1,120 @@
+name: update-and-deploy
+
+# 03 section 7: fetch NSE data into store/, commit it, rebuild the JSON and the site, deploy to GitHub Pages.
+on:
+  schedule:
+    - cron: "30 13 * * 1-5" # 19:00 IST: most daily files are out
+    - cron: "30 16 * * 1-5" # 22:00 IST: late files (participant data, FII stats)
+    - cron: "30 2 * * 2-6" # 08:00 IST next morning: catch-up
+  workflow_dispatch:
+    inputs:
+      backfill_from:
+        description: "Optional: run `pipeline backfill --from YYYY-MM-DD` first (one-off history load)"
+        required: false
+  push:
+    branches: [main]
+    paths: ["store/**", "pipeline/**", "config/**", "site/**"]
+
+concurrency:
+  group: update-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  PYTHON_VERSION: "3.14"
+  NODE_VERSION: "24"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90 # a normal run takes minutes; a backfill_from dispatch can take up to an hour
+    env:
+      PIPELINE_ENV: actions
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Backfill (manual dispatch only)
+        if: github.event_name == 'workflow_dispatch' && inputs.backfill_from != ''
+        run: python -m pipeline backfill --from "${{ inputs.backfill_from }}"
+
+      - name: Fetch new data (skipped on push)
+        if: github.event_name != 'push'
+        run: python -m pipeline update --no-build
+
+      # S16 shareholding is Phase 4B: the command does not exist yet, so this step is switched off.
+      # When it is built, change `false` to: github.event_name == 'schedule' && github.event.schedule == '30 2 * * 2-6'
+      - name: Shareholding catch-up (Phase 4B, disabled)
+        if: ${{ false }}
+        run: python -m pipeline fetch-shareholding
+
+      - name: Commit store changes
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # request logs change every run; they are not data, so they never trigger or join a data commit
+          git add store ':(exclude)store/logs'
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No store changes."
+          else
+            latest=$(python -c "import json; print(json.load(open('store/calendar.json'))['tradingDays'][-1])")
+            git commit -m "data: ${latest}"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: update
+    runs-on: ubuntu-latest
+    timeout-minutes: 25 # the pipeline build takes 1.5-3 minutes, the site build under 1
+    steps:
+      # check out the branch tip, so the data commit made by the update job is included
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Build data JSON from store/
+        run: python -m pipeline build --out site/public/data
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Build site
+        working-directory: site
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+        run: |
+          npm ci
+          npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

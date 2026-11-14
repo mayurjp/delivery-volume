@@ -44,9 +44,27 @@ def cmd_update(args: argparse.Namespace) -> int:
     today = cal_mod.today_ist()
     frm = today - timedelta(days=config.settings()["lookbackDaysForFetch"])
     fetch.run_range(frm, today, None, False, label="update")
+    from . import collect
+
+    collect.collect_latest()  # S8 + S9/S10: latest day only, forward collection
     if not args.no_build:
         return cmd_build(argparse.Namespace(out=config.ROOT / "site" / "public" / "data"))
     return 0
+
+
+def cmd_collect(args: argparse.Namespace) -> int:
+    from . import collect
+
+    collect.collect_latest()
+    return 0
+
+
+def cmd_backfill_deals(args: argparse.Namespace) -> int:
+    from . import collect
+
+    frm = args.frm or __import__("datetime").date.fromisoformat(config.settings()["backfillFrom"])
+    res = collect.backfill_deals(frm, args.to or cal_mod.today_ist())
+    return 1 if res["failedChunks"] else 0
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -93,5 +111,5 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def dispatch(args: argparse.Namespace) -> int:
-    return {"fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "build": cmd_build,
+    return {"fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
             "status": cmd_status}[args.cmd](args)

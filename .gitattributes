@@ -1,0 +1,8 @@
+# Normalise text to LF in the repo and in working trees, whatever core.autocrlf says.
+* text=auto eol=lf
+
+# Binary store files must never be touched by line-ending conversion.
+*.gz  binary
+*.zip binary
+*.xls binary
+*.png binary

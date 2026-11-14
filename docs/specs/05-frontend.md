@@ -54,8 +54,9 @@ Cards, each with a top-10 table and a "View all" link to a Screener preset:
 - Delivery spikes;
 - Delivery drops;
 - Highest delivery %;
-- Accumulation;
-- Distribution;
+- Up on heavy delivery (ACC);
+- Down on heavy delivery (DIS);
+- New 52-week highs, each with its delivery level;
 - Largest delivery value;
 - Today's largest bulk/block deals (excluding round trips).
 
@@ -71,7 +72,8 @@ Each card row shows the symbol, sector chip, close, `ret1`, `delivPct`, `spike` 
 - A virtualised table of the filtered universe.
 - **Day mode** columns: every `daily/` field. Range mode columns: the §3 range fields of 04.
 - Column chooser, with a default set of about 10 columns and the choice saved locally. Multi-column sort. Symbol and name search.
-- Preset chips for every list in 04 §2, plus "Delivery ↑ + Long build-up" and "Near 52-week high with spike".
+- Preset chips for every list in 04 §2, including "New 52-week high, low delivery", "New 52-week high, heavy delivery" and "Large cap: down on heavy delivery". "Delivery ↑ + Long build-up" is added in Phase 5.
+- Every preset that matches a `signal_perf` event shows a one-line "Historically: …" note under the chips (04 §6).
 - Ownership columns, joined from `holdings/latest.json` (Phase 4B): `promoterPct, fiiPct, diiPct, mfPct, fiiChgPp, diiChgPp, mfChgPp`, plus a quarter label in the column header tooltip.
 - Ownership presets: "FII stake up last quarter", "DII stake up last quarter", "FII→DII handover", and "Delivery spike + FII stake up".
 - In Range mode, add the deal-flow columns `fiiDealNetCr` and `diiDealNetCr`.
@@ -110,7 +112,7 @@ Colour scales: a diverging blue↔orange scale with a neutral midpoint that work
 
 - name, symbol, sector, index badges, market cap and bucket, an F&O badge, and the watchlist star;
 - today's close, `ret1`, `delivPct` (with its 20-day average), `spike`;
-- the signal badge with its explanation, confluence badges, and flags.
+- the signal badge with its explanation and its historical follow-through line for the stock's cap bucket (04 §4.1), plus confluence badges and flags.
 
 **Main chart:** one ECharts instance with vertically stacked grids, a shared x-axis and a shared `dataZoom` (default window 6 months).
 
@@ -184,13 +186,14 @@ Banner on tabs 1–3: "These FII/DII figures are provisional and combined across
 - Scatter of delivery % vs `ret1`.
 - Sector bars of delivery value, with delivery % vs the 20-day average.
 - A cap-bucket comparison table.
-- The signal-performance table (Phase 5) with its disclaimer label.
+- The signal-performance table (Phase 3). Rows are events and columns are cap groups; there is a horizon switch (1/5/20 days). Each cell shows the median excess and the hit rate, with `n` on hover. The disclaimer label from 04 §6 sits above the table.
 
 ### P9 Learn `#/learn`
 
 Static content written from 04 §0, §4 and §8:
 
 - how to read delivery;
+- "What a year of data showed": a plain-language summary of docs/research/2026-11-delivery-signal-study.md, linked to the live signal-performance table;
 - what each signal means;
 - traps: record dates, block deals, circuits, T2T, splits and bonuses, expiry, provisional FII data, current-constituents bias;
 - data sources and update times;

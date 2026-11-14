@@ -67,7 +67,14 @@ Build strictly in this order. Each phase ends with its acceptance checks passing
 
 ## Phase 3: Period compare, heat maps, statistics
 
-**Scope:** Range mode (date control and Screener), Period Compare (P3), Heatmaps (P4, all three tabs), Market Statistics (P8, without the signal-performance table).
+**Scope:**
+
+- Range mode (date control and Screener), Period Compare (P3), Heatmaps (P4, all three tabs) and Market Statistics (P8).
+- **Signal performance**, moved here from Phase 5:
+  - `stats/signal_perf.json` per 04 §6;
+  - its table on P8;
+  - the "Historically: …" lines on signal badges and Screener presets;
+  - the Learn-page summary of the research study.
 
 **Acceptance**
 
@@ -75,6 +82,8 @@ Build strictly in this order. Each phase ends with its acceptance checks passing
 - TS range maths matches the shared Python test vectors.
 - The treemap of the Total Market universe renders in < 1 s on a laptop.
 - The ⚠ corporate-action marker appears for a stock with a split or bonus inside the range. Pick a real example from the backfilled data and record it in a test.
+- `signal_perf.json` replicates docs/research/2026-11-delivery-signal-study.md (04 §6 replication check). Add it as a pytest using the store up to 2026-11-13.
+- No UI string calls a signal bullish, bearish, buy, sell or "confirmed". Add a test that greps the built bundle's locale strings.
 
 ## Phase 4: Institutions and deals
 
@@ -112,19 +121,19 @@ Build strictly in this order. Each phase ends with its acceptance checks passing
 - The `dilutionFlag` and `EXITED` caveats render in the UI.
 - The capped daily mode stays within `maxRequestsPerRun` and picks up a newly filed quarter within 7 days. Simulate this in a test with a mocked listing.
 
-## Phase 5: F&O signals, signal performance, polish
+## Phase 5: F&O signals, polish
 
 **Scope:**
 
 - The S3 extract, `futOi`, `buildup`, `pcr` and the confluence badges.
 - The F&O pane on the stock page, and the build-up Screener presets.
-- `stats/signal_perf.json` and its table.
+- Add the F&O and deals event combinations to `stats/signal_perf.json` (the table itself exists from Phase 3).
+- The S3 extract history (`store/fo_extract/`) was pre-loaded on 2026-11-14 by a standalone loader. The pipeline's S3 source must write the identical format, and must treat existing files as already fetched.
 - CSV export everywhere tables appear, a dark-mode audit, and the empty and error states.
 
 **Acceptance**
 
 - The build-up classification is unit-tested on its boundaries.
-- The signal-performance table shows counts and carries the disclaimer.
 - All quality bars in 05 §7 hold.
 
 ## Phase 6: Optional (ask the user before starting any of these)

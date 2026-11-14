@@ -7,29 +7,31 @@ and `reports/verify-cookie-local-2026-11-13.json` (S8 and S16, run separately). 
 
 ## Source x environment
 
-"actions" is pending because the GitHub repo did not exist when this was written; the workflow
-`.github/workflows/verify-sources.yml` (workflow_dispatch) is ready and uploads the report as an artifact.
+"actions" is the real run of `.github/workflows/verify-sources.yml` on `ubuntu-latest` (Python 3.14.10, 2026-11-14 05:16 UTC),
+report `reports/verify-sources-actions.json`. **All 16 sources worked from GitHub Actions**, including the cookie-gated S8 and S16.
 
 | ID | Source | local: HTTP | local: rows | local: header OK | actions |
 |----|--------|-------------|-------------|------------------|---------|
-| S1 | sec_bhavdata_full | 200 (404 on holidays/weekends; see notes) | 3,566 (EQ 2,744) | yes | pending: GitHub repo not created yet |
-| S2 | UDiFF CM bhavcopy | 200 | 3,727 | yes | pending: GitHub repo not created yet |
-| S3 | UDiFF F&O bhavcopy | 200 | 43,553 (STO 35,971, IDO 6,915, STF 649, IDF 18) | yes | pending: GitHub repo not created yet |
-| S4 | PR zip (mcap, bc, bh) | 200 | mcap 2,667 (ex-SME) | yes (all three) | pending: GitHub repo not created yet |
-| S5 | participant OI | 200 | 5 (Client, DII, FII, Pro, TOTAL); Long == Short total | yes | pending: GitHub repo not created yet |
-| S6 | participant volume | 200 | 5 | yes | pending: GitHub repo not created yet |
-| S7 | FII derivatives stats (.xls) | 200 | 16 data rows | yes | pending: GitHub repo not created yet |
-| S8 | FII/DII cash | 200 (cookie session) | 2 | yes | pending: GitHub repo not created yet |
-| S9 | bulk deals | 200 | 136 | yes | pending: GitHub repo not created yet |
-| S10 | block deals | 200 | 26 | yes | pending: GitHub repo not created yet |
-| S11 | index constituents (9 files) | 200 x9 | 2,307 total | yes | pending: GitHub repo not created yet |
-| S12 | all-index close | 200 | 167 | yes | pending: GitHub repo not created yet |
-| S13 | 52-week high/low | 200 | 5,974 | yes | pending: GitHub repo not created yet |
-| S14 | F&O ban list | 200 | 1 (KAYNES) | yes | pending: GitHub repo not created yet |
-| S15 | EQUITY_L | 200 | 2,635 | yes | pending: GitHub repo not created yet |
-| S16 | shareholding listing | 200 (cookie session, 3 variants) | per-symbol 23; date-range 4,153 | n/a (JSON) | pending: GitHub repo not created yet |
+| S1 | sec_bhavdata_full | 200 (404 on holidays/weekends; see notes) | 3,566 (EQ 2,744) | yes | works: HTTP 200, 3,566 rows, header OK yes |
+| S2 | UDiFF CM bhavcopy | 200 | 3,727 | yes | works: HTTP 200, 3,727 rows, header OK yes |
+| S3 | UDiFF F&O bhavcopy | 200 | 43,553 (STO 35,971, IDO 6,915, STF 649, IDF 18) | yes | works: HTTP 200, 43,553 rows, header OK yes |
+| S4 | PR zip (mcap, bc, bh) | 200 | mcap 2,667 (ex-SME) | yes (all three) | works: HTTP 200, 2,667 rows, header OK yes |
+| S5 | participant OI | 200 | 5 (Client, DII, FII, Pro, TOTAL); Long == Short total | yes | works: HTTP 200, 5 rows, header OK yes |
+| S6 | participant volume | 200 | 5 | yes | works: HTTP 200, 5 rows, header OK yes |
+| S7 | FII derivatives stats (.xls) | 200 | 16 data rows | yes | works: HTTP 200, 16 rows, header OK yes |
+| S8 | FII/DII cash | 200 (cookie session) | 2 | yes | works: HTTP 200, 2 rows, header OK yes; warm-up: homepage 403, /reports/fii-dii 200 (see below) |
+| S9 | bulk deals | 200 | 136 | yes | works: HTTP 200, 136 rows, header OK yes |
+| S10 | block deals | 200 | 26 | yes | works: HTTP 200, 26 rows, header OK yes |
+| S11 | index constituents (9 files) | 200 x9 | 2,307 total | yes | works: HTTP 200 x9 files, 2,307 rows, header OK yes |
+| S12 | all-index close | 200 | 167 | yes | works: HTTP 200, 167 rows, header OK yes |
+| S13 | 52-week high/low | 200 | 5,974 | yes | works: HTTP 200, 5,974 rows, header OK yes |
+| S14 | F&O ban list | 200 | 1 (KAYNES) | yes | works: HTTP 200, 1 rows, header OK yes |
+| S15 | EQUITY_L | 200 | 2,635 | yes | works: HTTP 200, 2,635 rows, header OK yes |
+| S16 | shareholding listing | 200 (cookie session, 3 variants) | per-symbol 23; date-range 4,153 | n/a (JSON) | works: HTTP 200 x3 (per-symbol 23, date-range 4,153, top-corp-info 5); warm-up page 200 |
 
-All 16 worked locally. No call was refused by the permission system.
+All 16 worked locally and all 16 worked on GitHub Actions.
+
+**Fragility on Actions (S8 warm-up):** the `https://www.nseindia.com/` homepage returned **403** while `/reports/fii-dii` returned **200**, and the API call then succeeded. The collector therefore must not treat a failed homepage warm-up as fatal; `pipeline/collect.py` warms up both pages and calls the API regardless. If NSE starts blocking the second page too, S8 will need the local fallback (`runIn: ["local"]`).
 
 ## Findings that differ from the specs
 
@@ -96,7 +98,7 @@ Works from this PC with a `requests.Session` that first GETs `https://www.nseind
 `https://www.nseindia.com/reports/fii-dii`, then calls `https://www.nseindia.com/api/fiidiiTradeReact` with
 `Referer: https://www.nseindia.com/reports/fii-dii` and `Accept: application/json`. Payload: a JSON array of 2 objects
 `{category: "DII" | "FII/FPI", date: "13-Nov-2026", buyValue, sellValue, netValue}` (keys only; values are strings in
-Rs Cr). Latest day only. Not tested without cookies (the spec already notes a 301). **From GitHub Actions: pending.**
+Rs Cr). Latest day only. Not tested without cookies (the spec already notes a 301). **From GitHub Actions: works** (see the warm-up note above).
 Open-source clients (nsepython, nselib) call the same URL; nsepython additionally uses `curl_cffi` (browser TLS
 fingerprint) with warm-up, which suggests the Akamai layer may reject plain `requests` from datacenter IPs.
 
@@ -173,6 +175,5 @@ so FPI named holders will often be absent.
 
 ## Not tested / open
 
-- All sources from GitHub Actions (pending the repo and a workflow run).
 - Observed publish-time sweep (needs runs at 17:00/18:00/19:00/21:00 IST on a trading day).
 - Fixtures for 2 real XBRL files and parsing code are Phase 4B.

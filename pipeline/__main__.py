@@ -42,6 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     u = sub.add_parser("update", help="fetch recent days, then build")
     u.add_argument("--no-build", action="store_true")
 
+    sub.add_parser("collect", help="store the latest FII/DII cash (S8) and bulk/block deals (S9/S10) only")
+
+    bdl = sub.add_parser("backfill-deals", help="historical bulk/block deals (historicalOR endpoint), by month")
+    bdl.add_argument("--from", dest="frm", type=_d)
+    bdl.add_argument("--to", type=_d)
+
     sub.add_parser("status", help="coverage table and gaps")
     return ap
 

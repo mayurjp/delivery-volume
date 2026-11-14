@@ -1,4 +1,4 @@
-# DEVIATIONS from the specs (Phases 0-1)
+# DEVIATIONS from the specs (Phases 0-2)
 
 | # | Where | Deviation | Why |
 |---|-------|-----------|-----|
@@ -19,4 +19,22 @@
 | 15 | 02 S9/S10 | Spec's historical bulk-deals URL returns 503; a working `historicalOR` URL exists (see SOURCE_STATUS). Not implemented yet. | Needs the user's OK before wiring (not a URL listed in 02). |
 | 16 | pyproject | ruff ignores E501 (line length) and E741. | Compact tables in column contracts. |
 | 17 | Build time | Full build measured 92-192 s on this PC (mostly Windows file I/O variance; writes use 8 threads). The 192 s run immediately followed a pytest run. | Spec target < 3 min; may need a retry/optimisation on a slower runner. |
-| 18 | Python | Developed on Python 3.14 with pandas 3.1; requirements are pinned to those versions. CI (3.12) not yet run. | Local interpreter. |
+| 18 | Python | Developed on Python 3.14 with pandas 3.1; requirements are pinned to those versions. **Superseded by #19.** | Local interpreter. |
+
+## Phase 2
+
+| # | Where | Deviation | Why |
+|---|-------|-----------|-----|
+| 19 | README / 01 section 5 / 03 section 7 | Python **3.14** (not 3.12) in `ci.yml`, `update-and-deploy.yml` and `verify-sources.yml`; `pyproject` target stays py312 for ruff. Node 24 in CI. | Matches the local pins (pandas 3.1, etc.) and the Phase 0 Actions run on 3.14.10. |
+| 20 | 03 section 7 | The update job's commit excludes `store/logs/` and runs `git pull --rebase` before pushing; the push uses the branch name. The build job checks out `ref: ${{ github.ref_name }}` so it sees the data commit. `fetch-shareholding` step exists but is switched off (`if: false`) until Phase 4B. `calendar.json` carries `lastChecked`, so a commit is made on nearly every run (harmless; it also counts as repo activity). | Request logs would otherwise create a commit every run; a plain checkout would miss the just-pushed data. |
+| 21 | 03 section 3 / 02 S8-S10 | S8 and S9/S10 collection starts now in `pipeline update` (and `pipeline collect`), store only. `store/fii_dii_cash/YYYY.jsonl` holds one line per payload date (a revised provisional payload replaces its date's line). `store/deals/YYYY.csv` is a whole-row multiset dedupe (`date,type,symbol,securityName,client,side,qty,price,remarks`), wider than the key in 02. Bulk/block rows include SME symbols (the files have no series); SME is dropped at build time in Phase 4. `meta.sources` gained `fii_dii_cash` and `deals` entries with `collectingSince` once those stores exist. | Forward-only sources lose a day for every missed run; the extra dedupe columns avoid collapsing real identical trades. |
+| 22 | 02 S9/S10 | `pipeline backfill-deals` is implemented on the user-approved `historicalOR` endpoint, bulk and block only. The endpoint returns at most 70 records per request, so windows are split down to single days; days that still hit the cap are truncated (listed in `store/deals/_backfill.json`). Historical bulk deals are therefore incomplete (about 218 of 256 days capped); only the daily files are complete. | Observed API limit. |
+| 23 | 03 section 5.3 flags 64/128 | New 52-week high/low flag = high(T) > file(T).Adjusted_52_Week_High (low likewise), not "52-week high date is today". | S13 file(T) holds values through T-1 (02 S13 quirk note). |
+| 24 | 05 section 1 / 06 | Only the Phase 2 pages are routed; Compare, Heatmap, Institutions, Deals, Entity and Stats routes show a "planned for a later phase" page. Navigation shows Dashboard, Screener, Watchlist, Learn (no More tab). | Later phases. |
+| 25 | 05 section 2 | Universe options omit "F&O stocks" (the FNO index bit is not set until Phase 5); "Watchlist" is included. Filters are a full-height drawer on mobile and a popover on desktop. | Phase 5 data. |
+| 26 | 05 section 3 | The Day-mode date control is a month-grid popover where only trading days are enabled, plus previous/next arrows. | Native date inputs cannot disable arbitrary dates. |
+| 27 | 05 P1 | FII/DII tiles and the 20-day FII/DII chart show "Collecting since <date>"; the bulk/block deals card is a placeholder. A "New 52-week highs, with delivery level" card is added (per the updated spec). | Institutional and deals JSON arrive in Phase 4. |
+| 28 | 04 section 2 / 05 P2 | Screener presets: the 04 lists plus "Up/Down on heavy delivery", "New 52-week high, low/heavy delivery" and "Large cap: down on heavy delivery". "Delivery up + Long build-up" and the ownership presets are omitted (Phase 5 / 4B). Futures columns exist but are empty. Signal tooltips carry a reserved slot for the "Historically ..." line (Phase 3). | Later-phase data. |
+| 29 | 05 P5 | Stock page: panes 1-3 only (no F&O pane, no deal markers yet; deals and ownership sections are placeholders). The tooltip on the stock chart triggers on mousemove or tap; zoom is a slider on mobile and inside-zoom (Ctrl + wheel) on desktop. | Phase 4/5 data; Ctrl+wheel avoids hijacking page scroll. |
+| 30 | 04 section 3 / 06 | `computeRange` and `rollingBand` are implemented now in `site/src/lib/metrics.ts` (Phase 3 uses them), with a Python twin `metrics.range_metrics`. The shared vectors file `site/src/lib/vectors.json` is written by `pytest` (test_shared_vectors.py); CI fails if the committed copy is stale. | Needed for the Vitest and shared-vector acceptance items. |
+| 31 | 05 section 7 | Lighthouse is not run here: "to check after deploy". CI does not run the Playwright smoke test (`site/scripts/smoke.mjs`, run by hand). | No browser audit tooling in this environment; CI kept light. |

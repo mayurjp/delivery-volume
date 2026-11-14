@@ -157,3 +157,57 @@ def compute_daily(df: pd.DataFrame, settings: dict, signals: dict) -> pd.DataFra
     df["lowLiquidity"] = df["lowLiquidity"].fillna(False).astype(bool)
     df["newListing"] = df["newListing"].fillna(False).astype(bool)
     return df
+
+
+# ---- range comparison (04 section 3); the TypeScript twin is site/src/lib/metrics.ts computeRange ------------------
+
+def range_metrics(cum_a0, cum_a1, cum_b0, cum_b1, trading_days_r: int, trading_days_b: int,
+                  min_base_deliv_val_cr: float, min_turnover_cr: float) -> list[dict]:
+    """Per-symbol range vs baseline comparison from four cum files (lists of dicts with the cum/ columns).
+
+    cum_a0 / cum_b0 may be None (the range starts at the first stored date): the prior sum is then 0 and the row is
+    flagged listedDuringRange. Value-based fields only.
+    """
+    def idx(rows):
+        return {r["sym"]: r for r in (rows or [])}
+
+    a0, b0, b1 = idx(cum_a0), idx(cum_b0), idx(cum_b1)
+
+    def span(prior, end):
+        if end is None:
+            return None
+        p = prior or {}
+        return {"n": end["cDays"] - p.get("cDays", 0), "dv": end["cDelivValCr"] - p.get("cDelivValCr", 0.0),
+                "tv": end["cTurnoverCr"] - p.get("cTurnoverCr", 0.0), "last": end["lastClose"],
+                "prior_close": p.get("lastClose"), "listed": prior is None}
+
+    out = []
+    for r1 in cum_a1:
+        R = span(a0.get(r1["sym"]), r1)
+        B = span(b0.get(r1["sym"]), b1.get(r1["sym"]))
+        avg_r = R["dv"] / R["n"] if R["n"] > 0 else None
+        avg_b = B["dv"] / B["n"] if B and B["n"] > 0 else None
+        pct_r = R["dv"] / R["tv"] * 100 if R["tv"] > 0 else None
+        pct_b = B["dv"] / B["tv"] * 100 if B and B["tv"] > 0 else None
+        turn_r = R["tv"] / R["n"] if R["n"] > 0 else None
+        turn_b = B["tv"] / B["n"] if B and B["n"] > 0 else None
+        coverage = R["n"] / trading_days_r if trading_days_r > 0 else 0.0
+        reasons = []
+        if coverage < 0.6:
+            reasons.append("range")
+        if B is None or B["n"] < 0.6 * trading_days_b:
+            reasons.append("baseline days")
+        if avg_b is None or avg_b < min_base_deliv_val_cr:
+            reasons.append("baseline delivery")
+        if turn_b is None or turn_b < min_turnover_cr:
+            reasons.append("baseline turnover")
+        out.append({
+            "sym": r1["sym"], "nR": R["n"], "nB": B["n"] if B else 0,
+            "avgDelivValR": avg_r, "avgDelivValB": avg_b, "delivPctWR": pct_r, "delivPctWB": pct_b,
+            "delivValChgPct": (avg_r / avg_b - 1) * 100 if avg_r is not None and avg_b and avg_b > 0 else None,
+            "delivPctChgPp": pct_r - pct_b if pct_r is not None and pct_b is not None else None,
+            "turnoverChgPct": (turn_r / turn_b - 1) * 100 if turn_r is not None and turn_b and turn_b > 0 else None,
+            "ret": (R["last"] / R["prior_close"] - 1) * 100 if R["last"] is not None and R["prior_close"] else None,
+            "coverage": coverage, "listedDuringRange": R["listed"], "excluded": bool(reasons),
+        })
+    return out
