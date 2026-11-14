@@ -214,3 +214,19 @@ so FPI named holders will often be absent.
 - **Named promoter names in the XBRL:** present only through the government-promoted-company axis (IOC: ONGC, Oil India)
   and the overlap rule (HDFC Bank, HOLDERIND INVESTMENTS, Indian Oil). ADANI INFRA INDIA and TOBACCO MANUFACTURERS INDIA
   were not in the sample, so they are **not verified** either way.
+
+## S4 `bm` (board meetings) in the PR zip (Phase 5B, 2026-11-15)
+
+Verified on the PR zip for 2026-11-13 (`PR13112026.zip`, 682,163 bytes, 15 members; `readme.txt` lists `bmddmmyyyy.txt`):
+
+- Member `bm13112026.txt` (4,504 bytes). The first line is a header `COMPANY NAME    SYMBOL     : BM DATE    : BM PURPOSE`. Every
+  later line is one meeting: `Company name SYMBOL : DD-MON-YYYY : PURPOSE`, with the date as `18-NOV-2026` or `13-Nov-2026`.
+- A purpose can contain ` : ` again (a re-scheduled notice, for example `AHLWEST : 13-Nov-2026 : The Company has informed ...`),
+  so the line is split at most twice. The symbol is the last token before the first ` : `.
+- A day's file lists meetings on dates before and after the file date (the 13 Nov file has meetings on 12, 14 and 18 Nov),
+  so the extract keeps the meeting date and not the file date.
+- Parser: `pipeline/sources/s4_pr_zip.py::parse_bm`. All 14 lines of the 2026-11-13 file parse, with valid symbols.
+- Results dates: meetings whose purpose contains "Financial Results" (case-insensitive).
+- Store: `store/board_meetings/YYYY/DATE.csv.gz` (columns `symbol, meetingDate, purpose`; gzip mtime 0). Written by the daily
+  S4 fetch and by `python -m pipeline backfill-bm --from D --to D` (one PR zip per trading day, 1 request/second, resumable).
+- Backfill (2026-11-15, from this PC): 251 days downloaded in this run, 5 already stored, 256 extracts, 0 missing, 0 errors.

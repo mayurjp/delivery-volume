@@ -120,6 +120,16 @@ def parse(body: bytes, d: date, label: str = "") -> Parsed:
         else:
             out["bh_text"] = t
             out["bh_rows"] = len(rows)
+    # bm: board meetings (07 section 8). Optional, like etf: a missing member never fails the day
+    t = None
+    for n in z.namelist():
+        if n.lower() == f"{BM_MEMBER_PREFIX}{tokens(d)['DDMMYYYY']}.txt":
+            t = decode(z.read(n))
+            break
+    if t is None:
+        p.notes.append("bm member missing")
+    else:
+        out["bm"] = parse_bm(t)
     # etf: the list of ETFs / index funds traded that day. Optional: a missing or changed member never fails the day
     t = _csv_member(z, "etf", d)
     if t is None:
@@ -138,6 +148,41 @@ def parse(body: bytes, d: date, label: str = "") -> Parsed:
     p.notes.append(f"bh header: {headers.get('bh')}; bh rows {out.get('bh_rows')}; bc header: {headers.get('bc')}")
     p.data = out
     return p
+
+
+BM_MEMBER_PREFIX = "bm"
+BM_COLUMNS = ["symbol", "meetingDate", "purpose"]
+RESULTS_PURPOSE = "financial results"
+
+
+def parse_bm(text: str) -> pd.DataFrame:
+    """S4 `bm{DDMMYYYY}.txt` (board meetings). Verified 2026-11-13 (SOURCE_STATUS): a header line, then one meeting per
+    line as `Company name SYMBOL : DD-MON-YYYY : PURPOSE`. The purpose can repeat ` : ` (re-scheduled notices), so the
+    line is split at most twice. Lines that do not parse are dropped, never guessed."""
+    from .base import parse_dmy_mon
+
+    rows = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.upper().startswith("COMPANY NAME"):
+            continue
+        parts = line.split(" : ", 2)
+        if len(parts) != 3:
+            continue
+        head, when, purpose = parts
+        sym = head.rsplit(" ", 1)[-1].strip()
+        dt = parse_dmy_mon(when)
+        if not sym or dt is None:
+            continue
+        rows.append((sym, dt.isoformat(), purpose.strip()))
+    return pd.DataFrame(rows, columns=BM_COLUMNS)
+
+
+def results_dates(bm: pd.DataFrame) -> pd.DataFrame:
+    """Board meetings whose purpose includes "Financial Results" (07 section 2 `events`)."""
+    m = bm["purpose"].str.lower().str.contains(RESULTS_PURPOSE, regex=False)
+    return bm.loc[m].reset_index(drop=True)
+
 
 
 SPEC = SourceSpec("S4", "pr_zip", "PR zip (mcap, bc, bh)", "zip", lambda d: [("", url(d))], parse, fetchable=True)

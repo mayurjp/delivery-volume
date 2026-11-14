@@ -1,8 +1,11 @@
 """Prototype: what did delivery/volume footprints look like before and during big price runs?
 
-Usage: python -I run_footprints.py <project root> [extra history root ...]
+Usage: python -I run_footprints.py <project root> [extra history root ...] [--json <out.json>]
 Reads raw S1 files from store/cm_delivery (read-only). Universe = top 750 by current mcap (no ETFs: not in mcap file).
-Prices are back-adjusted for splits/bonuses (prevClose(t) vs close(t-1) mismatch > 3%).
+Prices are back-adjusted with the pipeline's ratio rule (pipeline/metrics.price_adjustment, DEVIATIONS #52, #71, #139):
+close-to-close ratios that match a corporate-action ratio, with the notSplits list of config/settings.json respected.
+The earlier prevClose rule (|prevClose(t)/close(t-1) - 1| > 3%) missed most splits, because NSE's PREV_CLOSE is raw on
+an ex-date.
 Runs: zig-zag on adjusted close, 12% reversal; a run is a leg of >= 20% (up or down) lasting >= 5 days.
 Footprint windows for a run starting at pivot day p:  pre = [p-19, p], base = [p-79, p-20], early = [p+1, p+5].
 Features are value-based (split-safe): delivery value, turnover, avg trade size, delivery on up vs down days.
@@ -11,15 +14,27 @@ close(s) to close(s+20) >= +15% ("big up") or <= -15% ("big down"). Lift by feat
 """
 import gzip
 import io
+import json
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-root = Path(sys.argv[1])
+HERE = Path(__file__).resolve()
+sys.path.insert(0, str(HERE.parents[3]))  # the project root: the pipeline's adjustment rule is shared, not copied
+from pipeline import metrics  # noqa: E402
+from pipeline.build import loader  # noqa: E402  (the build's symbol aliases, DEVIATIONS #70 and #128)
+
+args = sys.argv[1:]
+JSON_OUT = None
+if "--json" in args:
+    i = args.index("--json")
+    JSON_OUT = Path(args[i + 1])
+    del args[i:i + 2]
+root = Path(args[0])
 frames = []
-extra = [Path(x) for x in sys.argv[2:]]          # optional extra history roots (e.g. .history_staging)
+extra = [Path(x) for x in args[1:]]              # optional extra history roots (e.g. .history_staging)
 srcs = sorted({f.name: f for d in [root / "store"] + extra for f in (d / "cm_delivery").rglob("*.csv.gz")}.values(),
               key=lambda f: f.name)
 for f in srcs:
@@ -31,6 +46,9 @@ for f in srcs:
     df["date"] = f.name[:10]
     frames.append(df)
 raw = pd.concat(frames, ignore_index=True)
+# renamed symbols: the build maps history under an old name to today's name (S17 and ISIN, dated); without this the
+# old-name history of a renamed stock is lost, because only today's name is in the top 750 (DEVIATIONS #139)
+raw["SYMBOL"] = loader.resolve_alias(raw["SYMBOL"], loader.load_alias_map(root), raw["date"]).to_numpy()
 for c in ["PREV_CLOSE", "CLOSE_PRICE", "AVG_PRICE", "TURNOVER_LACS", "NO_OF_TRADES", "DELIV_QTY"]:
     raw[c] = pd.to_numeric(raw[c], errors="coerce")
 
@@ -59,13 +77,16 @@ trades, dq = mat("NO_OF_TRADES"), mat("DELIV_QTY")
 dv = dq * vwap / 1e7                                     # Rs Cr
 ats = tv * 1e7 / trades                                  # Rs per trade
 
-# split/bonus back-adjustment
+# split/bonus back-adjustment: the pipeline's ratio rule (metrics.price_adjustment) on each stock's EQ rows, in date order;
+# the adjusted close is then forward-filled over days the stock did not trade (its factor is constant between its rows)
+not_splits = json.loads((root / "config/settings.json").read_text(encoding="utf-8")).get("notSplits", [])
+ordr = raw.assign(_si=sj, _ti=ti).sort_values(["SYMBOL", "date"], kind="stable")
+fac_rows = metrics.price_adjustment(ordr["SYMBOL"].to_numpy(dtype=object), ordr["CLOSE_PRICE"].to_numpy(float),
+                                    ordr["date"].to_numpy(dtype=object), not_splits)
+adj_m = np.full((T, N), np.nan)
+adj_m[ordr["_ti"].to_numpy(), ordr["_si"].to_numpy()] = ordr["CLOSE_PRICE"].to_numpy(float) * fac_rows
+adj = pd.DataFrame(adj_m).ffill().to_numpy()
 c_ff = pd.DataFrame(close).ffill().to_numpy()
-prev_c = np.vstack([np.full((1, N), np.nan), c_ff[:-1]])
-ratio = prev / prev_c
-ratio = np.where(np.isfinite(ratio) & (np.abs(ratio - 1) > 0.03), ratio, 1.0)
-fac = np.vstack([np.cumprod(ratio[::-1], axis=0)[::-1][1:], np.ones((1, N))])  # product of ratios after t
-adj = c_ff * fac
 ret = np.vstack([np.full((1, N), np.nan), adj[1:] / adj[:-1] - 1])
 ret = np.where(np.isfinite(close), ret, np.nan)          # only real trading days count
 
@@ -205,3 +226,27 @@ print("\nC) Biggest up-runs among the top 200 stocks, with their footprint")
 cols = ["sym", "start", "end", "move", "pre: Delivery value vs before (x)", "pre: Delivery on up days / down days (x)",
         "pre: Avg trade size vs before (x)", "early: Delivery value vs before (x)", "early: Delivery on up days / down days (x)"]
 print(ex[cols].round(2).to_string(index=False))
+
+# ---------- JSON for the replication test (pipeline/tests/test_run_footprints.py, DEVIATIONS #139) ----------
+if JSON_OUT is not None:
+    names = {"Delivery value vs before (x)": "delivValRatio", "Delivery % change (pp)": "delivPctChgPp",
+             "Turnover vs before (x)": "turnoverRatio", "Avg trade size vs before (x)": "tradeSizeRatio",
+             "Delivery on up days / down days (x)": "delivBalance", "Delivery-spike days (of 20)": "spikeDays",
+             "Price change over the window (%)": "priceChgPct"}
+    doc = {"runList": [[r.sym, r.dir, r.start, r.end] for r in R.itertuples()],
+           "runs": {"UP": int((R.dir == "UP").sum()), "DOWN": int((R.dir == "DOWN").sum())},
+           "pre": {}, "early": {}, "lift": {}, "base": {"n": int(len(L)), "bigUp": round(bu, 2), "bigDown": round(bd, 2)}}
+    for k, nm in names.items():
+        doc["pre"][nm] = {"UP": float(R.loc[R.dir == "UP", "pre: " + k].median()),
+                          "DOWN": float(R.loc[R.dir == "DOWN", "pre: " + k].median()),
+                          "ORDINARY": float(B[k].median())}
+        if "early: " + k in R.columns:
+            doc["early"][nm] = {"UP": float(R.loc[R.dir == "UP", "early: " + k].median()),
+                                "DOWN": float(R.loc[R.dir == "DOWN", "early: " + k].median())}
+        q = pd.qcut(L[k].rank(method="first"), 5, labels=False)
+        up = L.groupby(q)["fwd"].apply(lambda x: (x >= 15).mean() * 100)
+        dn = L.groupby(q)["fwd"].apply(lambda x: (x <= -15).mean() * 100)
+        doc["lift"][nm] = [[round(float(up.iloc[i]), 2), round(float(dn.iloc[i]), 2)] for i in range(5)]
+    JSON_OUT.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    print(f"json written: {JSON_OUT}")
+

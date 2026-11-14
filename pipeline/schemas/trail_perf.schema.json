@@ -73,6 +73,16 @@
     ]
    }
   },
+  "tallies": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "label"
+    ]
+   }
+  },
   "label": {
    "type": "string"
   },

@@ -143,5 +143,12 @@
       "kind": "DEMERGER",
       "purpose": "Tata Motors demerger (ex-date 2025-10-14); the symbol became TMPV on 2025-10-24"
     }
-  ]
+  ],
+  "runs": {
+    "reversalPct": 12,
+    "minMovePct": 20,
+    "minDays": 5,
+    "bigMovePct": 15,
+    "note": "07 section 1 and 5. Run = zig-zag leg on adjusted close with a reversal of reversalPct, |move| >= minMovePct and >= minDays. bigMovePct is the big-move threshold of the lift tables (20 and 60 days)."
+  }
 }

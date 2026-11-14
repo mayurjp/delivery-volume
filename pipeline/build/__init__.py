@@ -11,7 +11,7 @@ from .. import fo as fo_mod
 from . import columns as C
 from . import deals as deals_build
 from . import holdings as holdings_build
-from . import loader, outputs, signal_perf
+from . import loader, outputs, run_outputs, signal_perf
 from . import periods as period_build
 from . import trail as trail_build
 from .schema import validate
@@ -93,8 +93,20 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     sizes["cum"] = outputs.write_cum(df, days, list(uni["sym"]), settings["carryForwardMaxDays"], out, pub_start)
     outputs.flush()
     lap(f"cum written ({sizes['cum'] / 1e6:.1f} MB)")
+    # 5B run forensics (07 sections 1 to 5): runs and footprints, the library and the statistics. Timed on its own.
+    t_runs = time.monotonic()
+    results = loader.results_by_sym(loader.load_board_meetings(alias, root))
+    hold_map = {s_: (v["holdings"]["rows"], v["holdings"]["columns"]) for s_, v in hold.by_sym.items()
+                if "holdings" in v}
+    runs_res = run_outputs.build_run_outputs(df, iso_all_days, uni, settings, corp, results, hold_map, dealb.flows,
+                                             dealb.first_date, iso_all_days[-1])
+    runs_sizes = run_outputs.write_library_and_stats(runs_res, out, outputs.dump)
+    counts = runs_res["counts"]
+    lap(f"runs: {counts['runs']:,} runs ({counts['up']:,} UP, {counts['down']:,} DOWN) over {counts['stocks']} stocks; "
+        f"statistics on {counts['studyUniverse']} stocks; runs stage {time.monotonic() - t_runs:.1f}s")
+    sizes["runs"] = runs_sizes["library"] + runs_sizes["stats"]
     sizes["symbols"] = outputs.write_symbols(df, uni, corp, out, pub_first, dealb.by_sym, dealb.flow_rows,
-                                             holdings_by_sym=hold.by_sym)
+                                             holdings_by_sym=hold.by_sym, runs_by_sym=runs_res["sym"])
     sizes["fo"] = outputs.write_fo(df, pub_days, uni, out, settings.get("publish", {}).get("dailyFullTradingDays"))
     outputs.flush()
     lap(f"symbols written ({sizes['symbols'] / 1e6:.1f} MB); F&O files {sizes['fo'] / 1e6:.2f} MB")

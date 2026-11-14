@@ -9,6 +9,7 @@ from pathlib import Path
 
 import jsonschema
 
+from .. import runs as RN
 from . import columns as C
 
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
@@ -145,6 +146,7 @@ def schemas() -> dict[str, dict]:
             "asOfDates": {"type": "array", "items": iso}, "minN": {"type": "integer"}, "listSize": {"type": "integer"},
             "lists": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
             "indicators": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
+            "tallies": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
             "label": {"type": "string"}, "columns": {"const": tp_cols},
             "rows": {"type": "array", "items": {"type": "array", "minItems": 9, "maxItems": 9, "prefixItems": [
                 {"type": "string"}, {"type": "string"}, {"type": "string"}, {"type": "integer"}, {"type": "integer"},
@@ -182,6 +184,53 @@ def schemas() -> dict[str, dict]:
                "properties": {"columns": {"const": C.names(C.FO_HIST)}, "rows": {"type": "array"}}},
     }, ["sym", "name", "sector", "idx", "bucket", "etf", "deals", "corpActions", "holdings", "namedHolders", "dealFlows"],
         "symbols/{f}.json")
+    # 5B (07 section 4 and 5): run footprints. Column types: counts are integers, flags booleans, text as strings.
+    def _rkind(col: str) -> str:
+        if col in ("dir", "start", "end", "sym", "bucket", "sector", "group"):
+            return "s"
+        if col == "enough":
+            return "b"
+        if col in ("days", "results", "corpActions", "circuits", "runs", "n") or col.startswith("build") or                 col.endswith("SpikeDays"):
+            return "i"
+        return "f"
+
+    out["runs_library"] = _table([(c, _rkind(c), None) for c in RN.LIBRARY_COLS],
+                                 title="runs/library.json")
+    out["run_footprints"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "stats/run_footprints.json", "type": "object",
+        "required": ["schemaVersion", "asOf", "window", "universe", "runs", "bigMovePct", "label", "medians", "lift",
+                     "longHorizon"],
+        "properties": {
+            "schemaVersion": {"const": 1}, "asOf": iso, "window": {"type": "object"}, "label": {"type": "string"},
+            "universe": {"type": "object", "required": ["name", "label", "stocks"]},
+            "runs": {"type": "object", "required": ["UP", "DOWN"]},
+            "bigMovePct": {"type": "number"},
+            "medians": {"type": "object", "required": ["columns", "rows"], "properties": {
+                "columns": {"const": ["window", "dir", "bucket", "feature", "median", "n"]},
+                "rows": {"type": "array", "items": {"type": "array", "minItems": 6, "maxItems": 6, "prefixItems": [
+                    {"type": "string"}, {"type": "string"}, {"type": "string"}, {"type": "string"},
+                    {"type": ["number", "null"]}, {"type": "integer"}]}}}},
+            "lift": {"type": "object", "required": ["columns", "rows", "base"], "properties": {
+                "columns": {"const": ["horizon", "feature", "quintile", "n", "bigUpPct", "bigDownPct"]},
+                "rows": {"type": "array", "items": {"type": "array", "minItems": 6, "maxItems": 6}},
+                "base": {"type": "object"}}},
+            "longHorizon": {"type": "object", "required": ["status", "columns", "rows", "base"], "properties": {
+                "status": {"enum": ["computed", "needs more history"]},
+                "columns": {"const": ["horizon", "feature", "quintile", "n", "bigUpPct", "bigDownPct"]},
+                "rows": {"type": "array", "items": {"type": "array", "minItems": 6, "maxItems": 6}},
+                "base": {"type": "object"}}},
+        }}
+    sym_runs = {
+        "runs": {"type": "object", "required": ["columns", "rows"], "properties": {
+            "columns": {"const": RN.RUN_COLS}, "rows": {"type": "array", "items": {"type": "array",
+                                                                                     "minItems": len(RN.RUN_COLS),
+                                                                                     "maxItems": len(RN.RUN_COLS)}}}},
+        "runSummary": {"type": "object", "required": ["columns", "rows"], "properties": {
+            "columns": {"const": RN.SUMMARY_COLS}, "rows": {"type": "array", "items": {"type": "array", "minItems": 3 + len(RN.PRE_COLS),
+                                                                                          "maxItems": 3 + len(RN.PRE_COLS)}}}},
+        "resultsDates": {"type": "array", "items": iso},
+    }
+    sym["properties"].update(sym_runs)
     out["symbol"] = sym
     return out
 

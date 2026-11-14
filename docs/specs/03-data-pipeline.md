@@ -65,6 +65,7 @@ store/
   etf/2026/2026-11-13.csv.gz             S4 etf (ETFs traded that day): symbol, series. Written from 2026-11-13 onward; the build unions all days
   corp_actions/2026/2026-11-13.csv.gz    S4 bc, equity series only, + `kind` column
   band_hits/2026/2026-11-13.csv.gz       S4 bh as downloaded
+  board_meetings/2026/2026-11-13.csv.gz  S4 bm extract (Phase 5B, 07 section 8): symbol, meetingDate, purpose
   participant_oi/2026/2026-11-13.csv     S5 as downloaded
   participant_vol/2026/2026-11-13.csv    S6 as downloaded
   fii_stats/2026/2026-11-13.json         S7 parsed
@@ -277,6 +278,17 @@ Forward excess returns after each delivery event, per 04 §6 (method, events, gr
 - `trail/latest.json` and `trail/asof/{YYYY-MM-DD}.json` (month-end snapshots, only for days inside the published window; no lookahead, tested): `columns ["sym","strip","3M","6M","1Y"]`. A row is one stock eligible on the as-of day. `strip` is 52 characters of weekly codes (`A`, `D`, `N`, `-`). Each window cell is `null` or an array in `windowColumns` order: `codes` (4 characters, one per indicator: delivery balance, delivery % trend, trade size trend, spike persistence), `delivBal`, `delivPctTrend` (pp), `tradeSizeTrend` (%), `spikeDays`, `spikeUp`, `spikeDn`, `baseSpikeRate` (%), `upCr`, `dnCr`, `consA`, `consD` (% of the window's weeks), `flip` (`A→D`, `D→A` or null) and `flipSince` (the end date of the first week of the opposite run). Top level: `stripWeeks` (52 week-end dates), `indicators` (id, label, rule), `slots` (named deals, holdings, promoter, F&O: "arrives in Phase 4 / 4B / 5"), `config` (the thresholds the browser twin reads), `listSize`, and, in latest.json only, `snapshots` (the as-of dates that exist). `latest.json` has every eligible stock; as-of snapshots only stocks in any index list (today's membership: survivorship is labelled). Sector aggregates and insights are computed in the browser (DEVIATIONS #67).
 - `stats/trail_perf.json`: the track record. `columns ["kind","id","window","horizon","n","dates","medianExcess","meanExcess","hitRate"]`; `kind` is `list` (strongA, strongD, flip, flipAD, flipDA) or `indicator` (`delivBal:A`, `delivBal:D`, `delivBal:N`, and so on); horizons 60 and 120 trading days; entry at close(t+1); excess against the median of the Nifty 500 eligible stocks on the same as-of date; windows crossing a price adjustment are dropped (DEVIATIONS #53); `asOfDates` lists the month-ends used.
 - Schemas: `trail.schema.json`, `trail_perf.schema.json`. All trail outputs together are about 4.4 MB (budget 25 MB). Stock mode has no per-stock file: the browser computes it from `symbols/{f}.json` (`site/src/lib/trail.ts`, shared vectors `trailVectors.json`).
+
+### 5.9c Run forensics (Phase 5B, 07 sections 1 to 5)
+
+Built by `pipeline/runs.py` (detection and features, vectorised over stocks) and `pipeline/build/run_outputs.py` (files). DEVIATIONS #139 to #149 hold every departure.
+
+- `symbols/{f}.json` gains three optional blocks: `runs` (`columns` = the run columns, `rows` = one row per run: `dir, start, end, movePct, days`, then the seven footprint features for `pre`, `early`, `full` and `post` (names like `preDelivValRatio`), the events counts, `holdFiiPp, holdDiiPp, holdMfPp, holdPromoterPp`, `futOiChgPct`, `buildLB, buildSB, buildSC, buildLU`, and `dealsPre{FII,DII,Other}`, `dealsFull{FII,DII,Other}`); `runSummary` (rows `UP`, `DOWN`, `ORDINARY`: `group, runs, enough` and the seven pre-window medians; `enough` is false, and the medians null, below 3 runs in a direction); and `resultsDates` (the stock's "Financial Results" meeting dates).
+- `runs/library.json`: every run of every non-ETF EQ stock. `columns`: `sym, dir, start, end, movePct, days, bucket, sector` and the key pre and early features. Schema `runs_library.schema.json`.
+- `stats/run_footprints.json`: `medians` (rows `window, dir, bucket, feature, median, n`; windows pre, early, full and post against the ordinary days; buckets ALL, L, M, S, U), `lift` (20 days: quintile of each feature → P(big up), P(big down) with `base`), and `longHorizon` (60-day features → the next 60 and 120 days). The statistics use the top 750 by market cap. Schema `run_footprints.schema.json`.
+- The daily footprint indicators (`delivBal20/60/120`, `delivValRatio60`, `tradeSizeRatio60`, `delivPctTrend`) are not stored. The reference is `pipeline/footprints.py` and the shared vectors are `site/src/lib/footprintVectors.json` (DEVIATIONS #144).
+- `stats/trail_perf.json` gains the `tally` kind (`tallyA4`, `tallyD4`, `tallyMixed`; DEVIATIONS #145).
+- Budget: all 5B outputs together are at most 15 MB (07 section 8). The sizes are reported at each build.
 
 ### 5.9b `stats/split_bonus.json`
 

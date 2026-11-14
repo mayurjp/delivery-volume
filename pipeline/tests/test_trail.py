@@ -215,7 +215,7 @@ def test_track_record_entry_is_close_t_plus_1_and_windows_do_not_pass_the_data()
     ind_w, pts = T.weekly_codes(cs, DAYS, CFG, B.month_ends(DAYS))
     perf = B.track_record(inp, ind_w, pts, allm, CFG)
     assert perf["columns"][:4] == ["kind", "id", "window", "horizon"]
-    assert {r[0] for r in perf["rows"]} == {"list", "indicator"}
+    assert {r[0] for r in perf["rows"]} == {"list", "tally", "indicator"}
     assert all(d <= DAYS[N - 1 - 61] for d in perf["asOfDates"])
 
 

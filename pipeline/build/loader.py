@@ -201,6 +201,31 @@ def load_corp_actions(alias: dict[str, str], root: Path | None = None) -> pd.Dat
     return out.drop_duplicates(["sym", "exDate", "purpose"]).reset_index(drop=True)
 
 
+def load_board_meetings(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
+    """Every stored S4 `bm` extract (symbol, meetingDate, purpose), alias-resolved (07 section 8)."""
+    frames = []
+    for d in store.list_dates("board_meetings", root=root):
+        df = _csv(store.path_for("board_meetings", d, root=root))
+        frames.append(df[["symbol", "meetingDate", "purpose"]])
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=["symbol", "meetingDate", "purpose"])
+    if alias and len(out):
+        out["symbol"] = resolve_alias(out["symbol"], alias)
+    return out.drop_duplicates().reset_index(drop=True)
+
+
+def results_by_sym(bm: pd.DataFrame) -> dict[str, list[str]]:
+    """Results dates per symbol: board meetings whose purpose includes "Financial Results" (07 section 2), sorted."""
+    from ..sources.s4_pr_zip import results_dates
+
+    if not len(bm):
+        return {}
+    r = results_dates(bm.rename(columns={"symbol": "symbol"}))
+    out: dict[str, list[str]] = {}
+    for sym, grp in r.groupby("symbol"):
+        out[sym] = sorted(set(grp["meetingDate"]))
+    return out
+
+
 def load_band_hits(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
     frames = []
     for d in store.list_dates("band_hits", root=root):

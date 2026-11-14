@@ -416,7 +416,8 @@ def write_fo(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, out: Path, f
 
 
 def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: Path, first_date: str | None = None,
-                  deals_by_sym: dict | None = None, flow_rows: dict | None = None, holdings_by_sym: dict | None = None) -> int:
+                  deals_by_sym: dict | None = None, flow_rows: dict | None = None, holdings_by_sym: dict | None = None,
+                  runs_by_sym: dict | None = None) -> int:
     ca_by_sym = {s: g for s, g in corp.groupby("sym")}
     total = 0
     ud = uni.set_index("sym")
@@ -448,6 +449,8 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
             fo_rows = [r for r in ft_fo.rows(a, b) if r[1] is not None]
             if fo_rows:
                 doc["fo"] = {"columns": C.names(C.FO_HIST), "rows": fo_rows}
+        if runs_by_sym and sym in runs_by_sym:  # 5B (07 section 4): runs, runSummary and results dates
+            doc.update(runs_by_sym[sym])
         validate("symbol", doc)
         total += dump(out / "symbols" / f"{u['f']}.json", doc)
     return total

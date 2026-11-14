@@ -108,6 +108,8 @@ def fetch_s4(client: Client, d: date, force: bool) -> str:
     store.write_atomic(store.path_for("band_hits", d), store.gz_bytes(out["bh_text"].encode("utf-8")), force=True)
     if "etf" in out and len(out["etf"]):
         store.write_atomic(store.path_for("etf", d), csv_gz(out["etf"]), force=True)
+    if "bm" in out:
+        store.write_atomic(store.path_for("board_meetings", d), csv_gz(out["bm"]), force=True)
     # mcap last: its presence marks the day as complete
     store.write_atomic(store.path_for("mcap", d), csv_gz(out["mcap"]), force=True)
     return STORED
@@ -347,6 +349,49 @@ def digest(b: bytes) -> str:
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------
+
+# ---- S4 board meetings (07 section 8) -------------------------------------------------------------------------------
+
+def backfill_bm(frm: date, to: date, force: bool = False) -> dict:
+    """Stores the `bm` extract for every stored trading day in [frm, to] that has none yet: one PR zip request per day,
+    keeping only the board-meetings member. Resumable (a stored day is skipped); a failed day is retried next run."""
+    import io
+    import zipfile
+
+    from .http import is_zip
+    from .sources import s4_pr_zip as s4
+
+    settings = config.settings()
+    client = Client(delay_sec=settings["requestDelaySec"], log_dir=STORE_DIR / "logs")
+    days = [d for d in store.list_dates("cm_delivery") if frm <= d <= to]
+    todo = [d for d in days if force or not store.exists("board_meetings", d)]
+    print(f"bm backfill: {len(days)} trading days in range, {len(todo)} to fetch", flush=True)
+    counts = {"stored": 0, "missing": 0, "error": 0}
+    t0 = time.monotonic()
+    for i, d in enumerate(todo, 1):
+        r = client.get(s4.url(d), source="S4", date=d.isoformat())
+        status = "error"
+        if r.ok and is_zip(r.body):
+            try:
+                z = zipfile.ZipFile(io.BytesIO(r.body))
+                name = next((n for n in z.namelist() if n.lower() == f"bm{d:%d%m%Y}.txt"), None)
+                if name is None:
+                    status = "missing"
+                else:
+                    text = s4.decode(z.read(name))
+                    df = s4.parse_bm(text)
+                    store.write_atomic(store.path_for("board_meetings", d), csv_gz(df), force=force)
+                    status = "stored"
+            except zipfile.BadZipFile:
+                status = "error"
+        elif r.missing:
+            status = "missing"
+        counts[status if status in counts else "error"] += 1
+        eta = (time.monotonic() - t0) / i * (len(todo) - i)
+        print(f"[{i}/{len(todo)}] {d} bm {status} (ETA {eta / 60:.1f} min)", flush=True)
+    print(f"bm backfill done: {counts}", flush=True)
+    return counts
+
 
 def run_range(frm: date, to: date, sources: list[str] | None = None, force: bool = False, label: str = "fetch") -> dict:
     settings = config.settings()

@@ -2,6 +2,73 @@
 
 ## Update 2026-11-14: 3 years (744 trading days, 2023-11-15 → 2026-11-13)
 
+**Re-run 2026-11-15 with the pipeline's split detection.** Prices are now adjusted with the pipeline's ratio rule
+(`pipeline/metrics.price_adjustment`, DEVIATIONS #52 and #71: close-to-close ratios that match a corporate-action ratio,
+`notSplits` respected) and the build's symbol aliases (DEVIATIONS #70). The earlier run used the prevClose rule, which misses
+most splits, so an unadjusted split was read as a move (phantom -80% and +400% legs). The tables below are the re-run. The
+earlier figures are kept at the end of this section. The script's `--json` output is what the pipeline's replication test
+compares with `stats/run_footprints.json` (DEVIATIONS #139 to #149).
+
+This rerun covers the full store, with the same method and universe (the top 750 by *current* market cap, so there is more
+survivorship bias over 3 years). It found **3,088 up-runs and 2,335 down-runs**, starting from
+2024-03-07. Command: `python -I scripts/run_footprints.py <root> <root>/.history_staging [--json out.json]`.
+
+### Footprints around runs (median)
+
+| Feature | Before UP runs | Before DOWN runs | Ordinary |
+|---------|---------------|------------------|----------|
+| Delivery value vs before | 0.89× | 1.14× | 0.93× |
+| Turnover vs before | 0.82× | 1.16× | 0.90× |
+| Avg trade size vs before | 0.92× | 1.08× | 0.99× |
+| Delivery % change (pp) | +2.77 pp | -1.22 pp | +1.30 pp |
+| Delivery on up days / down days | 0.62× | 2.16× | 1.10× |
+| Delivery-spike days (of 20) | 2.0 | 3.0 | 2.0 |
+| Price change over the window | -11.4% | +12.0% | -0.1% |
+
+| First 5 days of the run | UP runs | DOWN runs | Ordinary |
+|-------------------------|---------|-----------|----------|
+| Delivery value vs before | 0.88× | 1.01× | 0.93× |
+| Delivery % change (pp) | -0.13 pp | +0.93 pp | +1.30 pp |
+| Delivery on up days / down days | 4.66× | 0.22× | 1.10× |
+
+### Odds of a big move in the next 20 days, by feature quintile (no hindsight; n = 406,595 stock-days)
+
+- **Base rates:** big UP (≥ +15%) **9.1%**, big DOWN (≤ −15%) **4.0%**.
+
+| Feature | Big UP, Q1 → Q5 | Big DOWN, Q1 → Q5 |
+|---------|-----------------|-------------------|
+| Delivery value vs before | 8.3 → **11.0%** | 4.4 → 4.2% |
+| Turnover vs before | 9.0 → **10.9%** | 4.5 → 4.5% |
+| Avg trade size vs before | 9.2 → **10.3%** | 4.6 → 4.1% |
+| Delivery % change | 9.6 → **9.6%** | 4.4 → 4.0% |
+| Delivery on up days ÷ down days | 8.6 → **9.4%** | 3.9 → 4.5% |
+| Delivery-spike days | 8.4 → **10.8%** | 4.0 → 4.5% |
+| Price change over 20 days | 11.3 → **11.1%** | 4.8 → 4.9% |
+
+### Biggest up-runs among the top 200
+
+| Stock | Run | Move | Footprint before the run |
+|-------|-----|------|--------------------------|
+| WELCORP | 2026-01-27 → 2026-09-10 | +285% | Quiet: delivery 0.92×, mostly on down days (0.52×). Light delivery in the first 5 days (0.71×). |
+| PAYTM | 2024-05-08 → 2024-12-30 | +222% | After a collapse: delivery 0.28× normal, trade size 0.49×. Exhaustion, not accumulation. |
+| NATIONALUM | 2025-04-11 → 2026-01-29 | +199% | **Heavy delivery (1.60×), concentrated on down days (0.24×)**: holders absorbing a decline. It stayed heavy in the first 5 days (1.72×). |
+
+The per-stock library in the app (`runs/library.json`, 07 section 5) carries these runs with the same footprints; the
+pipeline reproduces the three values above to two decimals.
+
+### What held up over 3 years, and what changed
+
+1. **Held up:** big up-runs began after **quiet declines**, with lower turnover and a *rising* delivery share. Big down-runs began
+   after **loud rallies**, with higher turnover, delivery value and trade size, and delivery concentrated on up days.
+2. **Held up:** rising delivery value, turnover and spike days raise the chance of a big up move by about **+20–30%** relative to
+   the base rate (8.3% → 11.0%), and do *not* raise the chance of a big fall.
+3. **Weakened:** "delivery concentrated on up days" as a crash warning. Over 3 years it goes from 3.9% to 4.5%, a mild warning.
+4. **Did not hold:** "holders exit at the start of down-runs". The first-5-day delivery % change (+0.9 pp) is below ordinary.
+5. **Big runs start in different ways:** quiet bases (WELCORP), exhaustion after a collapse (PAYTM), or visible absorption on down
+   days (NATIONALUM). The per-stock Runs tab (07) exists so each case can be read individually.
+
+### Before the re-run (prevClose rule, kept for the record)
+
 This rerun covers the full store plus `.history_staging`, with the same method and universe (the top 750 by *current* market cap, so there is more survivorship bias over 3 years). It found **3,095 up-runs and 2,377 down-runs**, starting from 2024-03-07. Command: `python -I scripts/run_footprints.py <root> <root>/.history_staging`.
 
 ### Footprints around runs (median)
@@ -50,6 +117,7 @@ This rerun covers the full store plus `.history_staging`, with the same method a
 The 1-year study below is kept for reference.
 
 ---
+
 
 ## Original study (Nov 2025 – Nov 2026, 1 year)
 

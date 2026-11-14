@@ -51,6 +51,11 @@ def build_parser() -> argparse.ArgumentParser:
     mh = sub.add_parser("merge-history", help="move staged extra history (.history_staging/) into store/ (idempotent)")
     mh.add_argument("--staging", type=Path, default=Path(".history_staging"))
 
+    bbm = sub.add_parser("backfill-bm", help="S4 board meetings (bm) for stored trading days: one PR zip each, resumable")
+    bbm.add_argument("--from", dest="frm", type=_d)
+    bbm.add_argument("--to", type=_d)
+    bbm.add_argument("--force", action="store_true")
+
     sub.add_parser("status", help="coverage table and gaps")
 
     fs = sub.add_parser("fetch-shareholding", help="S16 quarterly shareholding: capped daily mode or --backfill")

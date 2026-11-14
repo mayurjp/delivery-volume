@@ -295,6 +295,116 @@
      "type": "array"
     }
    }
+  },
+  "runs": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "dir",
+      "start",
+      "end",
+      "movePct",
+      "days",
+      "preDelivValRatio",
+      "preDelivPctChgPp",
+      "preTurnoverRatio",
+      "preTradeSizeRatio",
+      "preDelivBalance",
+      "preSpikeDays",
+      "prePriceChgPct",
+      "earlyDelivValRatio",
+      "earlyDelivPctChgPp",
+      "earlyTurnoverRatio",
+      "earlyTradeSizeRatio",
+      "earlyDelivBalance",
+      "earlySpikeDays",
+      "earlyPriceChgPct",
+      "fullDelivValRatio",
+      "fullDelivPctChgPp",
+      "fullTurnoverRatio",
+      "fullTradeSizeRatio",
+      "fullDelivBalance",
+      "fullSpikeDays",
+      "fullPriceChgPct",
+      "postDelivValRatio",
+      "postDelivPctChgPp",
+      "postTurnoverRatio",
+      "postTradeSizeRatio",
+      "postDelivBalance",
+      "postSpikeDays",
+      "postPriceChgPct",
+      "results",
+      "corpActions",
+      "circuits",
+      "holdFiiPp",
+      "holdDiiPp",
+      "holdMfPp",
+      "holdPromoterPp",
+      "futOiChgPct",
+      "buildLB",
+      "buildSB",
+      "buildSC",
+      "buildLU",
+      "dealsPreFII",
+      "dealsPreDII",
+      "dealsPreOther",
+      "dealsFullFII",
+      "dealsFullDII",
+      "dealsFullOther"
+     ]
+    },
+    "rows": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 51,
+      "maxItems": 51
+     }
+    }
+   }
+  },
+  "runSummary": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "group",
+      "runs",
+      "enough",
+      "preDelivValRatio",
+      "preDelivPctChgPp",
+      "preTurnoverRatio",
+      "preTradeSizeRatio",
+      "preDelivBalance",
+      "preSpikeDays",
+      "prePriceChgPct"
+     ]
+    },
+    "rows": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10
+     }
+    }
+   }
+  },
+  "resultsDates": {
+   "type": "array",
+   "items": {
+    "type": "string",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+   }
   }
  }
 }

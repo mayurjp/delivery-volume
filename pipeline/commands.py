@@ -135,6 +135,15 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_backfill_bm(args: argparse.Namespace) -> int:
+    from . import fetch
+
+    frm = args.frm or __import__("datetime").date.fromisoformat(config.settings()["backfillFrom"])
+    to = args.to or cal_mod.today_ist()
+    fetch.backfill_bm(frm, to, args.force)
+    return 0
+
+
 def cmd_fetch_shareholding(args: argparse.Namespace) -> int:
     from . import shareholding
 
@@ -148,5 +157,5 @@ def cmd_fetch_shareholding(args: argparse.Namespace) -> int:
 
 
 def dispatch(args: argparse.Namespace) -> int:
-    return {"fetch-shareholding": cmd_fetch_shareholding, "fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
+    return {"fetch-shareholding": cmd_fetch_shareholding, "backfill-bm": cmd_backfill_bm, "fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
             "merge-history": cmd_merge_history, "status": cmd_status}[args.cmd](args)

@@ -5,3 +5,5 @@ src/lib/__fixtures__/
 src/lib/periodVectors.json
 # written by pytest (test_shared_vectors); CI diffs it against the pytest output
 src/lib/trailVectors.json
+# written by pytest (test_footprints); CI diffs it against the pytest output
+src/lib/footprintVectors.json

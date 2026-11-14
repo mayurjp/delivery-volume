@@ -279,3 +279,11 @@ Each of those phases' acceptance includes "the indicator is wired into the trail
 - **Holdings are coded only from the filings broadcast on or before the day** (no lookahead), with the base two quarters earlier in the store's quarter list.
 - **Stock mode:** holdings bars for the last four quarters, the change chips of the latest quarter, and the named holders above 1% with their status. A stock with no holdings stored says so.
 
+
+## Phase 5B part 1 as built (2026-11-15): the pipeline, outputs and schemas
+
+Built: run detection and footprints (§1, §2, §4, §5), the daily footprint reference (§3, computed in the browser), the `bm`
+backfill (§8), the track record by tally bucket (§6), and the statistics with the long-horizon lift (§5). Not built here: the
+Runs tab, the `#/runs` library page, the Learn case studies and the Stock page's Footprints pane (the next agent, on the
+outputs described in 03 section 5.9c). DEVIATIONS #139 to #149 hold the departures, including the statistics universe (the top
+750 by market cap, the study's), the pipeline's adjustment in the study script, and the measured reproduction (3% run counts).

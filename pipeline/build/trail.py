@@ -16,6 +16,12 @@ from .schema import validate
 LISTS = [("strongA", "Strongest accumulation trail"), ("strongD", "Strongest distribution trail"),
          ("flip", "Taste changing (any flip)"), ("flipAD", "Flip, accumulation to distribution"),
          ("flipDA", "Flip, distribution to accumulation")]
+# 07 section 6 "Track record" (5B): forward excess by tally bucket of the window's eight indicators (>= 4 lean A, >= 4
+# lean D, mixed = neither). The same method and horizons as the lists; stored as kind "tally".
+TALLIES = [("tallyA4", "Four or more of the eight indicators lean accumulation"),
+           ("tallyD4", "Four or more of the eight indicators lean distribution"),
+           ("tallyMixed", "Mixed: fewer than four lean either way")]
+TALLY_MIN = 4
 IND_LABELS = {"delivBal": "Delivery balance (up days vs down days)", "delivPctTrend": "Delivery % trend vs own baseline",
               "tradeSizeTrend": "Average trade size trend", "spikePersist": "Delivery spike persistence",
               "dealsNet": "Named deals, FII + DII net (bulk and block)",
@@ -191,6 +197,9 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
                 "flip": U & (wm["flip"] != ""), "flipAD": U & (wm["flip"] == "A→D"), "flipDA": U & (wm["flip"] == "D→A")}
             members["strongA"][rank_list(wm["tally"], wm["consA"], U, syms, "A", cfg["listSize"])] = True
             members["strongD"][rank_list(wm["tally"], wm["consD"], U, syms, "D", cfg["listSize"])] = True
+            ta, td = wm["tally"]["A"], wm["tally"]["D"]
+            tally_members = {"tallyA4": U & (ta >= TALLY_MIN), "tallyD4": U & (td >= TALLY_MIN),
+                             "tallyMixed": U & (ta < TALLY_MIN) & (td < TALLY_MIN)}
             for k in cfg["forwardHorizons"]:
                 ex = forward_excess(inp, a, k, U)
                 if np.isnan(ex).all():
@@ -198,6 +207,8 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
                 any_fwd = True
                 for lid, m in members.items():
                     add(("list", lid, wname, k), ex, m, a)
+                for lid, m in tally_members.items():
+                    add(("tally", lid, wname, k), ex, m, a)
                 for j, ind in enumerate(T.INDICATORS):
                     c = wm["codes"][:, j]
                     for code, ch in ((1, "A"), (-1, "D"), (0, "N")):
@@ -205,7 +216,7 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
         if any_fwd:
             used.append(days[a])
     rows = []
-    for kind, ids in (("list", [i for i, _ in LISTS]),
+    for kind, ids in (("list", [i for i, _ in LISTS]), ("tally", [i for i, _ in TALLIES]),
                       ("indicator", [f"{i}:{c}" for i in T.INDICATORS for c in "ADN"])):
         for iid in ids:
             for wname in cfg["windows"]:
@@ -221,6 +232,7 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
             "horizons": list(cfg["forwardHorizons"]), "asOfDates": used, "minN": cfg["minN"],
             "listSize": cfg["listSize"],
             "lists": [{"id": i, "label": lab} for i, lab in LISTS],
+            "tallies": [{"id": i, "label": lab} for i, lab in TALLIES],
             "indicators": [{"id": i, "label": IND_LABELS[i]} for i in T.INDICATORS], "label": LABEL,
             "columns": ["kind", "id", "window", "horizon", "n", "dates", "medianExcess", "meanExcess", "hitRate"],
             "rows": rows}

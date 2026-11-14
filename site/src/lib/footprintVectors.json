@@ -1,0 +1,5399 @@
+{
+ "cases": [
+  {
+   "expected": {
+    "delivBal120": 1.045,
+    "delivBal20": 0.245,
+    "delivBal60": 0.889,
+    "delivPctTrend": -0.75,
+    "delivValRatio60": 0.871,
+    "tradeSizeRatio60": 1.026
+   },
+   "name": "long",
+   "records": [
+    {
+     "close": 99.94,
+     "delivValCr": 51.812,
+     "prevClose": 100.0,
+     "trades": 3835,
+     "turnoverCr": 69.3738
+    },
+    {
+     "close": 99.88,
+     "delivValCr": 34.0227,
+     "prevClose": 99.94,
+     "trades": 827,
+     "turnoverCr": 103.3302
+    },
+    {
+     "close": 100.21,
+     "delivValCr": 25.5789,
+     "prevClose": 99.88,
+     "trades": 3298,
+     "turnoverCr": 77.4365
+    },
+    {
+     "close": 100.11,
+     "delivValCr": 16.3367,
+     "prevClose": 100.21,
+     "trades": 2256,
+     "turnoverCr": 21.3064
+    },
+    {
+     "close": 101.62,
+     "delivValCr": 8.5924,
+     "prevClose": 100.11,
+     "trades": 1672,
+     "turnoverCr": 9.8162
+    },
+    {
+     "close": 102.89,
+     "delivValCr": 48.2166,
+     "prevClose": 101.62,
+     "trades": 695,
+     "turnoverCr": 75.7897
+    },
+    {
+     "close": 105.37,
+     "delivValCr": 4.0857,
+     "prevClose": 102.89,
+     "trades": 196,
+     "turnoverCr": 12.264
+    },
+    {
+     "close": 103.87,
+     "delivValCr": 3.6241,
+     "prevClose": 105.37,
+     "trades": 1950,
+     "turnoverCr": 8.4595
+    },
+    {
+     "close": 104.74,
+     "delivValCr": 17.801,
+     "prevClose": 103.87,
+     "trades": 1007,
+     "turnoverCr": 27.462
+    },
+    {
+     "close": 105.0,
+     "delivValCr": 53.4469,
+     "prevClose": 104.74,
+     "trades": 1923,
+     "turnoverCr": 81.1817
+    },
+    {
+     "close": 104.63,
+     "delivValCr": 53.9062,
+     "prevClose": 105.0,
+     "trades": 3866,
+     "turnoverCr": 68.3958
+    },
+    {
+     "close": 106.3,
+     "delivValCr": 23.0634,
+     "prevClose": 104.63,
+     "trades": 990,
+     "turnoverCr": 41.2569
+    },
+    {
+     "close": 103.32,
+     "delivValCr": 33.505,
+     "prevClose": 106.3,
+     "trades": 492,
+     "turnoverCr": 69.7614
+    },
+    {
+     "close": 105.91,
+     "delivValCr": 10.4745,
+     "prevClose": 103.32,
+     "trades": 3974,
+     "turnoverCr": 49.4491
+    },
+    {
+     "close": 107.45,
+     "delivValCr": 24.7412,
+     "prevClose": 105.91,
+     "trades": 3847,
+     "turnoverCr": 29.5527
+    },
+    {
+     "close": 107.51,
+     "delivValCr": 58.147,
+     "prevClose": 107.45,
+     "trades": 1677,
+     "turnoverCr": 117.7413
+    },
+    {
+     "close": 108.24,
+     "delivValCr": 10.8201,
+     "prevClose": 107.51,
+     "trades": 2814,
+     "turnoverCr": 27.8264
+    },
+    {
+     "close": 105.61,
+     "delivValCr": 21.063,
+     "prevClose": 108.24,
+     "trades": 3998,
+     "turnoverCr": 43.2473
+    },
+    {
+     "close": 108.78,
+     "delivValCr": 5.5442,
+     "prevClose": 105.61,
+     "trades": 2945,
+     "turnoverCr": 20.4786
+    },
+    {
+     "close": 105.94,
+     "delivValCr": 65.481,
+     "prevClose": 108.78,
+     "trades": 777,
+     "turnoverCr": 96.6575
+    },
+    {
+     "close": 104.06,
+     "delivValCr": 46.9197,
+     "prevClose": 105.94,
+     "trades": 3047,
+     "turnoverCr": 63.5195
+    },
+    {
+     "close": 103.77,
+     "delivValCr": 24.2969,
+     "prevClose": 104.06,
+     "trades": 1667,
+     "turnoverCr": 49.1315
+    },
+    {
+     "close": 102.09,
+     "delivValCr": 22.1533,
+     "prevClose": 103.77,
+     "trades": 3340,
+     "turnoverCr": 36.0264
+    },
+    {
+     "close": 105.65,
+     "delivValCr": 3.4545,
+     "prevClose": 102.09,
+     "trades": 817,
+     "turnoverCr": 7.2575
+    },
+    {
+     "close": 108.35,
+     "delivValCr": 18.0852,
+     "prevClose": 105.65,
+     "trades": 460,
+     "turnoverCr": 78.8111
+    },
+    {
+     "close": 106.13,
+     "delivValCr": 41.3244,
+     "prevClose": 108.35,
+     "trades": 89,
+     "turnoverCr": 55.7773
+    },
+    {
+     "close": 105.22,
+     "delivValCr": 9.8474,
+     "prevClose": 106.13,
+     "trades": 350,
+     "turnoverCr": 39.0773
+    },
+    {
+     "close": 103.49,
+     "delivValCr": 48.559,
+     "prevClose": 105.22,
+     "trades": 113,
+     "turnoverCr": 78.2076
+    },
+    {
+     "close": 102.89,
+     "delivValCr": 34.9048,
+     "prevClose": 103.49,
+     "trades": 3978,
+     "turnoverCr": 57.1189
+    },
+    {
+     "close": 105.37,
+     "delivValCr": 6.7596,
+     "prevClose": 102.89,
+     "trades": 1631,
+     "turnoverCr": 20.6099
+    },
+    {
+     "close": 103.26,
+     "delivValCr": 68.671,
+     "prevClose": 105.37,
+     "trades": 3399,
+     "turnoverCr": 109.4687
+    },
+    {
+     "close": 105.03,
+     "delivValCr": 19.9334,
+     "prevClose": 103.26,
+     "trades": 2626,
+     "turnoverCr": 23.2247
+    },
+    {
+     "close": 103.22,
+     "delivValCr": 61.4476,
+     "prevClose": 105.03,
+     "trades": 3663,
+     "turnoverCr": 114.2656
+    },
+    {
+     "close": 100.65,
+     "delivValCr": 2.3733,
+     "prevClose": 103.22,
+     "trades": 496,
+     "turnoverCr": 10.4512
+    },
+    {
+     "close": 103.93,
+     "delivValCr": 15.3697,
+     "prevClose": 100.65,
+     "trades": 2935,
+     "turnoverCr": 32.4168
+    },
+    {
+     "close": 103.65,
+     "delivValCr": 44.2113,
+     "prevClose": 103.93,
+     "trades": 2061,
+     "turnoverCr": 109.0548
+    },
+    {
+     "close": 101.72,
+     "delivValCr": 25.3403,
+     "prevClose": 103.65,
+     "trades": 331,
+     "turnoverCr": 87.8406
+    },
+    {
+     "close": 101.84,
+     "delivValCr": 50.4976,
+     "prevClose": 101.72,
+     "trades": 2572,
+     "turnoverCr": 80.1534
+    },
+    {
+     "close": 100.64,
+     "delivValCr": 80.0314,
+     "prevClose": 101.84,
+     "trades": 885,
+     "turnoverCr": 110.4964
+    },
+    {
+     "close": 98.07,
+     "delivValCr": 12.6767,
+     "prevClose": 100.64,
+     "trades": 1070,
+     "turnoverCr": 52.3141
+    },
+    {
+     "close": 96.25,
+     "delivValCr": 41.7754,
+     "prevClose": 98.07,
+     "trades": 2393,
+     "turnoverCr": 47.4103
+    },
+    {
+     "close": 93.94,
+     "delivValCr": 18.5397,
+     "prevClose": 96.25,
+     "trades": 1894,
+     "turnoverCr": 20.917
+    },
+    {
+     "close": 95.13,
+     "delivValCr": 72.8982,
+     "prevClose": 93.94,
+     "trades": 2443,
+     "turnoverCr": 84.4905
+    },
+    {
+     "close": 95.92,
+     "delivValCr": 93.1014,
+     "prevClose": 95.13,
+     "trades": 1994,
+     "turnoverCr": 111.2125
+    },
+    {
+     "close": 97.41,
+     "delivValCr": 71.6138,
+     "prevClose": 95.92,
+     "trades": 137,
+     "turnoverCr": 115.7187
+    },
+    {
+     "close": 94.96,
+     "delivValCr": 5.3903,
+     "prevClose": 97.41,
+     "trades": 1324,
+     "turnoverCr": 12.7361
+    },
+    {
+     "close": 98.28,
+     "delivValCr": 6.2465,
+     "prevClose": 94.96,
+     "trades": 2286,
+     "turnoverCr": 13.6552
+    },
+    {
+     "close": 95.62,
+     "delivValCr": 78.0325,
+     "prevClose": 98.28,
+     "trades": 3069,
+     "turnoverCr": 112.6687
+    },
+    {
+     "close": 97.68,
+     "delivValCr": 28.5978,
+     "prevClose": 95.62,
+     "trades": 1491,
+     "turnoverCr": 110.2253
+    },
+    {
+     "close": 97.75,
+     "delivValCr": 6.8546,
+     "prevClose": 97.68,
+     "trades": 3561,
+     "turnoverCr": 13.932
+    },
+    {
+     "close": 99.84,
+     "delivValCr": 21.9209,
+     "prevClose": 97.75,
+     "trades": 2396,
+     "turnoverCr": 104.2994
+    },
+    {
+     "close": 101.14,
+     "delivValCr": 30.437,
+     "prevClose": 99.84,
+     "trades": 100,
+     "turnoverCr": 48.6053
+    },
+    {
+     "close": 98.63,
+     "delivValCr": 64.0703,
+     "prevClose": 101.14,
+     "trades": 1103,
+     "turnoverCr": 78.5315
+    },
+    {
+     "close": 100.34,
+     "delivValCr": 34.0693,
+     "prevClose": 98.63,
+     "trades": 3060,
+     "turnoverCr": 49.6702
+    },
+    {
+     "close": 100.32,
+     "delivValCr": 15.0537,
+     "prevClose": 100.34,
+     "trades": 2266,
+     "turnoverCr": 58.2016
+    },
+    {
+     "close": 102.2,
+     "delivValCr": 2.2026,
+     "prevClose": 100.32,
+     "trades": 2512,
+     "turnoverCr": 8.4258
+    },
+    {
+     "close": 99.28,
+     "delivValCr": 63.0838,
+     "prevClose": 102.2,
+     "trades": 512,
+     "turnoverCr": 115.1005
+    },
+    {
+     "close": 100.27,
+     "delivValCr": 91.7304,
+     "prevClose": 99.28,
+     "trades": 1097,
+     "turnoverCr": 110.8534
+    },
+    {
+     "close": 99.66,
+     "delivValCr": 7.3386,
+     "prevClose": 100.27,
+     "trades": 2555,
+     "turnoverCr": 21.4703
+    },
+    {
+     "close": 97.77,
+     "delivValCr": 92.9165,
+     "prevClose": 99.66,
+     "trades": 2753,
+     "turnoverCr": 109.158
+    },
+    {
+     "close": 98.0,
+     "delivValCr": 21.8295,
+     "prevClose": 97.77,
+     "trades": 1707,
+     "turnoverCr": 32.7706
+    },
+    {
+     "close": 96.32,
+     "delivValCr": 39.7277,
+     "prevClose": 98.0,
+     "trades": 3351,
+     "turnoverCr": 54.553
+    },
+    {
+     "close": 94.68,
+     "delivValCr": 18.0213,
+     "prevClose": 96.32,
+     "trades": 949,
+     "turnoverCr": 29.6318
+    },
+    {
+     "close": 93.79,
+     "delivValCr": 9.2046,
+     "prevClose": 94.68,
+     "trades": 2083,
+     "turnoverCr": 20.6603
+    },
+    {
+     "close": 96.44,
+     "delivValCr": 8.3609,
+     "prevClose": 93.79,
+     "trades": 312,
+     "turnoverCr": 9.6658
+    },
+    {
+     "close": 95.28,
+     "delivValCr": 12.9571,
+     "prevClose": 96.44,
+     "trades": 1895,
+     "turnoverCr": 24.4498
+    },
+    {
+     "close": 98.15,
+     "delivValCr": 64.1542,
+     "prevClose": 95.28,
+     "trades": 1616,
+     "turnoverCr": 100.5531
+    },
+    {
+     "close": 98.36,
+     "delivValCr": 32.5739,
+     "prevClose": 98.15,
+     "trades": 3487,
+     "turnoverCr": 41.2677
+    },
+    {
+     "close": 99.4,
+     "delivValCr": 9.2901,
+     "prevClose": 98.36,
+     "trades": 3444,
+     "turnoverCr": 41.8398
+    },
+    {
+     "close": 102.06,
+     "delivValCr": 3.8767,
+     "prevClose": 99.4,
+     "trades": 2952,
+     "turnoverCr": 9.7712
+    },
+    {
+     "close": 101.35,
+     "delivValCr": 16.9995,
+     "prevClose": 102.06,
+     "trades": 2360,
+     "turnoverCr": 79.6679
+    },
+    {
+     "close": 99.2,
+     "delivValCr": 42.3173,
+     "prevClose": 101.35,
+     "trades": 151,
+     "turnoverCr": 57.3057
+    },
+    {
+     "close": 97.94,
+     "delivValCr": 22.0318,
+     "prevClose": 99.2,
+     "trades": 3313,
+     "turnoverCr": 94.6142
+    },
+    {
+     "close": 99.01,
+     "delivValCr": 32.3858,
+     "prevClose": 97.94,
+     "trades": 2630,
+     "turnoverCr": 56.3453
+    },
+    {
+     "close": 100.16,
+     "delivValCr": 32.1905,
+     "prevClose": 99.01,
+     "trades": 369,
+     "turnoverCr": 47.3986
+    },
+    {
+     "close": 98.45,
+     "delivValCr": 41.7464,
+     "prevClose": 100.16,
+     "trades": 781,
+     "turnoverCr": 59.6414
+    },
+    {
+     "close": 100.33,
+     "delivValCr": 21.6395,
+     "prevClose": 98.45,
+     "trades": 198,
+     "turnoverCr": 66.5076
+    },
+    {
+     "close": 99.1,
+     "delivValCr": 38.6177,
+     "prevClose": 100.33,
+     "trades": 2906,
+     "turnoverCr": 44.76
+    },
+    {
+     "close": 99.35,
+     "delivValCr": 56.8809,
+     "prevClose": 99.1,
+     "trades": 702,
+     "turnoverCr": 119.633
+    },
+    {
+     "close": 101.48,
+     "delivValCr": 53.2257,
+     "prevClose": 99.35,
+     "trades": 407,
+     "turnoverCr": 109.2173
+    },
+    {
+     "close": 104.32,
+     "delivValCr": 25.6755,
+     "prevClose": 101.48,
+     "trades": 1895,
+     "turnoverCr": 49.6168
+    },
+    {
+     "close": 105.43,
+     "delivValCr": 64.1439,
+     "prevClose": 104.32,
+     "trades": 1593,
+     "turnoverCr": 109.646
+    },
+    {
+     "close": 106.74,
+     "delivValCr": 54.0737,
+     "prevClose": 105.43,
+     "trades": 3406,
+     "turnoverCr": 62.8048
+    },
+    {
+     "close": 106.76,
+     "delivValCr": 21.5157,
+     "prevClose": 106.74,
+     "trades": 889,
+     "turnoverCr": 79.9021
+    },
+    {
+     "close": 109.57,
+     "delivValCr": 67.9924,
+     "prevClose": 106.76,
+     "trades": 3835,
+     "turnoverCr": 96.8052
+    },
+    {
+     "close": 107.8,
+     "delivValCr": 95.9287,
+     "prevClose": 109.57,
+     "trades": 409,
+     "turnoverCr": 108.4981
+    },
+    {
+     "close": 108.33,
+     "delivValCr": 36.7757,
+     "prevClose": 107.8,
+     "trades": 1362,
+     "turnoverCr": 95.9405
+    },
+    {
+     "close": 110.14,
+     "delivValCr": 1.7539,
+     "prevClose": 108.33,
+     "trades": 2117,
+     "turnoverCr": 6.7995
+    },
+    {
+     "close": 109.99,
+     "delivValCr": 26.814,
+     "prevClose": 110.14,
+     "trades": 3196,
+     "turnoverCr": 68.2847
+    },
+    {
+     "close": 113.27,
+     "delivValCr": 7.3706,
+     "prevClose": 109.99,
+     "trades": 3603,
+     "turnoverCr": 30.1039
+    },
+    {
+     "close": 115.76,
+     "delivValCr": 16.9356,
+     "prevClose": 113.27,
+     "trades": 1422,
+     "turnoverCr": 24.8831
+    },
+    {
+     "close": 119.18,
+     "delivValCr": 49.0886,
+     "prevClose": 115.76,
+     "trades": 2165,
+     "turnoverCr": 59.1146
+    },
+    {
+     "close": 119.62,
+     "delivValCr": 71.5108,
+     "prevClose": 119.18,
+     "trades": 1852,
+     "turnoverCr": 82.9569
+    },
+    {
+     "close": 119.86,
+     "delivValCr": 83.3872,
+     "prevClose": 119.62,
+     "trades": 402,
+     "turnoverCr": 114.1528
+    },
+    {
+     "close": 119.69,
+     "delivValCr": 49.1871,
+     "prevClose": 119.86,
+     "trades": 3454,
+     "turnoverCr": 69.2591
+    },
+    {
+     "close": 121.07,
+     "delivValCr": 54.3784,
+     "prevClose": 119.69,
+     "trades": 3505,
+     "turnoverCr": 65.12
+    },
+    {
+     "close": 119.46,
+     "delivValCr": 65.0757,
+     "prevClose": 121.07,
+     "trades": 3960,
+     "turnoverCr": 82.1993
+    },
+    {
+     "close": 122.87,
+     "delivValCr": 8.6497,
+     "prevClose": 119.46,
+     "trades": 3534,
+     "turnoverCr": 28.9476
+    },
+    {
+     "close": 123.53,
+     "delivValCr": 12.3975,
+     "prevClose": 122.87,
+     "trades": 2088,
+     "turnoverCr": 36.3907
+    },
+    {
+     "close": 124.13,
+     "delivValCr": 29.1644,
+     "prevClose": 123.53,
+     "trades": 2529,
+     "turnoverCr": 62.865
+    },
+    {
+     "close": 124.75,
+     "delivValCr": 4.8303,
+     "prevClose": 124.13,
+     "trades": 3807,
+     "turnoverCr": 10.0546
+    },
+    {
+     "close": 127.5,
+     "delivValCr": 18.4962,
+     "prevClose": 124.75,
+     "trades": 2061,
+     "turnoverCr": 69.7297
+    },
+    {
+     "close": 125.06,
+     "delivValCr": 54.8619,
+     "prevClose": 127.5,
+     "trades": 1929,
+     "turnoverCr": 112.045
+    },
+    {
+     "close": 129.09,
+     "delivValCr": 41.4077,
+     "prevClose": 125.06,
+     "trades": 1152,
+     "turnoverCr": 111.1932
+    },
+    {
+     "close": 129.35,
+     "delivValCr": 33.9729,
+     "prevClose": 129.09,
+     "trades": 3740,
+     "turnoverCr": 44.0633
+    },
+    {
+     "close": 133.04,
+     "delivValCr": 16.5069,
+     "prevClose": 129.35,
+     "trades": 1349,
+     "turnoverCr": 59.8013
+    },
+    {
+     "close": 132.68,
+     "delivValCr": 2.4362,
+     "prevClose": 133.04,
+     "trades": 1115,
+     "turnoverCr": 8.3826
+    },
+    {
+     "close": 135.42,
+     "delivValCr": 2.3537,
+     "prevClose": 132.68,
+     "trades": 845,
+     "turnoverCr": 7.6204
+    },
+    {
+     "close": 131.46,
+     "delivValCr": 16.9038,
+     "prevClose": 135.42,
+     "trades": 3013,
+     "turnoverCr": 37.6693
+    },
+    {
+     "close": 132.81,
+     "delivValCr": 10.3662,
+     "prevClose": 131.46,
+     "trades": 3043,
+     "turnoverCr": 17.0618
+    },
+    {
+     "close": 136.18,
+     "delivValCr": 25.9579,
+     "prevClose": 132.81,
+     "trades": 2989,
+     "turnoverCr": 76.7055
+    },
+    {
+     "close": 136.79,
+     "delivValCr": 35.5182,
+     "prevClose": 136.18,
+     "trades": 1589,
+     "turnoverCr": 55.2292
+    },
+    {
+     "close": 140.02,
+     "delivValCr": 26.004,
+     "prevClose": 136.79,
+     "trades": 2254,
+     "turnoverCr": 75.8164
+    },
+    {
+     "close": 141.57,
+     "delivValCr": 27.5518,
+     "prevClose": 140.02,
+     "trades": 2219,
+     "turnoverCr": 78.4237
+    },
+    {
+     "close": 142.32,
+     "delivValCr": 26.2944,
+     "prevClose": 141.57,
+     "trades": 608,
+     "turnoverCr": 72.4641
+    },
+    {
+     "close": 144.9,
+     "delivValCr": 32.094,
+     "prevClose": 142.32,
+     "trades": 3747,
+     "turnoverCr": 98.2084
+    },
+    {
+     "close": 146.23,
+     "delivValCr": 37.8885,
+     "prevClose": 144.9,
+     "trades": 847,
+     "turnoverCr": 107.4239
+    },
+    {
+     "close": 151.33,
+     "delivValCr": 88.0393,
+     "prevClose": 146.23,
+     "trades": 598,
+     "turnoverCr": 107.0673
+    },
+    {
+     "close": 148.09,
+     "delivValCr": 4.0553,
+     "prevClose": 151.33,
+     "trades": 1638,
+     "turnoverCr": 15.1366
+    },
+    {
+     "close": 151.66,
+     "delivValCr": 37.0876,
+     "prevClose": 148.09,
+     "trades": 3285,
+     "turnoverCr": 53.4875
+    },
+    {
+     "close": 149.09,
+     "delivValCr": 16.4038,
+     "prevClose": 151.66,
+     "trades": 3322,
+     "turnoverCr": 77.2192
+    },
+    {
+     "close": 146.56,
+     "delivValCr": 64.6659,
+     "prevClose": 149.09,
+     "trades": 3782,
+     "turnoverCr": 83.4741
+    },
+    {
+     "close": 145.61,
+     "delivValCr": 62.8714,
+     "prevClose": 146.56,
+     "trades": 2649,
+     "turnoverCr": 86.0418
+    },
+    {
+     "close": 146.0,
+     "delivValCr": 63.8956,
+     "prevClose": 145.61,
+     "trades": 824,
+     "turnoverCr": 83.8535
+    },
+    {
+     "close": 146.19,
+     "delivValCr": 4.5692,
+     "prevClose": 146.0,
+     "trades": 3171,
+     "turnoverCr": 7.795
+    },
+    {
+     "close": 146.7,
+     "delivValCr": 23.4239,
+     "prevClose": 146.19,
+     "trades": 650,
+     "turnoverCr": 70.4054
+    },
+    {
+     "close": 143.4,
+     "delivValCr": 22.1842,
+     "prevClose": 146.7,
+     "trades": 697,
+     "turnoverCr": 24.8365
+    },
+    {
+     "close": 147.74,
+     "delivValCr": 4.6921,
+     "prevClose": 143.4,
+     "trades": 303,
+     "turnoverCr": 15.9533
+    },
+    {
+     "close": 149.85,
+     "delivValCr": 5.9706,
+     "prevClose": 147.74,
+     "trades": 446,
+     "turnoverCr": 13.9247
+    },
+    {
+     "close": 149.9,
+     "delivValCr": 22.3014,
+     "prevClose": 149.85,
+     "trades": 1811,
+     "turnoverCr": 64.258
+    },
+    {
+     "close": 149.04,
+     "delivValCr": 61.6261,
+     "prevClose": 149.9,
+     "trades": 217,
+     "turnoverCr": 77.9107
+    },
+    {
+     "close": 146.32,
+     "delivValCr": 26.2646,
+     "prevClose": 149.04,
+     "trades": 3078,
+     "turnoverCr": 57.2044
+    },
+    {
+     "close": 150.7,
+     "delivValCr": 41.6637,
+     "prevClose": 146.32,
+     "trades": 438,
+     "turnoverCr": 74.5603
+    },
+    {
+     "close": 146.33,
+     "delivValCr": 85.0242,
+     "prevClose": 150.7,
+     "trades": 3333,
+     "turnoverCr": 107.7163
+    },
+    {
+     "close": 150.27,
+     "delivValCr": 52.9082,
+     "prevClose": 146.33,
+     "trades": 3898,
+     "turnoverCr": 109.5052
+    },
+    {
+     "close": 151.62,
+     "delivValCr": 48.0874,
+     "prevClose": 150.27,
+     "trades": 1446,
+     "turnoverCr": 62.9932
+    },
+    {
+     "close": 149.62,
+     "delivValCr": 79.0648,
+     "prevClose": 151.62,
+     "trades": 3099,
+     "turnoverCr": 109.7994
+    },
+    {
+     "close": 146.69,
+     "delivValCr": 93.009,
+     "prevClose": 149.62,
+     "trades": 595,
+     "turnoverCr": 112.3865
+    },
+    {
+     "close": 150.68,
+     "delivValCr": 42.6335,
+     "prevClose": 146.69,
+     "trades": 3192,
+     "turnoverCr": 84.9019
+    },
+    {
+     "close": 147.94,
+     "delivValCr": 7.1787,
+     "prevClose": 150.68,
+     "trades": 807,
+     "turnoverCr": 28.7853
+    },
+    {
+     "close": 146.79,
+     "delivValCr": 48.4079,
+     "prevClose": 147.94,
+     "trades": 93,
+     "turnoverCr": 58.9166
+    },
+    {
+     "close": 151.84,
+     "delivValCr": 39.4413,
+     "prevClose": 146.79,
+     "trades": 253,
+     "turnoverCr": 108.811
+    },
+    {
+     "close": 156.61,
+     "delivValCr": 28.6609,
+     "prevClose": 151.84,
+     "trades": 1433,
+     "turnoverCr": 81.6008
+    },
+    {
+     "close": 156.05,
+     "delivValCr": 12.2554,
+     "prevClose": 156.61,
+     "trades": 364,
+     "turnoverCr": 25.9256
+    },
+    {
+     "close": 161.51,
+     "delivValCr": 22.3749,
+     "prevClose": 156.05,
+     "trades": 2922,
+     "turnoverCr": 78.8605
+    },
+    {
+     "close": 160.82,
+     "delivValCr": 44.8577,
+     "prevClose": 161.51,
+     "trades": 520,
+     "turnoverCr": 71.115
+    },
+    {
+     "close": 163.72,
+     "delivValCr": 19.0971,
+     "prevClose": 160.82,
+     "trades": 1694,
+     "turnoverCr": 34.5129
+    },
+    {
+     "close": 166.91,
+     "delivValCr": 21.3844,
+     "prevClose": 163.72,
+     "trades": 94,
+     "turnoverCr": 79.5211
+    },
+    {
+     "close": 164.62,
+     "delivValCr": 63.1254,
+     "prevClose": 166.91,
+     "trades": 2303,
+     "turnoverCr": 109.149
+    },
+    {
+     "close": 164.13,
+     "delivValCr": 58.1675,
+     "prevClose": 164.62,
+     "trades": 3516,
+     "turnoverCr": 64.8776
+    },
+    {
+     "close": 166.01,
+     "delivValCr": 57.3459,
+     "prevClose": 164.13,
+     "trades": 362,
+     "turnoverCr": 98.0957
+    },
+    {
+     "close": 168.24,
+     "delivValCr": 97.7621,
+     "prevClose": 166.01,
+     "trades": 1632,
+     "turnoverCr": 114.8646
+    },
+    {
+     "close": 164.94,
+     "delivValCr": 47.3411,
+     "prevClose": 168.24,
+     "trades": 742,
+     "turnoverCr": 59.2526
+    },
+    {
+     "close": 165.8,
+     "delivValCr": 63.4245,
+     "prevClose": 164.94,
+     "trades": 1809,
+     "turnoverCr": 73.6047
+    },
+    {
+     "close": 165.36,
+     "delivValCr": 27.4556,
+     "prevClose": 165.8,
+     "trades": 2498,
+     "turnoverCr": 65.5772
+    },
+    {
+     "close": 166.1,
+     "delivValCr": 35.8865,
+     "prevClose": 165.36,
+     "trades": 1154,
+     "turnoverCr": 60.5729
+    },
+    {
+     "close": 164.18,
+     "delivValCr": 19.1254,
+     "prevClose": 166.1,
+     "trades": 1262,
+     "turnoverCr": 87.4092
+    },
+    {
+     "close": 167.5,
+     "delivValCr": 22.4059,
+     "prevClose": 164.18,
+     "trades": 2642,
+     "turnoverCr": 72.3679
+    },
+    {
+     "close": 170.69,
+     "delivValCr": 20.9648,
+     "prevClose": 167.5,
+     "trades": 3726,
+     "turnoverCr": 49.8449
+    },
+    {
+     "close": 169.98,
+     "delivValCr": 61.9153,
+     "prevClose": 170.69,
+     "trades": 3011,
+     "turnoverCr": 71.9009
+    },
+    {
+     "close": 165.69,
+     "delivValCr": 76.7665,
+     "prevClose": 169.98,
+     "trades": 1809,
+     "turnoverCr": 109.1383
+    },
+    {
+     "close": 163.42,
+     "delivValCr": 52.0377,
+     "prevClose": 165.69,
+     "trades": 236,
+     "turnoverCr": 91.8824
+    },
+    {
+     "close": 168.47,
+     "delivValCr": 26.5274,
+     "prevClose": 163.42,
+     "trades": 1968,
+     "turnoverCr": 88.1148
+    },
+    {
+     "close": 173.93,
+     "delivValCr": 9.3137,
+     "prevClose": 168.47,
+     "trades": 2943,
+     "turnoverCr": 33.1962
+    },
+    {
+     "close": 175.77,
+     "delivValCr": 46.0835,
+     "prevClose": 173.93,
+     "trades": 884,
+     "turnoverCr": 57.4042
+    },
+    {
+     "close": 174.57,
+     "delivValCr": 11.6247,
+     "prevClose": 175.77,
+     "trades": 1538,
+     "turnoverCr": 22.7933
+    },
+    {
+     "close": 176.91,
+     "delivValCr": 37.1715,
+     "prevClose": 174.57,
+     "trades": 1123,
+     "turnoverCr": 57.3886
+    },
+    {
+     "close": 179.45,
+     "delivValCr": 26.7835,
+     "prevClose": 176.91,
+     "trades": 3096,
+     "turnoverCr": 46.8623
+    },
+    {
+     "close": 185.7,
+     "delivValCr": 33.2444,
+     "prevClose": 179.45,
+     "trades": 3057,
+     "turnoverCr": 114.553
+    },
+    {
+     "close": 185.94,
+     "delivValCr": 47.0675,
+     "prevClose": 185.7,
+     "trades": 1314,
+     "turnoverCr": 62.8391
+    },
+    {
+     "close": 187.92,
+     "delivValCr": 29.0277,
+     "prevClose": 185.94,
+     "trades": 1162,
+     "turnoverCr": 46.3061
+    },
+    {
+     "close": 191.14,
+     "delivValCr": 54.9201,
+     "prevClose": 187.92,
+     "trades": 828,
+     "turnoverCr": 85.3896
+    },
+    {
+     "close": 194.77,
+     "delivValCr": 14.7962,
+     "prevClose": 191.14,
+     "trades": 1069,
+     "turnoverCr": 26.8288
+    },
+    {
+     "close": 197.19,
+     "delivValCr": 6.269,
+     "prevClose": 194.77,
+     "trades": 2848,
+     "turnoverCr": 27.5374
+    },
+    {
+     "close": 192.05,
+     "delivValCr": 7.9126,
+     "prevClose": 197.19,
+     "trades": 1791,
+     "turnoverCr": 36.158
+    },
+    {
+     "close": 186.76,
+     "delivValCr": 7.6714,
+     "prevClose": 192.05,
+     "trades": 1189,
+     "turnoverCr": 30.5945
+    },
+    {
+     "close": 182.21,
+     "delivValCr": 30.1562,
+     "prevClose": 186.76,
+     "trades": 2305,
+     "turnoverCr": 82.7722
+    },
+    {
+     "close": 188.37,
+     "delivValCr": 21.0763,
+     "prevClose": 182.21,
+     "trades": 1500,
+     "turnoverCr": 60.6611
+    },
+    {
+     "close": 186.93,
+     "delivValCr": 73.3151,
+     "prevClose": 188.37,
+     "trades": 3484,
+     "turnoverCr": 90.6551
+    },
+    {
+     "close": 191.07,
+     "delivValCr": 35.9308,
+     "prevClose": 186.93,
+     "trades": 3417,
+     "turnoverCr": 56.4406
+    },
+    {
+     "close": 194.89,
+     "delivValCr": 21.3422,
+     "prevClose": 191.07,
+     "trades": 1788,
+     "turnoverCr": 29.5139
+    },
+    {
+     "close": 193.99,
+     "delivValCr": 14.6825,
+     "prevClose": 194.89,
+     "trades": 678,
+     "turnoverCr": 22.3288
+    },
+    {
+     "close": 200.64,
+     "delivValCr": 31.0212,
+     "prevClose": 193.99,
+     "trades": 2297,
+     "turnoverCr": 42.4199
+    },
+    {
+     "close": 205.4,
+     "delivValCr": 11.9869,
+     "prevClose": 200.64,
+     "trades": 2727,
+     "turnoverCr": 26.1447
+    },
+    {
+     "close": 200.53,
+     "delivValCr": 61.3318,
+     "prevClose": 205.4,
+     "trades": 371,
+     "turnoverCr": 105.6455
+    },
+    {
+     "close": 200.14,
+     "delivValCr": 47.796,
+     "prevClose": 200.53,
+     "trades": 3389,
+     "turnoverCr": 70.3163
+    },
+    {
+     "close": 198.02,
+     "delivValCr": 39.2839,
+     "prevClose": 200.14,
+     "trades": 361,
+     "turnoverCr": 94.1829
+    },
+    {
+     "close": 203.8,
+     "delivValCr": 30.7136,
+     "prevClose": 198.02,
+     "trades": 2897,
+     "turnoverCr": 74.4277
+    },
+    {
+     "close": 207.29,
+     "delivValCr": 69.3047,
+     "prevClose": 203.8,
+     "trades": 1208,
+     "turnoverCr": 84.8078
+    },
+    {
+     "close": 204.02,
+     "delivValCr": 36.7853,
+     "prevClose": 207.29,
+     "trades": 1389,
+     "turnoverCr": 80.5853
+    },
+    {
+     "close": 199.46,
+     "delivValCr": 53.3543,
+     "prevClose": 204.02,
+     "trades": 2381,
+     "turnoverCr": 86.5666
+    },
+    {
+     "close": 205.18,
+     "delivValCr": 42.5595,
+     "prevClose": 199.46,
+     "trades": 1193,
+     "turnoverCr": 84.0109
+    },
+    {
+     "close": 209.73,
+     "delivValCr": 14.211,
+     "prevClose": 205.18,
+     "trades": 1350,
+     "turnoverCr": 40.0479
+    },
+    {
+     "close": 216.63,
+     "delivValCr": 33.2416,
+     "prevClose": 209.73,
+     "trades": 2164,
+     "turnoverCr": 88.9256
+    },
+    {
+     "close": 215.22,
+     "delivValCr": 31.7003,
+     "prevClose": 216.63,
+     "trades": 1538,
+     "turnoverCr": 47.0399
+    },
+    {
+     "close": 216.94,
+     "delivValCr": 57.4177,
+     "prevClose": 215.22,
+     "trades": 3076,
+     "turnoverCr": 96.555
+    },
+    {
+     "close": 221.67,
+     "delivValCr": 41.2256,
+     "prevClose": 216.94,
+     "trades": 3475,
+     "turnoverCr": 67.1646
+    },
+    {
+     "close": 217.57,
+     "delivValCr": 12.5108,
+     "prevClose": 221.67,
+     "trades": 1911,
+     "turnoverCr": 15.3201
+    },
+    {
+     "close": 215.02,
+     "delivValCr": 1.8167,
+     "prevClose": 217.57,
+     "trades": 2162,
+     "turnoverCr": 7.5565
+    },
+    {
+     "close": 210.79,
+     "delivValCr": 25.595,
+     "prevClose": 215.02,
+     "trades": 141,
+     "turnoverCr": 39.0261
+    },
+    {
+     "close": 215.49,
+     "delivValCr": 5.1177,
+     "prevClose": 210.79,
+     "trades": 2289,
+     "turnoverCr": 12.3665
+    },
+    {
+     "close": 216.67,
+     "delivValCr": 31.1219,
+     "prevClose": 215.49,
+     "trades": 1170,
+     "turnoverCr": 43.4699
+    },
+    {
+     "close": 222.83,
+     "delivValCr": 9.6915,
+     "prevClose": 216.67,
+     "trades": 2647,
+     "turnoverCr": 14.7405
+    },
+    {
+     "close": 217.56,
+     "delivValCr": 36.761,
+     "prevClose": 222.83,
+     "trades": 1778,
+     "turnoverCr": 98.869
+    },
+    {
+     "close": 214.15,
+     "delivValCr": 40.6216,
+     "prevClose": 217.56,
+     "trades": 2186,
+     "turnoverCr": 93.0156
+    },
+    {
+     "close": 214.12,
+     "delivValCr": 39.7644,
+     "prevClose": 214.15,
+     "trades": 3356,
+     "turnoverCr": 45.3006
+    },
+    {
+     "close": 217.05,
+     "delivValCr": 47.1528,
+     "prevClose": 214.12,
+     "trades": 2250,
+     "turnoverCr": 61.7711
+    },
+    {
+     "close": 211.56,
+     "delivValCr": 37.0872,
+     "prevClose": 217.05,
+     "trades": 239,
+     "turnoverCr": 76.0882
+    },
+    {
+     "close": 216.58,
+     "delivValCr": 16.5561,
+     "prevClose": 211.56,
+     "trades": 3545,
+     "turnoverCr": 81.6747
+    },
+    {
+     "close": 215.4,
+     "delivValCr": 13.2867,
+     "prevClose": 216.58,
+     "trades": 1953,
+     "turnoverCr": 15.2642
+    },
+    {
+     "close": 217.9,
+     "delivValCr": 13.5122,
+     "prevClose": 215.4,
+     "trades": 2958,
+     "turnoverCr": 65.2435
+    },
+    {
+     "close": 212.92,
+     "delivValCr": 33.6223,
+     "prevClose": 217.9,
+     "trades": 3800,
+     "turnoverCr": 111.2096
+    },
+    {
+     "close": 216.79,
+     "delivValCr": 80.7599,
+     "prevClose": 212.92,
+     "trades": 1588,
+     "turnoverCr": 118.9662
+    },
+    {
+     "close": 214.81,
+     "delivValCr": 20.1289,
+     "prevClose": 216.79,
+     "trades": 2217,
+     "turnoverCr": 49.7726
+    },
+    {
+     "close": 221.91,
+     "delivValCr": 8.4024,
+     "prevClose": 214.81,
+     "trades": 1313,
+     "turnoverCr": 11.8088
+    },
+    {
+     "close": 219.63,
+     "delivValCr": 7.4512,
+     "prevClose": 221.91,
+     "trades": 3817,
+     "turnoverCr": 22.8843
+    },
+    {
+     "close": 213.93,
+     "delivValCr": 31.0015,
+     "prevClose": 219.63,
+     "trades": 2442,
+     "turnoverCr": 57.7573
+    },
+    {
+     "close": 218.64,
+     "delivValCr": 13.4776,
+     "prevClose": 213.93,
+     "trades": 859,
+     "turnoverCr": 40.9433
+    },
+    {
+     "close": 215.17,
+     "delivValCr": 17.009,
+     "prevClose": 218.64,
+     "trades": 2987,
+     "turnoverCr": 32.072
+    },
+    {
+     "close": 215.83,
+     "delivValCr": 22.148,
+     "prevClose": 215.17,
+     "trades": 3713,
+     "turnoverCr": 55.8246
+    },
+    {
+     "close": 211.78,
+     "delivValCr": 58.8352,
+     "prevClose": 215.83,
+     "trades": 1326,
+     "turnoverCr": 92.1129
+    },
+    {
+     "close": 218.39,
+     "delivValCr": 26.1117,
+     "prevClose": 211.78,
+     "trades": 3545,
+     "turnoverCr": 68.2972
+    },
+    {
+     "close": 224.44,
+     "delivValCr": 72.9314,
+     "prevClose": 218.39,
+     "trades": 1451,
+     "turnoverCr": 110.1391
+    },
+    {
+     "close": 228.96,
+     "delivValCr": 5.5434,
+     "prevClose": 224.44,
+     "trades": 3583,
+     "turnoverCr": 15.6282
+    },
+    {
+     "close": 222.83,
+     "delivValCr": 86.476,
+     "prevClose": 228.96,
+     "trades": 3332,
+     "turnoverCr": 113.9648
+    },
+    {
+     "close": 230.28,
+     "delivValCr": 37.8033,
+     "prevClose": 222.83,
+     "trades": 3221,
+     "turnoverCr": 96.3914
+    },
+    {
+     "close": 238.19,
+     "delivValCr": 66.473,
+     "prevClose": 230.28,
+     "trades": 1023,
+     "turnoverCr": 80.6186
+    },
+    {
+     "close": 244.58,
+     "delivValCr": 82.6705,
+     "prevClose": 238.19,
+     "trades": 1893,
+     "turnoverCr": 109.1013
+    },
+    {
+     "close": 248.58,
+     "delivValCr": 36.68,
+     "prevClose": 244.58,
+     "trades": 694,
+     "turnoverCr": 74.6984
+    },
+    {
+     "close": 253.6,
+     "delivValCr": 17.4994,
+     "prevClose": 248.58,
+     "trades": 3769,
+     "turnoverCr": 21.645
+    },
+    {
+     "close": 254.5,
+     "delivValCr": 30.2485,
+     "prevClose": 253.6,
+     "trades": 2587,
+     "turnoverCr": 78.2512
+    },
+    {
+     "close": 255.71,
+     "delivValCr": 7.2514,
+     "prevClose": 254.5,
+     "trades": 3205,
+     "turnoverCr": 22.3251
+    },
+    {
+     "close": 251.43,
+     "delivValCr": 85.5847,
+     "prevClose": 255.71,
+     "trades": 660,
+     "turnoverCr": 110.3661
+    },
+    {
+     "close": 245.23,
+     "delivValCr": 20.5276,
+     "prevClose": 251.43,
+     "trades": 2984,
+     "turnoverCr": 36.0409
+    },
+    {
+     "close": 252.05,
+     "delivValCr": 73.6561,
+     "prevClose": 245.23,
+     "trades": 389,
+     "turnoverCr": 84.7746
+    },
+    {
+     "close": 254.1,
+     "delivValCr": 22.099,
+     "prevClose": 252.05,
+     "trades": 1293,
+     "turnoverCr": 103.5947
+    },
+    {
+     "close": 249.58,
+     "delivValCr": 7.1724,
+     "prevClose": 254.1,
+     "trades": 2844,
+     "turnoverCr": 27.2031
+    },
+    {
+     "close": 255.5,
+     "delivValCr": 14.1708,
+     "prevClose": 249.58,
+     "trades": 2275,
+     "turnoverCr": 28.967
+    },
+    {
+     "close": 256.04,
+     "delivValCr": 47.5911,
+     "prevClose": 255.5,
+     "trades": 3998,
+     "turnoverCr": 113.8583
+    },
+    {
+     "close": 253.53,
+     "delivValCr": 12.3423,
+     "prevClose": 256.04,
+     "trades": 1302,
+     "turnoverCr": 13.7429
+    },
+    {
+     "close": 256.92,
+     "delivValCr": 8.6548,
+     "prevClose": 253.53,
+     "trades": 354,
+     "turnoverCr": 12.7096
+    },
+    {
+     "close": 250.98,
+     "delivValCr": 36.3759,
+     "prevClose": 256.92,
+     "trades": 1941,
+     "turnoverCr": 50.3372
+    },
+    {
+     "close": 256.25,
+     "delivValCr": 3.9679,
+     "prevClose": 250.98,
+     "trades": 1873,
+     "turnoverCr": 19.0178
+    },
+    {
+     "close": 254.84,
+     "delivValCr": 35.1306,
+     "prevClose": 256.25,
+     "trades": 1022,
+     "turnoverCr": 86.6507
+    },
+    {
+     "close": 249.07,
+     "delivValCr": 83.8337,
+     "prevClose": 254.84,
+     "trades": 3556,
+     "turnoverCr": 93.7594
+    },
+    {
+     "close": 254.54,
+     "delivValCr": 8.819,
+     "prevClose": 249.07,
+     "trades": 2573,
+     "turnoverCr": 28.774
+    },
+    {
+     "close": 257.29,
+     "delivValCr": 46.1091,
+     "prevClose": 254.54,
+     "trades": 3120,
+     "turnoverCr": 112.8067
+    },
+    {
+     "close": 255.21,
+     "delivValCr": 13.0693,
+     "prevClose": 257.29,
+     "trades": 2780,
+     "turnoverCr": 50.103
+    },
+    {
+     "close": 250.68,
+     "delivValCr": 20.7983,
+     "prevClose": 255.21,
+     "trades": 498,
+     "turnoverCr": 48.3032
+    },
+    {
+     "close": 258.56,
+     "delivValCr": 45.1964,
+     "prevClose": 250.68,
+     "trades": 3014,
+     "turnoverCr": 69.723
+    },
+    {
+     "close": 258.31,
+     "delivValCr": 14.6244,
+     "prevClose": 258.56,
+     "trades": 467,
+     "turnoverCr": 48.9804
+    },
+    {
+     "close": 252.15,
+     "delivValCr": 26.993,
+     "prevClose": 258.31,
+     "trades": 2951,
+     "turnoverCr": 82.935
+    },
+    {
+     "close": 247.75,
+     "delivValCr": 5.654,
+     "prevClose": 252.15,
+     "trades": 1947,
+     "turnoverCr": 9.1948
+    },
+    {
+     "close": 241.77,
+     "delivValCr": 27.6777,
+     "prevClose": 247.75,
+     "trades": 693,
+     "turnoverCr": 31.057
+    },
+    {
+     "close": 241.33,
+     "delivValCr": 79.1132,
+     "prevClose": 241.77,
+     "trades": 1449,
+     "turnoverCr": 93.6882
+    },
+    {
+     "close": 240.79,
+     "delivValCr": 21.9459,
+     "prevClose": 241.33,
+     "trades": 2701,
+     "turnoverCr": 63.83
+    },
+    {
+     "close": 235.88,
+     "delivValCr": 36.5038,
+     "prevClose": 240.79,
+     "trades": 2027,
+     "turnoverCr": 84.5019
+    },
+    {
+     "close": 235.12,
+     "delivValCr": 4.2619,
+     "prevClose": 235.88,
+     "trades": 1691,
+     "turnoverCr": 6.7739
+    },
+    {
+     "close": 232.92,
+     "delivValCr": 63.3733,
+     "prevClose": 235.12,
+     "trades": 1053,
+     "turnoverCr": 95.7069
+    },
+    {
+     "close": 235.15,
+     "delivValCr": 2.3689,
+     "prevClose": 232.92,
+     "trades": 1405,
+     "turnoverCr": 7.1323
+    }
+   ]
+  },
+  {
+   "expected": {
+    "delivBal120": null,
+    "delivBal20": 0.998,
+    "delivBal60": null,
+    "delivPctTrend": null,
+    "delivValRatio60": null,
+    "tradeSizeRatio60": null
+   },
+   "name": "short",
+   "records": [
+    {
+     "close": 100.08,
+     "delivValCr": 35.859,
+     "prevClose": 100.0,
+     "trades": 2779,
+     "turnoverCr": 80.6093
+    },
+    {
+     "close": 99.56,
+     "delivValCr": 46.8679,
+     "prevClose": 100.08,
+     "trades": 2026,
+     "turnoverCr": 119.6116
+    },
+    {
+     "close": 101.82,
+     "delivValCr": 30.3358,
+     "prevClose": 99.56,
+     "trades": 2513,
+     "turnoverCr": 84.4182
+    },
+    {
+     "close": 98.78,
+     "delivValCr": 35.1191,
+     "prevClose": 101.82,
+     "trades": 1852,
+     "turnoverCr": 76.7868
+    },
+    {
+     "close": 98.0,
+     "delivValCr": 22.5604,
+     "prevClose": 98.78,
+     "trades": 2410,
+     "turnoverCr": 29.1789
+    },
+    {
+     "close": 95.54,
+     "delivValCr": 56.8676,
+     "prevClose": 98.0,
+     "trades": 1430,
+     "turnoverCr": 83.9987
+    },
+    {
+     "close": 97.63,
+     "delivValCr": 3.6492,
+     "prevClose": 95.54,
+     "trades": 3813,
+     "turnoverCr": 15.0453
+    },
+    {
+     "close": 100.51,
+     "delivValCr": 56.7048,
+     "prevClose": 97.63,
+     "trades": 422,
+     "turnoverCr": 63.5265
+    },
+    {
+     "close": 100.26,
+     "delivValCr": 27.8048,
+     "prevClose": 100.51,
+     "trades": 2756,
+     "turnoverCr": 56.0305
+    },
+    {
+     "close": 98.13,
+     "delivValCr": 24.1852,
+     "prevClose": 100.26,
+     "trades": 2595,
+     "turnoverCr": 40.9422
+    },
+    {
+     "close": 101.41,
+     "delivValCr": 34.1731,
+     "prevClose": 98.13,
+     "trades": 2323,
+     "turnoverCr": 106.8411
+    },
+    {
+     "close": 103.74,
+     "delivValCr": 34.0928,
+     "prevClose": 101.41,
+     "trades": 1765,
+     "turnoverCr": 51.0597
+    },
+    {
+     "close": 103.79,
+     "delivValCr": 16.6163,
+     "prevClose": 103.74,
+     "trades": 2266,
+     "turnoverCr": 75.0691
+    },
+    {
+     "close": 105.58,
+     "delivValCr": 77.2553,
+     "prevClose": 103.79,
+     "trades": 3274,
+     "turnoverCr": 116.2578
+    },
+    {
+     "close": 104.86,
+     "delivValCr": 21.9732,
+     "prevClose": 105.58,
+     "trades": 2876,
+     "turnoverCr": 46.7598
+    },
+    {
+     "close": 103.83,
+     "delivValCr": 15.4577,
+     "prevClose": 104.86,
+     "trades": 1423,
+     "turnoverCr": 34.0234
+    },
+    {
+     "close": 104.17,
+     "delivValCr": 31.9603,
+     "prevClose": 103.83,
+     "trades": 2098,
+     "turnoverCr": 98.1623
+    },
+    {
+     "close": 103.62,
+     "delivValCr": 58.4673,
+     "prevClose": 104.17,
+     "trades": 183,
+     "turnoverCr": 103.7946
+    },
+    {
+     "close": 102.01,
+     "delivValCr": 18.5721,
+     "prevClose": 103.62,
+     "trades": 1640,
+     "turnoverCr": 54.133
+    },
+    {
+     "close": 102.98,
+     "delivValCr": 29.746,
+     "prevClose": 102.01,
+     "trades": 953,
+     "turnoverCr": 91.629
+    },
+    {
+     "close": 104.55,
+     "delivValCr": 5.0695,
+     "prevClose": 102.98,
+     "trades": 1182,
+     "turnoverCr": 9.2373
+    },
+    {
+     "close": 105.51,
+     "delivValCr": 46.1387,
+     "prevClose": 104.55,
+     "trades": 2155,
+     "turnoverCr": 88.4758
+    },
+    {
+     "close": 103.78,
+     "delivValCr": 25.7385,
+     "prevClose": 105.51,
+     "trades": 2000,
+     "turnoverCr": 37.418
+    },
+    {
+     "close": 106.44,
+     "delivValCr": 17.1198,
+     "prevClose": 103.78,
+     "trades": 736,
+     "turnoverCr": 32.5899
+    },
+    {
+     "close": 107.04,
+     "delivValCr": 18.7643,
+     "prevClose": 106.44,
+     "trades": 3189,
+     "turnoverCr": 25.9187
+    },
+    {
+     "close": 110.17,
+     "delivValCr": 4.8494,
+     "prevClose": 107.04,
+     "trades": 1148,
+     "turnoverCr": 5.7675
+    },
+    {
+     "close": 112.6,
+     "delivValCr": 5.2844,
+     "prevClose": 110.17,
+     "trades": 3306,
+     "turnoverCr": 25.6471
+    },
+    {
+     "close": 109.51,
+     "delivValCr": 68.4942,
+     "prevClose": 112.6,
+     "trades": 1528,
+     "turnoverCr": 76.1939
+    },
+    {
+     "close": 109.81,
+     "delivValCr": 6.3343,
+     "prevClose": 109.51,
+     "trades": 1370,
+     "turnoverCr": 7.7496
+    },
+    {
+     "close": 111.29,
+     "delivValCr": 13.3934,
+     "prevClose": 109.81,
+     "trades": 533,
+     "turnoverCr": 37.1357
+    },
+    {
+     "close": 111.77,
+     "delivValCr": 26.8121,
+     "prevClose": 111.29,
+     "trades": 2618,
+     "turnoverCr": 59.8997
+    },
+    {
+     "close": 113.39,
+     "delivValCr": 17.605,
+     "prevClose": 111.77,
+     "trades": 3076,
+     "turnoverCr": 56.1556
+    },
+    {
+     "close": 112.14,
+     "delivValCr": 45.4337,
+     "prevClose": 113.39,
+     "trades": 1189,
+     "turnoverCr": 105.4145
+    },
+    {
+     "close": 115.06,
+     "delivValCr": 54.5108,
+     "prevClose": 112.14,
+     "trades": 1873,
+     "turnoverCr": 78.6266
+    },
+    {
+     "close": 113.21,
+     "delivValCr": 8.3096,
+     "prevClose": 115.06,
+     "trades": 1094,
+     "turnoverCr": 37.7774
+    },
+    {
+     "close": 109.84,
+     "delivValCr": 6.6747,
+     "prevClose": 113.21,
+     "trades": 2335,
+     "turnoverCr": 8.1348
+    },
+    {
+     "close": 109.55,
+     "delivValCr": 17.3609,
+     "prevClose": 109.84,
+     "trades": 1832,
+     "turnoverCr": 32.7416
+    },
+    {
+     "close": 106.68,
+     "delivValCr": 59.5608,
+     "prevClose": 109.55,
+     "trades": 2994,
+     "turnoverCr": 70.5735
+    },
+    {
+     "close": 110.15,
+     "delivValCr": 46.3935,
+     "prevClose": 106.68,
+     "trades": 1760,
+     "turnoverCr": 92.4499
+    },
+    {
+     "close": 107.51,
+     "delivValCr": 31.2416,
+     "prevClose": 110.15,
+     "trades": 865,
+     "turnoverCr": 51.544
+    }
+   ]
+  },
+  {
+   "expected": {
+    "delivBal120": 0.897,
+    "delivBal20": 0.894,
+    "delivBal60": 0.898,
+    "delivPctTrend": -0.91,
+    "delivValRatio60": 1.106,
+    "tradeSizeRatio60": 1.35
+   },
+   "name": "gaps",
+   "records": [
+    {
+     "close": 98.68,
+     "delivValCr": null,
+     "prevClose": 100.0,
+     "trades": 2851,
+     "turnoverCr": 83.8047
+    },
+    {
+     "close": 101.43,
+     "delivValCr": 24.2352,
+     "prevClose": 98.68,
+     "trades": 2778,
+     "turnoverCr": 79.9811
+    },
+    {
+     "close": 99.87,
+     "delivValCr": 22.3155,
+     "prevClose": 101.43,
+     "trades": 583,
+     "turnoverCr": 89.4127
+    },
+    {
+     "close": 102.36,
+     "delivValCr": 45.5107,
+     "prevClose": 99.87,
+     "trades": 172,
+     "turnoverCr": 90.6396
+    },
+    {
+     "close": 104.86,
+     "delivValCr": 67.1009,
+     "prevClose": 102.36,
+     "trades": 109,
+     "turnoverCr": 74.9662
+    },
+    {
+     "close": 107.4,
+     "delivValCr": 11.3254,
+     "prevClose": 104.86,
+     "trades": 3302,
+     "turnoverCr": 14.7693
+    },
+    {
+     "close": 109.81,
+     "delivValCr": 50.5897,
+     "prevClose": 107.4,
+     "trades": 3100,
+     "turnoverCr": 100.032
+    },
+    {
+     "close": 107.51,
+     "delivValCr": null,
+     "prevClose": 109.81,
+     "trades": 1507,
+     "turnoverCr": 105.8567
+    },
+    {
+     "close": 107.69,
+     "delivValCr": 81.4487,
+     "prevClose": 107.51,
+     "trades": 2360,
+     "turnoverCr": 91.8254
+    },
+    {
+     "close": 109.15,
+     "delivValCr": 44.9815,
+     "prevClose": 107.69,
+     "trades": 2665,
+     "turnoverCr": 107.1924
+    },
+    {
+     "close": 106.71,
+     "delivValCr": 63.888,
+     "prevClose": 109.15,
+     "trades": 3319,
+     "turnoverCr": 99.259
+    },
+    {
+     "close": 105.33,
+     "delivValCr": 40.9456,
+     "prevClose": 106.71,
+     "trades": 2553,
+     "turnoverCr": 56.5634
+    },
+    {
+     "close": 103.09,
+     "delivValCr": 47.645,
+     "prevClose": 105.33,
+     "trades": 1866,
+     "turnoverCr": 82.8345
+    },
+    {
+     "close": 101.96,
+     "delivValCr": 9.6716,
+     "prevClose": 103.09,
+     "trades": 1509,
+     "turnoverCr": 25.6324
+    },
+    {
+     "close": 101.95,
+     "delivValCr": null,
+     "prevClose": 101.96,
+     "trades": 1671,
+     "turnoverCr": 74.6324
+    },
+    {
+     "close": 102.72,
+     "delivValCr": 24.9106,
+     "prevClose": 101.95,
+     "trades": 2365,
+     "turnoverCr": 68.253
+    },
+    {
+     "close": 100.94,
+     "delivValCr": 23.63,
+     "prevClose": 102.72,
+     "trades": 350,
+     "turnoverCr": 47.1406
+    },
+    {
+     "close": 102.04,
+     "delivValCr": 41.0117,
+     "prevClose": 100.94,
+     "trades": 58,
+     "turnoverCr": 58.3201
+    },
+    {
+     "close": 105.17,
+     "delivValCr": 5.4692,
+     "prevClose": 102.04,
+     "trades": 630,
+     "turnoverCr": 9.969
+    },
+    {
+     "close": 106.79,
+     "delivValCr": 17.5212,
+     "prevClose": 105.17,
+     "trades": 1089,
+     "turnoverCr": 56.1885
+    },
+    {
+     "close": 106.46,
+     "delivValCr": 76.7456,
+     "prevClose": 106.79,
+     "trades": 3679,
+     "turnoverCr": 104.8478
+    },
+    {
+     "close": 105.69,
+     "delivValCr": null,
+     "prevClose": 106.46,
+     "trades": 2632,
+     "turnoverCr": 86.1202
+    },
+    {
+     "close": 107.44,
+     "delivValCr": 12.9195,
+     "prevClose": 105.69,
+     "trades": 2933,
+     "turnoverCr": 20.7559
+    },
+    {
+     "close": 109.26,
+     "delivValCr": 6.7438,
+     "prevClose": 107.44,
+     "trades": 2578,
+     "turnoverCr": 29.3473
+    },
+    {
+     "close": 110.97,
+     "delivValCr": 6.6998,
+     "prevClose": 109.26,
+     "trades": 2438,
+     "turnoverCr": 9.4445
+    },
+    {
+     "close": 110.1,
+     "delivValCr": 29.2678,
+     "prevClose": 110.97,
+     "trades": 723,
+     "turnoverCr": 38.9624
+    },
+    {
+     "close": 110.77,
+     "delivValCr": 26.9691,
+     "prevClose": 110.1,
+     "trades": 735,
+     "turnoverCr": 108.5711
+    },
+    {
+     "close": 112.08,
+     "delivValCr": 47.347,
+     "prevClose": 110.77,
+     "trades": 2275,
+     "turnoverCr": 68.9576
+    },
+    {
+     "close": 115.79,
+     "delivValCr": null,
+     "prevClose": 112.08,
+     "trades": 2692,
+     "turnoverCr": 99.916
+    },
+    {
+     "close": 112.34,
+     "delivValCr": 58.1592,
+     "prevClose": 115.79,
+     "trades": 547,
+     "turnoverCr": 119.7601
+    },
+    {
+     "close": 115.59,
+     "delivValCr": 17.7888,
+     "prevClose": 112.34,
+     "trades": 2913,
+     "turnoverCr": 69.9798
+    },
+    {
+     "close": 115.65,
+     "delivValCr": 10.6156,
+     "prevClose": 115.59,
+     "trades": 3468,
+     "turnoverCr": 47.1702
+    },
+    {
+     "close": 114.58,
+     "delivValCr": 20.0662,
+     "prevClose": 115.65,
+     "trades": 2342,
+     "turnoverCr": 22.8323
+    },
+    {
+     "close": 114.99,
+     "delivValCr": 20.5433,
+     "prevClose": 114.58,
+     "trades": 2792,
+     "turnoverCr": 59.5356
+    },
+    {
+     "close": 117.51,
+     "delivValCr": 40.4066,
+     "prevClose": 114.99,
+     "trades": 2975,
+     "turnoverCr": 48.2593
+    },
+    {
+     "close": 119.62,
+     "delivValCr": null,
+     "prevClose": 117.51,
+     "trades": 2851,
+     "turnoverCr": 34.7062
+    },
+    {
+     "close": 117.7,
+     "delivValCr": 24.1766,
+     "prevClose": 119.62,
+     "trades": 1015,
+     "turnoverCr": 53.8579
+    },
+    {
+     "close": 116.04,
+     "delivValCr": 24.6724,
+     "prevClose": 117.7,
+     "trades": 884,
+     "turnoverCr": 38.0457
+    },
+    {
+     "close": 115.77,
+     "delivValCr": 10.8066,
+     "prevClose": 116.04,
+     "trades": 1936,
+     "turnoverCr": 41.4474
+    },
+    {
+     "close": 118.0,
+     "delivValCr": 48.6286,
+     "prevClose": 115.77,
+     "trades": 66,
+     "turnoverCr": 73.978
+    },
+    {
+     "close": 116.81,
+     "delivValCr": 26.8032,
+     "prevClose": 118.0,
+     "trades": 2321,
+     "turnoverCr": 56.693
+    },
+    {
+     "close": 113.77,
+     "delivValCr": 19.448,
+     "prevClose": 116.81,
+     "trades": 3947,
+     "turnoverCr": 65.7266
+    },
+    {
+     "close": 116.74,
+     "delivValCr": null,
+     "prevClose": 113.77,
+     "trades": 3423,
+     "turnoverCr": 17.8725
+    },
+    {
+     "close": 115.57,
+     "delivValCr": 16.6119,
+     "prevClose": 116.74,
+     "trades": 1241,
+     "turnoverCr": 74.3721
+    },
+    {
+     "close": 113.07,
+     "delivValCr": 28.3604,
+     "prevClose": 115.57,
+     "trades": 1859,
+     "turnoverCr": 46.518
+    },
+    {
+     "close": 113.96,
+     "delivValCr": 31.5653,
+     "prevClose": 113.07,
+     "trades": 1487,
+     "turnoverCr": 54.9404
+    },
+    {
+     "close": 111.5,
+     "delivValCr": 30.8485,
+     "prevClose": 113.96,
+     "trades": 1371,
+     "turnoverCr": 97.4221
+    },
+    {
+     "close": 114.58,
+     "delivValCr": 18.3235,
+     "prevClose": 111.5,
+     "trades": 3745,
+     "turnoverCr": 90.0607
+    },
+    {
+     "close": 112.99,
+     "delivValCr": 27.5461,
+     "prevClose": 114.58,
+     "trades": 663,
+     "turnoverCr": 104.8263
+    },
+    {
+     "close": 116.44,
+     "delivValCr": null,
+     "prevClose": 112.99,
+     "trades": 1131,
+     "turnoverCr": 13.0922
+    },
+    {
+     "close": 114.56,
+     "delivValCr": 68.2965,
+     "prevClose": 116.44,
+     "trades": 2780,
+     "turnoverCr": 87.6131
+    },
+    {
+     "close": 112.9,
+     "delivValCr": 48.5048,
+     "prevClose": 114.56,
+     "trades": 3177,
+     "turnoverCr": 95.4118
+    },
+    {
+     "close": 113.72,
+     "delivValCr": 44.5215,
+     "prevClose": 112.9,
+     "trades": 3489,
+     "turnoverCr": 76.3693
+    },
+    {
+     "close": 110.69,
+     "delivValCr": 43.3323,
+     "prevClose": 113.72,
+     "trades": 3910,
+     "turnoverCr": 75.5319
+    },
+    {
+     "close": 113.21,
+     "delivValCr": 20.1946,
+     "prevClose": 110.69,
+     "trades": 1276,
+     "turnoverCr": 66.3635
+    },
+    {
+     "close": 113.83,
+     "delivValCr": 8.2733,
+     "prevClose": 113.21,
+     "trades": 1576,
+     "turnoverCr": 34.9884
+    },
+    {
+     "close": 110.64,
+     "delivValCr": null,
+     "prevClose": 113.83,
+     "trades": 488,
+     "turnoverCr": 88.5975
+    },
+    {
+     "close": 109.27,
+     "delivValCr": 11.8455,
+     "prevClose": 110.64,
+     "trades": 1416,
+     "turnoverCr": 15.4572
+    },
+    {
+     "close": 109.01,
+     "delivValCr": 51.4372,
+     "prevClose": 109.27,
+     "trades": 3462,
+     "turnoverCr": 76.5452
+    },
+    {
+     "close": 110.71,
+     "delivValCr": 30.5934,
+     "prevClose": 109.01,
+     "trades": 217,
+     "turnoverCr": 110.6093
+    },
+    {
+     "close": 109.61,
+     "delivValCr": 56.5579,
+     "prevClose": 110.71,
+     "trades": 1980,
+     "turnoverCr": 119.5562
+    },
+    {
+     "close": 107.4,
+     "delivValCr": 4.4955,
+     "prevClose": 109.61,
+     "trades": 1282,
+     "turnoverCr": 22.1921
+    },
+    {
+     "close": 104.38,
+     "delivValCr": 12.4698,
+     "prevClose": 107.4,
+     "trades": 1409,
+     "turnoverCr": 34.7877
+    },
+    {
+     "close": 107.98,
+     "delivValCr": null,
+     "prevClose": 104.38,
+     "trades": 3951,
+     "turnoverCr": 114.7082
+    },
+    {
+     "close": 107.66,
+     "delivValCr": 90.6874,
+     "prevClose": 107.98,
+     "trades": 3170,
+     "turnoverCr": 119.2231
+    },
+    {
+     "close": 107.29,
+     "delivValCr": 18.9843,
+     "prevClose": 107.66,
+     "trades": 2418,
+     "turnoverCr": 22.8332
+    },
+    {
+     "close": 107.81,
+     "delivValCr": 19.1059,
+     "prevClose": 107.29,
+     "trades": 1588,
+     "turnoverCr": 27.2992
+    },
+    {
+     "close": 110.4,
+     "delivValCr": 1.8679,
+     "prevClose": 107.81,
+     "trades": 3759,
+     "turnoverCr": 8.3415
+    },
+    {
+     "close": 112.98,
+     "delivValCr": 5.209,
+     "prevClose": 110.4,
+     "trades": 471,
+     "turnoverCr": 25.5523
+    },
+    {
+     "close": 110.57,
+     "delivValCr": 7.8215,
+     "prevClose": 112.98,
+     "trades": 3751,
+     "turnoverCr": 14.2767
+    },
+    {
+     "close": 111.0,
+     "delivValCr": null,
+     "prevClose": 110.57,
+     "trades": 927,
+     "turnoverCr": 100.9701
+    },
+    {
+     "close": 114.24,
+     "delivValCr": 73.6445,
+     "prevClose": 111.0,
+     "trades": 160,
+     "turnoverCr": 84.5
+    },
+    {
+     "close": 110.98,
+     "delivValCr": 42.5718,
+     "prevClose": 114.24,
+     "trades": 637,
+     "turnoverCr": 104.1615
+    },
+    {
+     "close": 112.12,
+     "delivValCr": 43.9224,
+     "prevClose": 110.98,
+     "trades": 3048,
+     "turnoverCr": 79.7895
+    },
+    {
+     "close": 115.5,
+     "delivValCr": 7.4415,
+     "prevClose": 112.12,
+     "trades": 2042,
+     "turnoverCr": 34.6022
+    },
+    {
+     "close": 112.74,
+     "delivValCr": 8.5533,
+     "prevClose": 115.5,
+     "trades": 2114,
+     "turnoverCr": 41.3774
+    },
+    {
+     "close": 112.65,
+     "delivValCr": 60.6954,
+     "prevClose": 112.74,
+     "trades": 1442,
+     "turnoverCr": 92.3736
+    },
+    {
+     "close": 113.72,
+     "delivValCr": null,
+     "prevClose": 112.65,
+     "trades": 1799,
+     "turnoverCr": 65.3311
+    },
+    {
+     "close": 114.08,
+     "delivValCr": 5.4286,
+     "prevClose": 113.72,
+     "trades": 1561,
+     "turnoverCr": 6.4633
+    },
+    {
+     "close": 117.57,
+     "delivValCr": 29.0253,
+     "prevClose": 114.08,
+     "trades": 3454,
+     "turnoverCr": 98.9537
+    },
+    {
+     "close": 116.68,
+     "delivValCr": 19.0547,
+     "prevClose": 117.57,
+     "trades": 1211,
+     "turnoverCr": 31.0592
+    },
+    {
+     "close": 115.13,
+     "delivValCr": 6.6135,
+     "prevClose": 116.68,
+     "trades": 3024,
+     "turnoverCr": 20.3558
+    },
+    {
+     "close": 112.46,
+     "delivValCr": 42.5622,
+     "prevClose": 115.13,
+     "trades": 630,
+     "turnoverCr": 67.878
+    },
+    {
+     "close": 112.83,
+     "delivValCr": 42.3026,
+     "prevClose": 112.46,
+     "trades": 3639,
+     "turnoverCr": 94.1284
+    },
+    {
+     "close": 113.68,
+     "delivValCr": null,
+     "prevClose": 112.83,
+     "trades": 3346,
+     "turnoverCr": 70.6713
+    },
+    {
+     "close": 113.33,
+     "delivValCr": 63.9057,
+     "prevClose": 113.68,
+     "trades": 1870,
+     "turnoverCr": 112.2957
+    },
+    {
+     "close": 112.0,
+     "delivValCr": 40.8101,
+     "prevClose": 113.33,
+     "trades": 560,
+     "turnoverCr": 48.6496
+    },
+    {
+     "close": 113.62,
+     "delivValCr": 35.4467,
+     "prevClose": 112.0,
+     "trades": 368,
+     "turnoverCr": 48.1599
+    },
+    {
+     "close": 117.09,
+     "delivValCr": 29.5996,
+     "prevClose": 113.62,
+     "trades": 3851,
+     "turnoverCr": 39.5163
+    },
+    {
+     "close": 121.08,
+     "delivValCr": 30.3349,
+     "prevClose": 117.09,
+     "trades": 1731,
+     "turnoverCr": 56.4874
+    },
+    {
+     "close": 124.49,
+     "delivValCr": 4.213,
+     "prevClose": 121.08,
+     "trades": 1075,
+     "turnoverCr": 12.0082
+    },
+    {
+     "close": 121.94,
+     "delivValCr": null,
+     "prevClose": 124.49,
+     "trades": 1278,
+     "turnoverCr": 42.3304
+    },
+    {
+     "close": 122.49,
+     "delivValCr": 22.1865,
+     "prevClose": 121.94,
+     "trades": 2349,
+     "turnoverCr": 54.6171
+    },
+    {
+     "close": 120.44,
+     "delivValCr": 84.8307,
+     "prevClose": 122.49,
+     "trades": 414,
+     "turnoverCr": 117.0497
+    },
+    {
+     "close": 121.96,
+     "delivValCr": 54.0916,
+     "prevClose": 120.44,
+     "trades": 2321,
+     "turnoverCr": 114.9287
+    },
+    {
+     "close": 119.98,
+     "delivValCr": 7.2686,
+     "prevClose": 121.96,
+     "trades": 114,
+     "turnoverCr": 23.297
+    },
+    {
+     "close": 117.83,
+     "delivValCr": 6.7864,
+     "prevClose": 119.98,
+     "trades": 1841,
+     "turnoverCr": 11.3901
+    },
+    {
+     "close": 121.06,
+     "delivValCr": 39.3342,
+     "prevClose": 117.83,
+     "trades": 2953,
+     "turnoverCr": 80.8362
+    },
+    {
+     "close": 118.06,
+     "delivValCr": null,
+     "prevClose": 121.06,
+     "trades": 2152,
+     "turnoverCr": 60.9945
+    },
+    {
+     "close": 114.93,
+     "delivValCr": 59.1517,
+     "prevClose": 118.06,
+     "trades": 2175,
+     "turnoverCr": 76.4061
+    },
+    {
+     "close": 117.3,
+     "delivValCr": 63.3463,
+     "prevClose": 114.93,
+     "trades": 424,
+     "turnoverCr": 91.242
+    },
+    {
+     "close": 117.03,
+     "delivValCr": 20.5155,
+     "prevClose": 117.3,
+     "trades": 1052,
+     "turnoverCr": 53.4869
+    },
+    {
+     "close": 119.65,
+     "delivValCr": 72.8395,
+     "prevClose": 117.03,
+     "trades": 1760,
+     "turnoverCr": 87.2617
+    },
+    {
+     "close": 118.24,
+     "delivValCr": 68.7494,
+     "prevClose": 119.65,
+     "trades": 447,
+     "turnoverCr": 87.2972
+    },
+    {
+     "close": 115.34,
+     "delivValCr": 9.1148,
+     "prevClose": 118.24,
+     "trades": 539,
+     "turnoverCr": 10.4091
+    },
+    {
+     "close": 113.79,
+     "delivValCr": null,
+     "prevClose": 115.34,
+     "trades": 949,
+     "turnoverCr": 97.944
+    },
+    {
+     "close": 111.12,
+     "delivValCr": 16.8462,
+     "prevClose": 113.79,
+     "trades": 2502,
+     "turnoverCr": 61.6991
+    },
+    {
+     "close": 112.87,
+     "delivValCr": 21.0543,
+     "prevClose": 111.12,
+     "trades": 1770,
+     "turnoverCr": 71.1834
+    },
+    {
+     "close": 112.99,
+     "delivValCr": 27.263,
+     "prevClose": 112.87,
+     "trades": 3495,
+     "turnoverCr": 59.9872
+    },
+    {
+     "close": 109.62,
+     "delivValCr": 73.551,
+     "prevClose": 112.99,
+     "trades": 411,
+     "turnoverCr": 106.9913
+    },
+    {
+     "close": 111.81,
+     "delivValCr": 53.071,
+     "prevClose": 109.62,
+     "trades": 1151,
+     "turnoverCr": 103.3995
+    },
+    {
+     "close": 111.52,
+     "delivValCr": 13.4982,
+     "prevClose": 111.81,
+     "trades": 54,
+     "turnoverCr": 21.0102
+    },
+    {
+     "close": 109.19,
+     "delivValCr": null,
+     "prevClose": 111.52,
+     "trades": 1805,
+     "turnoverCr": 45.0015
+    },
+    {
+     "close": 106.05,
+     "delivValCr": 20.7324,
+     "prevClose": 109.19,
+     "trades": 3128,
+     "turnoverCr": 46.6647
+    },
+    {
+     "close": 104.2,
+     "delivValCr": 13.0862,
+     "prevClose": 106.05,
+     "trades": 705,
+     "turnoverCr": 22.0156
+    },
+    {
+     "close": 105.34,
+     "delivValCr": 98.7052,
+     "prevClose": 104.2,
+     "trades": 3321,
+     "turnoverCr": 113.4824
+    },
+    {
+     "close": 105.14,
+     "delivValCr": 11.2347,
+     "prevClose": 105.34,
+     "trades": 1730,
+     "turnoverCr": 19.1666
+    },
+    {
+     "close": 107.57,
+     "delivValCr": 57.9224,
+     "prevClose": 105.14,
+     "trades": 1592,
+     "turnoverCr": 76.2362
+    },
+    {
+     "close": 107.13,
+     "delivValCr": 25.1585,
+     "prevClose": 107.57,
+     "trades": 3784,
+     "turnoverCr": 50.2843
+    },
+    {
+     "close": 105.92,
+     "delivValCr": null,
+     "prevClose": 107.13,
+     "trades": 1692,
+     "turnoverCr": 68.8652
+    },
+    {
+     "close": 109.33,
+     "delivValCr": 68.358,
+     "prevClose": 105.92,
+     "trades": 251,
+     "turnoverCr": 91.3744
+    },
+    {
+     "close": 109.18,
+     "delivValCr": 37.2565,
+     "prevClose": 109.33,
+     "trades": 3123,
+     "turnoverCr": 66.6866
+    },
+    {
+     "close": 109.11,
+     "delivValCr": 12.6618,
+     "prevClose": 109.18,
+     "trades": 3241,
+     "turnoverCr": 21.4387
+    },
+    {
+     "close": 109.77,
+     "delivValCr": 23.4816,
+     "prevClose": 109.11,
+     "trades": 1037,
+     "turnoverCr": 26.6689
+    },
+    {
+     "close": 106.8,
+     "delivValCr": 8.3631,
+     "prevClose": 109.77,
+     "trades": 1789,
+     "turnoverCr": 36.3873
+    },
+    {
+     "close": 106.02,
+     "delivValCr": 43.2738,
+     "prevClose": 106.8,
+     "trades": 1929,
+     "turnoverCr": 90.117
+    },
+    {
+     "close": 107.08,
+     "delivValCr": null,
+     "prevClose": 106.02,
+     "trades": 893,
+     "turnoverCr": 55.5777
+    },
+    {
+     "close": 107.82,
+     "delivValCr": 4.1027,
+     "prevClose": 107.08,
+     "trades": 1700,
+     "turnoverCr": 11.5494
+    },
+    {
+     "close": 109.23,
+     "delivValCr": 13.3931,
+     "prevClose": 107.82,
+     "trades": 3650,
+     "turnoverCr": 26.9992
+    },
+    {
+     "close": 106.23,
+     "delivValCr": 48.4505,
+     "prevClose": 109.23,
+     "trades": 1878,
+     "turnoverCr": 85.4072
+    },
+    {
+     "close": 107.77,
+     "delivValCr": 40.7792,
+     "prevClose": 106.23,
+     "trades": 3801,
+     "turnoverCr": 50.2078
+    },
+    {
+     "close": 105.46,
+     "delivValCr": 62.7915,
+     "prevClose": 107.77,
+     "trades": 402,
+     "turnoverCr": 115.2929
+    },
+    {
+     "close": 105.65,
+     "delivValCr": 66.108,
+     "prevClose": 105.46,
+     "trades": 383,
+     "turnoverCr": 77.3144
+    },
+    {
+     "close": 106.0,
+     "delivValCr": null,
+     "prevClose": 105.65,
+     "trades": 295,
+     "turnoverCr": 63.469
+    },
+    {
+     "close": 106.19,
+     "delivValCr": 7.0942,
+     "prevClose": 106.0,
+     "trades": 3013,
+     "turnoverCr": 25.3752
+    },
+    {
+     "close": 105.9,
+     "delivValCr": 38.5435,
+     "prevClose": 106.19,
+     "trades": 3615,
+     "turnoverCr": 112.5464
+    },
+    {
+     "close": 106.03,
+     "delivValCr": 17.987,
+     "prevClose": 105.9,
+     "trades": 220,
+     "turnoverCr": 52.6705
+    },
+    {
+     "close": 107.89,
+     "delivValCr": 18.9752,
+     "prevClose": 106.03,
+     "trades": 3997,
+     "turnoverCr": 62.4338
+    },
+    {
+     "close": 105.74,
+     "delivValCr": 32.3606,
+     "prevClose": 107.89,
+     "trades": 120,
+     "turnoverCr": 99.7791
+    },
+    {
+     "close": 103.03,
+     "delivValCr": 21.3187,
+     "prevClose": 105.74,
+     "trades": 1999,
+     "turnoverCr": 24.4217
+    },
+    {
+     "close": 104.4,
+     "delivValCr": null,
+     "prevClose": 103.03,
+     "trades": 2522,
+     "turnoverCr": 61.8109
+    },
+    {
+     "close": 101.73,
+     "delivValCr": 66.7612,
+     "prevClose": 104.4,
+     "trades": 314,
+     "turnoverCr": 94.7741
+    },
+    {
+     "close": 99.11,
+     "delivValCr": 21.9382,
+     "prevClose": 101.73,
+     "trades": 785,
+     "turnoverCr": 65.6035
+    },
+    {
+     "close": 102.03,
+     "delivValCr": 56.8468,
+     "prevClose": 99.11,
+     "trades": 1613,
+     "turnoverCr": 89.1825
+    },
+    {
+     "close": 103.74,
+     "delivValCr": 81.7588,
+     "prevClose": 102.03,
+     "trades": 2824,
+     "turnoverCr": 107.1504
+    },
+    {
+     "close": 102.84,
+     "delivValCr": 36.4878,
+     "prevClose": 103.74,
+     "trades": 2508,
+     "turnoverCr": 56.5343
+    },
+    {
+     "close": 100.93,
+     "delivValCr": 12.7686,
+     "prevClose": 102.84,
+     "trades": 1034,
+     "turnoverCr": 21.0842
+    },
+    {
+     "close": 104.05,
+     "delivValCr": null,
+     "prevClose": 100.93,
+     "trades": 3293,
+     "turnoverCr": 85.7624
+    },
+    {
+     "close": 101.45,
+     "delivValCr": 67.6498,
+     "prevClose": 104.05,
+     "trades": 2148,
+     "turnoverCr": 88.0132
+    },
+    {
+     "close": 101.04,
+     "delivValCr": 21.8798,
+     "prevClose": 101.45,
+     "trades": 3237,
+     "turnoverCr": 52.5735
+    },
+    {
+     "close": 100.97,
+     "delivValCr": 67.1731,
+     "prevClose": 101.04,
+     "trades": 487,
+     "turnoverCr": 91.3953
+    },
+    {
+     "close": 100.94,
+     "delivValCr": 67.0839,
+     "prevClose": 100.97,
+     "trades": 3351,
+     "turnoverCr": 87.0032
+    },
+    {
+     "close": 99.64,
+     "delivValCr": 76.4616,
+     "prevClose": 100.94,
+     "trades": 1950,
+     "turnoverCr": 87.772
+    },
+    {
+     "close": 100.28,
+     "delivValCr": 57.0861,
+     "prevClose": 99.64,
+     "trades": 3783,
+     "turnoverCr": 74.6467
+    },
+    {
+     "close": 101.19,
+     "delivValCr": null,
+     "prevClose": 100.28,
+     "trades": 3250,
+     "turnoverCr": 5.0613
+    },
+    {
+     "close": 98.99,
+     "delivValCr": 9.133,
+     "prevClose": 101.19,
+     "trades": 1855,
+     "turnoverCr": 42.9624
+    },
+    {
+     "close": 98.59,
+     "delivValCr": 13.4841,
+     "prevClose": 98.99,
+     "trades": 195,
+     "turnoverCr": 16.5424
+    },
+    {
+     "close": 98.47,
+     "delivValCr": 3.3182,
+     "prevClose": 98.59,
+     "trades": 3698,
+     "turnoverCr": 13.1201
+    },
+    {
+     "close": 101.51,
+     "delivValCr": 9.818,
+     "prevClose": 98.47,
+     "trades": 3183,
+     "turnoverCr": 14.764
+    },
+    {
+     "close": 104.4,
+     "delivValCr": 13.6319,
+     "prevClose": 101.51,
+     "trades": 2382,
+     "turnoverCr": 25.2355
+    },
+    {
+     "close": 105.15,
+     "delivValCr": 37.4733,
+     "prevClose": 104.4,
+     "trades": 52,
+     "turnoverCr": 71.1618
+    },
+    {
+     "close": 106.89,
+     "delivValCr": null,
+     "prevClose": 105.15,
+     "trades": 1441,
+     "turnoverCr": 115.1686
+    },
+    {
+     "close": 110.37,
+     "delivValCr": 10.3882,
+     "prevClose": 106.89,
+     "trades": 1714,
+     "turnoverCr": 14.1375
+    },
+    {
+     "close": 113.21,
+     "delivValCr": 36.5595,
+     "prevClose": 110.37,
+     "trades": 2488,
+     "turnoverCr": 105.4887
+    },
+    {
+     "close": 112.32,
+     "delivValCr": 4.698,
+     "prevClose": 113.21,
+     "trades": 682,
+     "turnoverCr": 18.6413
+    },
+    {
+     "close": 113.21,
+     "delivValCr": 60.5824,
+     "prevClose": 112.32,
+     "trades": 1218,
+     "turnoverCr": 84.0137
+    },
+    {
+     "close": 114.73,
+     "delivValCr": 33.1406,
+     "prevClose": 113.21,
+     "trades": 2085,
+     "turnoverCr": 98.8229
+    },
+    {
+     "close": 115.6,
+     "delivValCr": 12.5129,
+     "prevClose": 114.73,
+     "trades": 241,
+     "turnoverCr": 49.1855
+    },
+    {
+     "close": 115.52,
+     "delivValCr": null,
+     "prevClose": 115.6,
+     "trades": 82,
+     "turnoverCr": 27.7048
+    },
+    {
+     "close": 115.26,
+     "delivValCr": 5.4568,
+     "prevClose": 115.52,
+     "trades": 2557,
+     "turnoverCr": 13.1795
+    },
+    {
+     "close": 116.61,
+     "delivValCr": 49.9587,
+     "prevClose": 115.26,
+     "trades": 2874,
+     "turnoverCr": 74.2403
+    },
+    {
+     "close": 113.19,
+     "delivValCr": 74.4561,
+     "prevClose": 116.61,
+     "trades": 134,
+     "turnoverCr": 113.8046
+    },
+    {
+     "close": 113.67,
+     "delivValCr": 6.7472,
+     "prevClose": 113.19,
+     "trades": 1245,
+     "turnoverCr": 9.3738
+    },
+    {
+     "close": 115.75,
+     "delivValCr": 27.0055,
+     "prevClose": 113.67,
+     "trades": 3785,
+     "turnoverCr": 54.4218
+    },
+    {
+     "close": 117.42,
+     "delivValCr": 16.4637,
+     "prevClose": 115.75,
+     "trades": 1564,
+     "turnoverCr": 53.5379
+    },
+    {
+     "close": 119.63,
+     "delivValCr": null,
+     "prevClose": 117.42,
+     "trades": 2806,
+     "turnoverCr": 93.5233
+    },
+    {
+     "close": 118.37,
+     "delivValCr": 30.3602,
+     "prevClose": 119.63,
+     "trades": 2016,
+     "turnoverCr": 88.1533
+    },
+    {
+     "close": 115.56,
+     "delivValCr": 44.2194,
+     "prevClose": 118.37,
+     "trades": 278,
+     "turnoverCr": 118.7326
+    },
+    {
+     "close": 114.21,
+     "delivValCr": 75.2259,
+     "prevClose": 115.56,
+     "trades": 2482,
+     "turnoverCr": 96.2577
+    },
+    {
+     "close": 117.03,
+     "delivValCr": 16.29,
+     "prevClose": 114.21,
+     "trades": 97,
+     "turnoverCr": 77.5565
+    },
+    {
+     "close": 120.49,
+     "delivValCr": 80.813,
+     "prevClose": 117.03,
+     "trades": 1108,
+     "turnoverCr": 91.915
+    },
+    {
+     "close": 117.39,
+     "delivValCr": 26.4451,
+     "prevClose": 120.49,
+     "trades": 1039,
+     "turnoverCr": 89.0938
+    },
+    {
+     "close": 117.05,
+     "delivValCr": null,
+     "prevClose": 117.39,
+     "trades": 3388,
+     "turnoverCr": 50.286
+    },
+    {
+     "close": 117.8,
+     "delivValCr": 4.9458,
+     "prevClose": 117.05,
+     "trades": 1785,
+     "turnoverCr": 12.4134
+    },
+    {
+     "close": 116.01,
+     "delivValCr": 45.376,
+     "prevClose": 117.8,
+     "trades": 2024,
+     "turnoverCr": 54.9599
+    },
+    {
+     "close": 113.32,
+     "delivValCr": 10.1403,
+     "prevClose": 116.01,
+     "trades": 1416,
+     "turnoverCr": 28.7416
+    },
+    {
+     "close": 114.91,
+     "delivValCr": 55.8324,
+     "prevClose": 113.32,
+     "trades": 1468,
+     "turnoverCr": 116.5261
+    },
+    {
+     "close": 112.88,
+     "delivValCr": 16.3876,
+     "prevClose": 114.91,
+     "trades": 557,
+     "turnoverCr": 64.1911
+    },
+    {
+     "close": 111.9,
+     "delivValCr": 25.9326,
+     "prevClose": 112.88,
+     "trades": 2867,
+     "turnoverCr": 52.3707
+    },
+    {
+     "close": 111.44,
+     "delivValCr": null,
+     "prevClose": 111.9,
+     "trades": 1743,
+     "turnoverCr": 47.1581
+    },
+    {
+     "close": 109.99,
+     "delivValCr": 50.8395,
+     "prevClose": 111.44,
+     "trades": 1586,
+     "turnoverCr": 94.9003
+    },
+    {
+     "close": 107.18,
+     "delivValCr": 5.3438,
+     "prevClose": 109.99,
+     "trades": 3494,
+     "turnoverCr": 21.7044
+    },
+    {
+     "close": 108.54,
+     "delivValCr": 55.6139,
+     "prevClose": 107.18,
+     "trades": 103,
+     "turnoverCr": 87.191
+    },
+    {
+     "close": 107.79,
+     "delivValCr": 51.7477,
+     "prevClose": 108.54,
+     "trades": 1749,
+     "turnoverCr": 71.6645
+    },
+    {
+     "close": 107.27,
+     "delivValCr": 8.067,
+     "prevClose": 107.79,
+     "trades": 2728,
+     "turnoverCr": 23.0795
+    },
+    {
+     "close": 110.35,
+     "delivValCr": 71.6821,
+     "prevClose": 107.27,
+     "trades": 3379,
+     "turnoverCr": 111.6197
+    },
+    {
+     "close": 110.65,
+     "delivValCr": null,
+     "prevClose": 110.35,
+     "trades": 895,
+     "turnoverCr": 74.7863
+    },
+    {
+     "close": 113.43,
+     "delivValCr": 33.9079,
+     "prevClose": 110.65,
+     "trades": 2053,
+     "turnoverCr": 50.5392
+    },
+    {
+     "close": 116.42,
+     "delivValCr": 41.2721,
+     "prevClose": 113.43,
+     "trades": 345,
+     "turnoverCr": 51.3593
+    },
+    {
+     "close": 116.32,
+     "delivValCr": 43.1523,
+     "prevClose": 116.42,
+     "trades": 1551,
+     "turnoverCr": 55.4718
+    }
+   ]
+  },
+  {
+   "expected": {
+    "delivBal120": null,
+    "delivBal20": null,
+    "delivBal60": null,
+    "delivPctTrend": 0.0,
+    "delivValRatio60": 1.0,
+    "tradeSizeRatio60": 1.0
+   },
+   "name": "no-down-days",
+   "records": [
+    {
+     "close": 100.0,
+     "delivValCr": 5.0,
+     "prevClose": 99.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 101.0,
+     "delivValCr": 5.0,
+     "prevClose": 100.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 102.0,
+     "delivValCr": 5.0,
+     "prevClose": 101.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 103.0,
+     "delivValCr": 5.0,
+     "prevClose": 102.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 104.0,
+     "delivValCr": 5.0,
+     "prevClose": 103.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 105.0,
+     "delivValCr": 5.0,
+     "prevClose": 104.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 106.0,
+     "delivValCr": 5.0,
+     "prevClose": 105.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 107.0,
+     "delivValCr": 5.0,
+     "prevClose": 106.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 108.0,
+     "delivValCr": 5.0,
+     "prevClose": 107.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 109.0,
+     "delivValCr": 5.0,
+     "prevClose": 108.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 110.0,
+     "delivValCr": 5.0,
+     "prevClose": 109.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 111.0,
+     "delivValCr": 5.0,
+     "prevClose": 110.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 112.0,
+     "delivValCr": 5.0,
+     "prevClose": 111.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 113.0,
+     "delivValCr": 5.0,
+     "prevClose": 112.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 114.0,
+     "delivValCr": 5.0,
+     "prevClose": 113.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 115.0,
+     "delivValCr": 5.0,
+     "prevClose": 114.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 116.0,
+     "delivValCr": 5.0,
+     "prevClose": 115.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 117.0,
+     "delivValCr": 5.0,
+     "prevClose": 116.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 118.0,
+     "delivValCr": 5.0,
+     "prevClose": 117.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 119.0,
+     "delivValCr": 5.0,
+     "prevClose": 118.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 120.0,
+     "delivValCr": 5.0,
+     "prevClose": 119.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 121.0,
+     "delivValCr": 5.0,
+     "prevClose": 120.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 122.0,
+     "delivValCr": 5.0,
+     "prevClose": 121.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 123.0,
+     "delivValCr": 5.0,
+     "prevClose": 122.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 124.0,
+     "delivValCr": 5.0,
+     "prevClose": 123.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 125.0,
+     "delivValCr": 5.0,
+     "prevClose": 124.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 126.0,
+     "delivValCr": 5.0,
+     "prevClose": 125.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 127.0,
+     "delivValCr": 5.0,
+     "prevClose": 126.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 128.0,
+     "delivValCr": 5.0,
+     "prevClose": 127.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 129.0,
+     "delivValCr": 5.0,
+     "prevClose": 128.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 130.0,
+     "delivValCr": 5.0,
+     "prevClose": 129.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 131.0,
+     "delivValCr": 5.0,
+     "prevClose": 130.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 132.0,
+     "delivValCr": 5.0,
+     "prevClose": 131.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 133.0,
+     "delivValCr": 5.0,
+     "prevClose": 132.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 134.0,
+     "delivValCr": 5.0,
+     "prevClose": 133.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 135.0,
+     "delivValCr": 5.0,
+     "prevClose": 134.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 136.0,
+     "delivValCr": 5.0,
+     "prevClose": 135.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 137.0,
+     "delivValCr": 5.0,
+     "prevClose": 136.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 138.0,
+     "delivValCr": 5.0,
+     "prevClose": 137.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 139.0,
+     "delivValCr": 5.0,
+     "prevClose": 138.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 140.0,
+     "delivValCr": 5.0,
+     "prevClose": 139.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 141.0,
+     "delivValCr": 5.0,
+     "prevClose": 140.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 142.0,
+     "delivValCr": 5.0,
+     "prevClose": 141.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 143.0,
+     "delivValCr": 5.0,
+     "prevClose": 142.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 144.0,
+     "delivValCr": 5.0,
+     "prevClose": 143.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 145.0,
+     "delivValCr": 5.0,
+     "prevClose": 144.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 146.0,
+     "delivValCr": 5.0,
+     "prevClose": 145.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 147.0,
+     "delivValCr": 5.0,
+     "prevClose": 146.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 148.0,
+     "delivValCr": 5.0,
+     "prevClose": 147.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 149.0,
+     "delivValCr": 5.0,
+     "prevClose": 148.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 150.0,
+     "delivValCr": 5.0,
+     "prevClose": 149.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 151.0,
+     "delivValCr": 5.0,
+     "prevClose": 150.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 152.0,
+     "delivValCr": 5.0,
+     "prevClose": 151.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 153.0,
+     "delivValCr": 5.0,
+     "prevClose": 152.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 154.0,
+     "delivValCr": 5.0,
+     "prevClose": 153.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 155.0,
+     "delivValCr": 5.0,
+     "prevClose": 154.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 156.0,
+     "delivValCr": 5.0,
+     "prevClose": 155.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 157.0,
+     "delivValCr": 5.0,
+     "prevClose": 156.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 158.0,
+     "delivValCr": 5.0,
+     "prevClose": 157.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 159.0,
+     "delivValCr": 5.0,
+     "prevClose": 158.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 160.0,
+     "delivValCr": 5.0,
+     "prevClose": 159.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 161.0,
+     "delivValCr": 5.0,
+     "prevClose": 160.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 162.0,
+     "delivValCr": 5.0,
+     "prevClose": 161.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 163.0,
+     "delivValCr": 5.0,
+     "prevClose": 162.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 164.0,
+     "delivValCr": 5.0,
+     "prevClose": 163.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 165.0,
+     "delivValCr": 5.0,
+     "prevClose": 164.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 166.0,
+     "delivValCr": 5.0,
+     "prevClose": 165.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 167.0,
+     "delivValCr": 5.0,
+     "prevClose": 166.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 168.0,
+     "delivValCr": 5.0,
+     "prevClose": 167.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 169.0,
+     "delivValCr": 5.0,
+     "prevClose": 168.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 170.0,
+     "delivValCr": 5.0,
+     "prevClose": 169.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 171.0,
+     "delivValCr": 5.0,
+     "prevClose": 170.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 172.0,
+     "delivValCr": 5.0,
+     "prevClose": 171.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 173.0,
+     "delivValCr": 5.0,
+     "prevClose": 172.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 174.0,
+     "delivValCr": 5.0,
+     "prevClose": 173.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 175.0,
+     "delivValCr": 5.0,
+     "prevClose": 174.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 176.0,
+     "delivValCr": 5.0,
+     "prevClose": 175.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 177.0,
+     "delivValCr": 5.0,
+     "prevClose": 176.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 178.0,
+     "delivValCr": 5.0,
+     "prevClose": 177.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 179.0,
+     "delivValCr": 5.0,
+     "prevClose": 178.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 180.0,
+     "delivValCr": 5.0,
+     "prevClose": 179.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 181.0,
+     "delivValCr": 5.0,
+     "prevClose": 180.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 182.0,
+     "delivValCr": 5.0,
+     "prevClose": 181.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 183.0,
+     "delivValCr": 5.0,
+     "prevClose": 182.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 184.0,
+     "delivValCr": 5.0,
+     "prevClose": 183.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 185.0,
+     "delivValCr": 5.0,
+     "prevClose": 184.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 186.0,
+     "delivValCr": 5.0,
+     "prevClose": 185.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 187.0,
+     "delivValCr": 5.0,
+     "prevClose": 186.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 188.0,
+     "delivValCr": 5.0,
+     "prevClose": 187.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 189.0,
+     "delivValCr": 5.0,
+     "prevClose": 188.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 190.0,
+     "delivValCr": 5.0,
+     "prevClose": 189.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 191.0,
+     "delivValCr": 5.0,
+     "prevClose": 190.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 192.0,
+     "delivValCr": 5.0,
+     "prevClose": 191.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 193.0,
+     "delivValCr": 5.0,
+     "prevClose": 192.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 194.0,
+     "delivValCr": 5.0,
+     "prevClose": 193.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 195.0,
+     "delivValCr": 5.0,
+     "prevClose": 194.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 196.0,
+     "delivValCr": 5.0,
+     "prevClose": 195.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 197.0,
+     "delivValCr": 5.0,
+     "prevClose": 196.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 198.0,
+     "delivValCr": 5.0,
+     "prevClose": 197.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 199.0,
+     "delivValCr": 5.0,
+     "prevClose": 198.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 200.0,
+     "delivValCr": 5.0,
+     "prevClose": 199.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 201.0,
+     "delivValCr": 5.0,
+     "prevClose": 200.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 202.0,
+     "delivValCr": 5.0,
+     "prevClose": 201.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 203.0,
+     "delivValCr": 5.0,
+     "prevClose": 202.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 204.0,
+     "delivValCr": 5.0,
+     "prevClose": 203.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 205.0,
+     "delivValCr": 5.0,
+     "prevClose": 204.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 206.0,
+     "delivValCr": 5.0,
+     "prevClose": 205.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 207.0,
+     "delivValCr": 5.0,
+     "prevClose": 206.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 208.0,
+     "delivValCr": 5.0,
+     "prevClose": 207.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 209.0,
+     "delivValCr": 5.0,
+     "prevClose": 208.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 210.0,
+     "delivValCr": 5.0,
+     "prevClose": 209.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 211.0,
+     "delivValCr": 5.0,
+     "prevClose": 210.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 212.0,
+     "delivValCr": 5.0,
+     "prevClose": 211.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 213.0,
+     "delivValCr": 5.0,
+     "prevClose": 212.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 214.0,
+     "delivValCr": 5.0,
+     "prevClose": 213.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 215.0,
+     "delivValCr": 5.0,
+     "prevClose": 214.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 216.0,
+     "delivValCr": 5.0,
+     "prevClose": 215.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 217.0,
+     "delivValCr": 5.0,
+     "prevClose": 216.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 218.0,
+     "delivValCr": 5.0,
+     "prevClose": 217.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 219.0,
+     "delivValCr": 5.0,
+     "prevClose": 218.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 220.0,
+     "delivValCr": 5.0,
+     "prevClose": 219.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 221.0,
+     "delivValCr": 5.0,
+     "prevClose": 220.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 222.0,
+     "delivValCr": 5.0,
+     "prevClose": 221.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 223.0,
+     "delivValCr": 5.0,
+     "prevClose": 222.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 224.0,
+     "delivValCr": 5.0,
+     "prevClose": 223.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 225.0,
+     "delivValCr": 5.0,
+     "prevClose": 224.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 226.0,
+     "delivValCr": 5.0,
+     "prevClose": 225.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 227.0,
+     "delivValCr": 5.0,
+     "prevClose": 226.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 228.0,
+     "delivValCr": 5.0,
+     "prevClose": 227.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    },
+    {
+     "close": 229.0,
+     "delivValCr": 5.0,
+     "prevClose": 228.0,
+     "trades": 100.0,
+     "turnoverCr": 10.0
+    }
+   ]
+  },
+  {
+   "expected": {
+    "delivBal120": 1.049,
+    "delivBal20": 4.509,
+    "delivBal60": 1.308,
+    "delivPctTrend": 0.66,
+    "delivValRatio60": 1.241,
+    "tradeSizeRatio60": 1.52
+   },
+   "name": "zero-delivery",
+   "records": [
+    {
+     "close": 97.69,
+     "delivValCr": 0.0,
+     "prevClose": 100.0,
+     "trades": 2720,
+     "turnoverCr": 85.7973
+    },
+    {
+     "close": 98.11,
+     "delivValCr": 12.6591,
+     "prevClose": 97.69,
+     "trades": 3061,
+     "turnoverCr": 33.3976
+    },
+    {
+     "close": 99.85,
+     "delivValCr": 42.5108,
+     "prevClose": 98.11,
+     "trades": 1291,
+     "turnoverCr": 80.7218
+    },
+    {
+     "close": 102.52,
+     "delivValCr": 0.0,
+     "prevClose": 99.85,
+     "trades": 3772,
+     "turnoverCr": 50.2881
+    },
+    {
+     "close": 100.23,
+     "delivValCr": 12.9132,
+     "prevClose": 102.52,
+     "trades": 3742,
+     "turnoverCr": 30.6756
+    },
+    {
+     "close": 102.49,
+     "delivValCr": 29.846,
+     "prevClose": 100.23,
+     "trades": 2641,
+     "turnoverCr": 46.4771
+    },
+    {
+     "close": 100.41,
+     "delivValCr": 0.0,
+     "prevClose": 102.49,
+     "trades": 2769,
+     "turnoverCr": 68.4033
+    },
+    {
+     "close": 99.19,
+     "delivValCr": 1.7795,
+     "prevClose": 100.41,
+     "trades": 336,
+     "turnoverCr": 6.2196
+    },
+    {
+     "close": 98.39,
+     "delivValCr": 11.6239,
+     "prevClose": 99.19,
+     "trades": 887,
+     "turnoverCr": 14.5689
+    },
+    {
+     "close": 97.88,
+     "delivValCr": 0.0,
+     "prevClose": 98.39,
+     "trades": 3876,
+     "turnoverCr": 72.0778
+    },
+    {
+     "close": 97.73,
+     "delivValCr": 48.5585,
+     "prevClose": 97.88,
+     "trades": 3624,
+     "turnoverCr": 74.8661
+    },
+    {
+     "close": 100.43,
+     "delivValCr": 46.0566,
+     "prevClose": 97.73,
+     "trades": 2660,
+     "turnoverCr": 71.5598
+    },
+    {
+     "close": 98.6,
+     "delivValCr": 0.0,
+     "prevClose": 100.43,
+     "trades": 3633,
+     "turnoverCr": 15.8873
+    },
+    {
+     "close": 98.76,
+     "delivValCr": 42.5388,
+     "prevClose": 98.6,
+     "trades": 1159,
+     "turnoverCr": 82.3087
+    },
+    {
+     "close": 97.2,
+     "delivValCr": 36.6122,
+     "prevClose": 98.76,
+     "trades": 2099,
+     "turnoverCr": 96.7978
+    },
+    {
+     "close": 95.05,
+     "delivValCr": 0.0,
+     "prevClose": 97.2,
+     "trades": 1191,
+     "turnoverCr": 119.9114
+    },
+    {
+     "close": 93.93,
+     "delivValCr": 4.0137,
+     "prevClose": 95.05,
+     "trades": 3082,
+     "turnoverCr": 8.2197
+    },
+    {
+     "close": 95.3,
+     "delivValCr": 38.8197,
+     "prevClose": 93.93,
+     "trades": 1791,
+     "turnoverCr": 72.3835
+    },
+    {
+     "close": 96.69,
+     "delivValCr": 0.0,
+     "prevClose": 95.3,
+     "trades": 1914,
+     "turnoverCr": 66.5078
+    },
+    {
+     "close": 95.73,
+     "delivValCr": 35.7011,
+     "prevClose": 96.69,
+     "trades": 1760,
+     "turnoverCr": 57.88
+    },
+    {
+     "close": 93.45,
+     "delivValCr": 30.6465,
+     "prevClose": 95.73,
+     "trades": 1017,
+     "turnoverCr": 59.5696
+    },
+    {
+     "close": 94.38,
+     "delivValCr": 0.0,
+     "prevClose": 93.45,
+     "trades": 2381,
+     "turnoverCr": 61.2416
+    },
+    {
+     "close": 92.43,
+     "delivValCr": 43.7213,
+     "prevClose": 94.38,
+     "trades": 2390,
+     "turnoverCr": 85.8992
+    },
+    {
+     "close": 94.62,
+     "delivValCr": 11.0827,
+     "prevClose": 92.43,
+     "trades": 1783,
+     "turnoverCr": 51.654
+    },
+    {
+     "close": 96.15,
+     "delivValCr": 0.0,
+     "prevClose": 94.62,
+     "trades": 1979,
+     "turnoverCr": 47.3144
+    },
+    {
+     "close": 94.91,
+     "delivValCr": 9.1437,
+     "prevClose": 96.15,
+     "trades": 822,
+     "turnoverCr": 39.7628
+    },
+    {
+     "close": 95.52,
+     "delivValCr": 45.6137,
+     "prevClose": 94.91,
+     "trades": 440,
+     "turnoverCr": 96.7363
+    },
+    {
+     "close": 92.87,
+     "delivValCr": 0.0,
+     "prevClose": 95.52,
+     "trades": 51,
+     "turnoverCr": 40.9316
+    },
+    {
+     "close": 93.62,
+     "delivValCr": 28.619,
+     "prevClose": 92.87,
+     "trades": 3884,
+     "turnoverCr": 37.4972
+    },
+    {
+     "close": 96.83,
+     "delivValCr": 5.4683,
+     "prevClose": 93.62,
+     "trades": 3967,
+     "turnoverCr": 18.0867
+    },
+    {
+     "close": 95.18,
+     "delivValCr": 0.0,
+     "prevClose": 96.83,
+     "trades": 3625,
+     "turnoverCr": 31.4541
+    },
+    {
+     "close": 95.42,
+     "delivValCr": 16.1766,
+     "prevClose": 95.18,
+     "trades": 901,
+     "turnoverCr": 25.9762
+    },
+    {
+     "close": 98.25,
+     "delivValCr": 31.8417,
+     "prevClose": 95.42,
+     "trades": 3169,
+     "turnoverCr": 38.5081
+    },
+    {
+     "close": 95.5,
+     "delivValCr": 0.0,
+     "prevClose": 98.25,
+     "trades": 3086,
+     "turnoverCr": 110.9882
+    },
+    {
+     "close": 98.48,
+     "delivValCr": 59.9664,
+     "prevClose": 95.5,
+     "trades": 2131,
+     "turnoverCr": 92.0847
+    },
+    {
+     "close": 96.79,
+     "delivValCr": 53.5204,
+     "prevClose": 98.48,
+     "trades": 1052,
+     "turnoverCr": 61.3778
+    },
+    {
+     "close": 97.32,
+     "delivValCr": 0.0,
+     "prevClose": 96.79,
+     "trades": 1337,
+     "turnoverCr": 93.9457
+    },
+    {
+     "close": 97.49,
+     "delivValCr": 42.7293,
+     "prevClose": 97.32,
+     "trades": 179,
+     "turnoverCr": 114.5199
+    },
+    {
+     "close": 100.48,
+     "delivValCr": 15.4818,
+     "prevClose": 97.49,
+     "trades": 1440,
+     "turnoverCr": 58.9262
+    },
+    {
+     "close": 102.74,
+     "delivValCr": 0.0,
+     "prevClose": 100.48,
+     "trades": 273,
+     "turnoverCr": 19.9385
+    },
+    {
+     "close": 104.28,
+     "delivValCr": 11.4533,
+     "prevClose": 102.74,
+     "trades": 1109,
+     "turnoverCr": 21.1737
+    },
+    {
+     "close": 102.0,
+     "delivValCr": 81.0643,
+     "prevClose": 104.28,
+     "trades": 258,
+     "turnoverCr": 108.1483
+    },
+    {
+     "close": 100.64,
+     "delivValCr": 0.0,
+     "prevClose": 102.0,
+     "trades": 1790,
+     "turnoverCr": 47.389
+    },
+    {
+     "close": 100.36,
+     "delivValCr": 16.9902,
+     "prevClose": 100.64,
+     "trades": 419,
+     "turnoverCr": 56.1587
+    },
+    {
+     "close": 102.08,
+     "delivValCr": 18.2649,
+     "prevClose": 100.36,
+     "trades": 2786,
+     "turnoverCr": 21.8544
+    },
+    {
+     "close": 105.53,
+     "delivValCr": 0.0,
+     "prevClose": 102.08,
+     "trades": 3408,
+     "turnoverCr": 103.9126
+    },
+    {
+     "close": 104.79,
+     "delivValCr": 87.1844,
+     "prevClose": 105.53,
+     "trades": 2740,
+     "turnoverCr": 112.3059
+    },
+    {
+     "close": 106.44,
+     "delivValCr": 27.5999,
+     "prevClose": 104.79,
+     "trades": 1968,
+     "turnoverCr": 71.4569
+    },
+    {
+     "close": 106.5,
+     "delivValCr": 0.0,
+     "prevClose": 106.44,
+     "trades": 3588,
+     "turnoverCr": 112.333
+    },
+    {
+     "close": 105.84,
+     "delivValCr": 101.9455,
+     "prevClose": 106.5,
+     "trades": 2678,
+     "turnoverCr": 119.3823
+    },
+    {
+     "close": 106.4,
+     "delivValCr": 3.9997,
+     "prevClose": 105.84,
+     "trades": 3600,
+     "turnoverCr": 16.1265
+    },
+    {
+     "close": 109.01,
+     "delivValCr": 0.0,
+     "prevClose": 106.4,
+     "trades": 260,
+     "turnoverCr": 18.2476
+    },
+    {
+     "close": 111.61,
+     "delivValCr": 22.4202,
+     "prevClose": 109.01,
+     "trades": 329,
+     "turnoverCr": 112.0916
+    },
+    {
+     "close": 113.17,
+     "delivValCr": 8.335,
+     "prevClose": 111.61,
+     "trades": 1602,
+     "turnoverCr": 10.1597
+    },
+    {
+     "close": 110.88,
+     "delivValCr": 0.0,
+     "prevClose": 113.17,
+     "trades": 1969,
+     "turnoverCr": 106.6234
+    },
+    {
+     "close": 113.21,
+     "delivValCr": 13.256,
+     "prevClose": 110.88,
+     "trades": 2213,
+     "turnoverCr": 61.9586
+    },
+    {
+     "close": 110.41,
+     "delivValCr": 24.5111,
+     "prevClose": 113.21,
+     "trades": 1204,
+     "turnoverCr": 36.2158
+    },
+    {
+     "close": 111.73,
+     "delivValCr": 0.0,
+     "prevClose": 110.41,
+     "trades": 3312,
+     "turnoverCr": 5.0663
+    },
+    {
+     "close": 110.09,
+     "delivValCr": 53.517,
+     "prevClose": 111.73,
+     "trades": 3852,
+     "turnoverCr": 118.7164
+    },
+    {
+     "close": 107.59,
+     "delivValCr": 9.8232,
+     "prevClose": 110.09,
+     "trades": 1616,
+     "turnoverCr": 19.1939
+    },
+    {
+     "close": 106.78,
+     "delivValCr": 0.0,
+     "prevClose": 107.59,
+     "trades": 169,
+     "turnoverCr": 112.6398
+    },
+    {
+     "close": 105.33,
+     "delivValCr": 28.6157,
+     "prevClose": 106.78,
+     "trades": 2370,
+     "turnoverCr": 37.4296
+    },
+    {
+     "close": 107.0,
+     "delivValCr": 70.8252,
+     "prevClose": 105.33,
+     "trades": 2194,
+     "turnoverCr": 116.3077
+    },
+    {
+     "close": 110.04,
+     "delivValCr": 0.0,
+     "prevClose": 107.0,
+     "trades": 2696,
+     "turnoverCr": 7.9367
+    },
+    {
+     "close": 107.24,
+     "delivValCr": 25.9984,
+     "prevClose": 110.04,
+     "trades": 2413,
+     "turnoverCr": 55.4068
+    },
+    {
+     "close": 108.22,
+     "delivValCr": 29.6245,
+     "prevClose": 107.24,
+     "trades": 3176,
+     "turnoverCr": 33.7617
+    },
+    {
+     "close": 107.92,
+     "delivValCr": 0.0,
+     "prevClose": 108.22,
+     "trades": 174,
+     "turnoverCr": 27.9478
+    },
+    {
+     "close": 107.32,
+     "delivValCr": 41.1625,
+     "prevClose": 107.92,
+     "trades": 1051,
+     "turnoverCr": 87.2834
+    },
+    {
+     "close": 107.73,
+     "delivValCr": 14.6959,
+     "prevClose": 107.32,
+     "trades": 959,
+     "turnoverCr": 18.8557
+    },
+    {
+     "close": 105.86,
+     "delivValCr": 0.0,
+     "prevClose": 107.73,
+     "trades": 357,
+     "turnoverCr": 102.7334
+    },
+    {
+     "close": 104.38,
+     "delivValCr": 10.2185,
+     "prevClose": 105.86,
+     "trades": 3600,
+     "turnoverCr": 15.4045
+    },
+    {
+     "close": 101.59,
+     "delivValCr": 18.244,
+     "prevClose": 104.38,
+     "trades": 3376,
+     "turnoverCr": 26.815
+    },
+    {
+     "close": 102.83,
+     "delivValCr": 0.0,
+     "prevClose": 101.59,
+     "trades": 1786,
+     "turnoverCr": 94.0777
+    },
+    {
+     "close": 102.82,
+     "delivValCr": 69.1286,
+     "prevClose": 102.83,
+     "trades": 329,
+     "turnoverCr": 108.4292
+    },
+    {
+     "close": 104.44,
+     "delivValCr": 13.6507,
+     "prevClose": 102.82,
+     "trades": 1576,
+     "turnoverCr": 26.1196
+    },
+    {
+     "close": 102.68,
+     "delivValCr": 0.0,
+     "prevClose": 104.44,
+     "trades": 1540,
+     "turnoverCr": 17.3382
+    },
+    {
+     "close": 102.76,
+     "delivValCr": 39.8107,
+     "prevClose": 102.68,
+     "trades": 1476,
+     "turnoverCr": 91.7749
+    },
+    {
+     "close": 103.25,
+     "delivValCr": 38.0242,
+     "prevClose": 102.76,
+     "trades": 254,
+     "turnoverCr": 117.7168
+    },
+    {
+     "close": 104.42,
+     "delivValCr": 0.0,
+     "prevClose": 103.25,
+     "trades": 3560,
+     "turnoverCr": 20.3086
+    },
+    {
+     "close": 106.85,
+     "delivValCr": 34.2333,
+     "prevClose": 104.42,
+     "trades": 1298,
+     "turnoverCr": 59.677
+    },
+    {
+     "close": 104.72,
+     "delivValCr": 26.9225,
+     "prevClose": 106.85,
+     "trades": 2845,
+     "turnoverCr": 64.9179
+    },
+    {
+     "close": 104.06,
+     "delivValCr": 0.0,
+     "prevClose": 104.72,
+     "trades": 2797,
+     "turnoverCr": 39.0207
+    },
+    {
+     "close": 107.43,
+     "delivValCr": 22.5384,
+     "prevClose": 104.06,
+     "trades": 3317,
+     "turnoverCr": 25.062
+    },
+    {
+     "close": 105.67,
+     "delivValCr": 76.0568,
+     "prevClose": 107.43,
+     "trades": 589,
+     "turnoverCr": 93.5292
+    },
+    {
+     "close": 104.07,
+     "delivValCr": 0.0,
+     "prevClose": 105.67,
+     "trades": 3527,
+     "turnoverCr": 104.352
+    },
+    {
+     "close": 103.67,
+     "delivValCr": 45.9178,
+     "prevClose": 104.07,
+     "trades": 2528,
+     "turnoverCr": 59.743
+    },
+    {
+     "close": 101.76,
+     "delivValCr": 19.645,
+     "prevClose": 103.67,
+     "trades": 3585,
+     "turnoverCr": 33.3565
+    },
+    {
+     "close": 101.04,
+     "delivValCr": 0.0,
+     "prevClose": 101.76,
+     "trades": 1820,
+     "turnoverCr": 99.0789
+    },
+    {
+     "close": 98.73,
+     "delivValCr": 7.9697,
+     "prevClose": 101.04,
+     "trades": 3616,
+     "turnoverCr": 9.6174
+    },
+    {
+     "close": 96.87,
+     "delivValCr": 9.4599,
+     "prevClose": 98.73,
+     "trades": 3295,
+     "turnoverCr": 27.8518
+    },
+    {
+     "close": 97.19,
+     "delivValCr": 0.0,
+     "prevClose": 96.87,
+     "trades": 3869,
+     "turnoverCr": 89.9677
+    },
+    {
+     "close": 96.72,
+     "delivValCr": 34.4894,
+     "prevClose": 97.19,
+     "trades": 509,
+     "turnoverCr": 73.3537
+    },
+    {
+     "close": 94.53,
+     "delivValCr": 87.2355,
+     "prevClose": 96.72,
+     "trades": 2522,
+     "turnoverCr": 118.7146
+    },
+    {
+     "close": 92.17,
+     "delivValCr": 0.0,
+     "prevClose": 94.53,
+     "trades": 3412,
+     "turnoverCr": 99.5906
+    },
+    {
+     "close": 95.0,
+     "delivValCr": 4.0618,
+     "prevClose": 92.17,
+     "trades": 2275,
+     "turnoverCr": 11.8122
+    },
+    {
+     "close": 95.48,
+     "delivValCr": 30.7664,
+     "prevClose": 95.0,
+     "trades": 1593,
+     "turnoverCr": 91.4616
+    },
+    {
+     "close": 93.12,
+     "delivValCr": 0.0,
+     "prevClose": 95.48,
+     "trades": 2615,
+     "turnoverCr": 46.8188
+    },
+    {
+     "close": 93.21,
+     "delivValCr": 13.4797,
+     "prevClose": 93.12,
+     "trades": 3204,
+     "turnoverCr": 18.6765
+    },
+    {
+     "close": 90.96,
+     "delivValCr": 24.7086,
+     "prevClose": 93.21,
+     "trades": 995,
+     "turnoverCr": 68.9966
+    },
+    {
+     "close": 93.85,
+     "delivValCr": 0.0,
+     "prevClose": 90.96,
+     "trades": 2324,
+     "turnoverCr": 20.3591
+    },
+    {
+     "close": 93.91,
+     "delivValCr": 32.106,
+     "prevClose": 93.85,
+     "trades": 314,
+     "turnoverCr": 49.3793
+    },
+    {
+     "close": 96.51,
+     "delivValCr": 87.909,
+     "prevClose": 93.91,
+     "trades": 549,
+     "turnoverCr": 106.0218
+    },
+    {
+     "close": 95.74,
+     "delivValCr": 0.0,
+     "prevClose": 96.51,
+     "trades": 1912,
+     "turnoverCr": 36.416
+    },
+    {
+     "close": 95.88,
+     "delivValCr": 56.273,
+     "prevClose": 95.74,
+     "trades": 454,
+     "turnoverCr": 87.544
+    },
+    {
+     "close": 93.25,
+     "delivValCr": 41.3025,
+     "prevClose": 95.88,
+     "trades": 110,
+     "turnoverCr": 56.9064
+    },
+    {
+     "close": 93.7,
+     "delivValCr": 0.0,
+     "prevClose": 93.25,
+     "trades": 2262,
+     "turnoverCr": 28.3271
+    },
+    {
+     "close": 91.52,
+     "delivValCr": 54.5145,
+     "prevClose": 93.7,
+     "trades": 3254,
+     "turnoverCr": 63.8427
+    },
+    {
+     "close": 89.76,
+     "delivValCr": 12.1315,
+     "prevClose": 91.52,
+     "trades": 254,
+     "turnoverCr": 37.3423
+    },
+    {
+     "close": 92.69,
+     "delivValCr": 0.0,
+     "prevClose": 89.76,
+     "trades": 1454,
+     "turnoverCr": 53.6804
+    },
+    {
+     "close": 92.81,
+     "delivValCr": 23.2079,
+     "prevClose": 92.69,
+     "trades": 3652,
+     "turnoverCr": 26.7778
+    },
+    {
+     "close": 94.26,
+     "delivValCr": 83.6971,
+     "prevClose": 92.81,
+     "trades": 677,
+     "turnoverCr": 113.7824
+    },
+    {
+     "close": 94.85,
+     "delivValCr": 0.0,
+     "prevClose": 94.26,
+     "trades": 1777,
+     "turnoverCr": 91.8511
+    },
+    {
+     "close": 93.86,
+     "delivValCr": 11.628,
+     "prevClose": 94.85,
+     "trades": 1265,
+     "turnoverCr": 33.0746
+    },
+    {
+     "close": 95.29,
+     "delivValCr": 29.657,
+     "prevClose": 93.86,
+     "trades": 1092,
+     "turnoverCr": 80.1777
+    },
+    {
+     "close": 96.36,
+     "delivValCr": 0.0,
+     "prevClose": 95.29,
+     "trades": 925,
+     "turnoverCr": 28.529
+    },
+    {
+     "close": 95.93,
+     "delivValCr": 3.7218,
+     "prevClose": 96.36,
+     "trades": 987,
+     "turnoverCr": 17.9659
+    },
+    {
+     "close": 97.67,
+     "delivValCr": 18.1136,
+     "prevClose": 95.93,
+     "trades": 1320,
+     "turnoverCr": 80.8081
+    },
+    {
+     "close": 96.49,
+     "delivValCr": 0.0,
+     "prevClose": 97.67,
+     "trades": 1415,
+     "turnoverCr": 32.716
+    },
+    {
+     "close": 99.65,
+     "delivValCr": 12.3433,
+     "prevClose": 96.49,
+     "trades": 3365,
+     "turnoverCr": 31.4151
+    },
+    {
+     "close": 97.83,
+     "delivValCr": 33.7145,
+     "prevClose": 99.65,
+     "trades": 3405,
+     "turnoverCr": 68.1827
+    },
+    {
+     "close": 98.09,
+     "delivValCr": 0.0,
+     "prevClose": 97.83,
+     "trades": 1899,
+     "turnoverCr": 113.7729
+    },
+    {
+     "close": 100.04,
+     "delivValCr": 74.4503,
+     "prevClose": 98.09,
+     "trades": 2076,
+     "turnoverCr": 90.8113
+    },
+    {
+     "close": 100.0,
+     "delivValCr": 33.1634,
+     "prevClose": 100.04,
+     "trades": 2675,
+     "turnoverCr": 86.7842
+    },
+    {
+     "close": 103.2,
+     "delivValCr": 0.0,
+     "prevClose": 100.0,
+     "trades": 869,
+     "turnoverCr": 116.7847
+    },
+    {
+     "close": 103.49,
+     "delivValCr": 92.7421,
+     "prevClose": 103.2,
+     "trades": 1305,
+     "turnoverCr": 109.6842
+    },
+    {
+     "close": 103.71,
+     "delivValCr": 45.5054,
+     "prevClose": 103.49,
+     "trades": 2007,
+     "turnoverCr": 51.6739
+    },
+    {
+     "close": 102.79,
+     "delivValCr": 0.0,
+     "prevClose": 103.71,
+     "trades": 1241,
+     "turnoverCr": 53.7776
+    },
+    {
+     "close": 103.32,
+     "delivValCr": 76.9859,
+     "prevClose": 102.79,
+     "trades": 334,
+     "turnoverCr": 101.1985
+    },
+    {
+     "close": 100.32,
+     "delivValCr": 13.908,
+     "prevClose": 103.32,
+     "trades": 1060,
+     "turnoverCr": 44.4604
+    },
+    {
+     "close": 98.54,
+     "delivValCr": 0.0,
+     "prevClose": 100.32,
+     "trades": 2077,
+     "turnoverCr": 33.9108
+    }
+   ]
+  }
+ ],
+ "keys": [
+  "delivBal20",
+  "delivBal60",
+  "delivBal120",
+  "delivValRatio60",
+  "tradeSizeRatio60",
+  "delivPctTrend"
+ ],
+ "note": "Written by pipeline/tests/test_footprints.py. Do not edit by hand.",
+ "schemaVersion": 1
+}
