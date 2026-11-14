@@ -1,1 +1,4 @@
 src/lib/vectors.json
+
+# trimmed real build output used as test fixtures
+src/lib/__fixtures__/

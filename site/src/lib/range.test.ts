@@ -91,8 +91,10 @@ describe('range signal thresholds (04 section 4.2)', () => {
 });
 
 describe('corporate-action warning on real backfilled data', () => {
-  // HDFCAMC: BONUS 1:1 with ex-date 2025-11-26 (stats/split_bonus.json, built from the stored corporate actions)
-  const data = (p: string) => JSON.parse(readFileSync(resolve(process.cwd(), 'public/data', p), 'utf8'));
+  // HDFCAMC: BONUS 1:1 with ex-date 2025-11-26. The fixtures are trimmed copies of real build output
+  // (meta, stats/split_bonus.json, cum/ for Nov–Dec 2025, 4 symbols), committed so CI does not need the generated data.
+  const data = (p: string) =>
+    JSON.parse(readFileSync(resolve(process.cwd(), 'src/lib/__fixtures__/range-ca', p), 'utf8'));
   const sb = rowsToObjects<SplitBonusRow>(data('stats/split_bonus.json'));
   const meta = data('meta.json') as Meta;
 
