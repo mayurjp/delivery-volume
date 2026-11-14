@@ -1,0 +1,116 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "universe.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "sym",
+    "f",
+    "name",
+    "isin",
+    "sector",
+    "idx",
+    "mcapCr",
+    "mcapRank",
+    "bucket",
+    "listedOn",
+    "aliases",
+    "mcapEstimated"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/row"
+   }
+  }
+ },
+ "$defs": {
+  "row": {
+   "type": "array",
+   "minItems": 12,
+   "maxItems": 12,
+   "prefixItems": [
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "array"
+     ]
+    },
+    {
+     "type": [
+      "boolean"
+     ]
+    }
+   ]
+  }
+ }
+}

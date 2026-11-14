@@ -1,0 +1,24 @@
+{
+  "minHistoryDays": 10,
+  "daily": {
+    "ACC": { "ret1Min": 1.0, "spikeMin": 1.5, "delivPctDiffMin": 5, "clvMin": 0.3 },
+    "DIS": { "ret1Max": -1.0, "spikeMin": 1.5, "delivPctDiffMin": 5, "clvMax": -0.3 },
+    "ABS": { "absRet1Max": 1.0, "spikeMin": 2.0, "delivPctDiffMin": 10 },
+    "SPU": { "ret1Min": 2.0, "relVolMin": 2, "delivPctDiffMax": -10 },
+    "SPD": { "ret1Max": -2.0, "relVolMin": 2, "delivPctDiffMax": -10 }
+  },
+  "range": {
+    "ACC": { "retMin": 3, "delivValChgPctMin": 30, "delivPctChgPpMin": 3 },
+    "DIS": { "retMax": -3, "delivValChgPctMin": 30, "delivPctChgPpMin": 3 },
+    "SPU": { "retMin": 5, "delivPctChgPpMax": -5 },
+    "SPD": { "retMax": -5, "delivPctChgPpMax": -5 }
+  },
+  "buildup": { "oiChgPct": 2 },
+  "lists": {
+    "spikes": { "minDelivValCr": 1 },
+    "drops": { "minDelivValAvg20Cr": 1 },
+    "highDelivPct": { "minTurnoverCr": 5 },
+    "sustainedRise": { "minStreak": 5 },
+    "unusual": { "minZ": 2 }
+  }
+}

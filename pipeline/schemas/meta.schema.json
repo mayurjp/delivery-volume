@@ -1,0 +1,99 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "meta.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "generatedAt",
+  "latestDate",
+  "firstDate",
+  "tradingDays",
+  "indices",
+  "sectors",
+  "constituentsAsOf",
+  "sources",
+  "settings"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "generatedAt": {
+   "type": "string"
+  },
+  "latestDate": {
+   "type": "string",
+   "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+  },
+  "firstDate": {
+   "type": "string",
+   "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+  },
+  "tradingDays": {
+   "type": "array",
+   "items": {
+    "type": "string",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+   },
+   "minItems": 1
+  },
+  "indices": {
+   "const": [
+    "NIFTY50",
+    "NIFTYNEXT50",
+    "NIFTY100",
+    "NIFTY200",
+    "NIFTY500",
+    "MIDCAP150",
+    "SMALLCAP250",
+    "MICROCAP250",
+    "TOTALMARKET",
+    "FNO"
+   ]
+  },
+  "sectors": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "constituentsAsOf": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "sources": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "required": [
+     "latest",
+     "gaps"
+    ],
+    "properties": {
+     "latest": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "gaps": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+      }
+     }
+    }
+   }
+  },
+  "settings": {
+   "type": "object",
+   "required": [
+    "minTurnoverAvg20Cr",
+    "minBaseDelivValCr"
+   ]
+  }
+ }
+}

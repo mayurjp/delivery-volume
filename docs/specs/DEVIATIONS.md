@@ -1,0 +1,22 @@
+# DEVIATIONS from the specs (Phases 0-1)
+
+| # | Where | Deviation | Why |
+|---|-------|-----------|-----|
+| 1 | 02 S1 / 03 calendar | A whole-file `DATE1` mismatch is treated as "not a trading day" (missing), not a schema failure. | On holiday 2026-11-10 NSE returned HTTP 200 with the previous day's file, not 404. |
+| 2 | 03 section 3 `hl52` | S13 is stored as a reduced CSV (`symbol,series,high52,high52Date,low52,low52Date`), SME rows dropped, no disclaimer lines. | Daily growth was 306 KB with the raw file (limit 300 KB); also honours "SME excluded entirely". |
+| 3 | 03 section 3 `cm_isin`, `mcap`, `corp_actions` | SM/ST rows are dropped from these stored extracts (S1 raw and `band_hits` raw still contain them). | SME exclusion decision. Derived outputs never contain SME. |
+| 4 | 03 section 4 universe | Universe = symbols that have at least one EQ row and traded within `carryForwardMaxDays` (60) trading days of the latest date. Daily files, cum files, symbol files and market aggregates cover this set only (current members), so delisted symbols disappear from history. | Spec leaves "universe symbol" ambiguous for history; consistent with the "current constituents" / survivorship caveat. |
+| 5 | 03 section 5.2 | `universe.json` has an extra column `mcapEstimated` (bool). | Implements the 03 section 9 "flag `mcapEstimated`" requirement; 4 symbols currently estimated. |
+| 6 | 03 section 5.3 | Daily files carry the F&O columns (`futOi`, `futOiChgPct`, `buildup`, `pcr`) as null; flags `bulkDeal`, `blockDeal`, `expiryWeek` are never set; the `FNO` index bit is never set. | S3/S9/S10 are Phase 4/5. |
+| 7 | 03 section 5.3 | `daily/latest.json` is also written (copy of the newest day). | 05 section 6 references `daily/latest`. |
+| 8 | 03 section 5.6 market | Aggregates (`turnoverCr`, `delivPctW`, medians, adv/dec, spike count) use valid delivery rows only (EQ with delivery), so `delivPctW` is a clean ratio; BE/BZ excluded. `spikeCount2x` excludes low-liquidity and new-listing rows. | Spec silent. |
+| 9 | 04 section 2 | `ret1`, `vwapGap` are in percent units; `delivPctZ60` uses sample std (ddof=1); `delivPctPctile` = share of the last 250 valid days (incl. today) that are <= today, needs 125 days (`minPeriodsFraction`), so it is null for the first ~125 days of history. | Spec silent on units, ddof and min periods. |
+| 10 | 03 section 5.3 flag `corpAction` | Ex-dates are taken from the union of all stored daily `bc` files. Future ex-dates (beyond the last trading day) flag only if within 3 calendar days. Purpose stems are matched (INTDIV, FVSPLT, BUY BACK...) because NSE abbreviates. | `bc` lists upcoming actions only; no trading-day calendar for the future. |
+| 11 | 03 section 4 symbol change | ISIN timeline comes from `cm_isin` only (not S15 snapshots); a merge needs two symbols on one ISIN with no overlapping dates. 70 aliases found (renames and ETF renames). | S15 is current-only, adds nothing for history. |
+| 12 | 03 section 5 validation | Every generated file is validated against its schema, but large `rows` arrays have cell types checked on a spread sample of ~40 rows; row length and column order are checked on every row. | Full per-cell jsonschema validation took >100 s for the symbol files, breaking the 3-minute build budget. |
+| 13 | 03 section 2 calendar | Dates missing more than 3 days after the fact are final immediately (a historical backfill does not re-probe holidays 4 times). Weekends are probed too (Sunday 2026-11-08 Muhurat session exists). | Avoids ~500 wasted requests; keeps special sessions. |
+| 14 | 03 section 3 S11/S15 | Snapshot folders are dated with the run date (2026-11-14), not the Monday; re-checked at most every 6 days. | Simple, resumable. |
+| 15 | 02 S9/S10 | Spec's historical bulk-deals URL returns 503; a working `historicalOR` URL exists (see SOURCE_STATUS). Not implemented yet. | Needs the user's OK before wiring (not a URL listed in 02). |
+| 16 | pyproject | ruff ignores E501 (line length) and E741. | Compact tables in column contracts. |
+| 17 | Build time | Full build measured 92-192 s on this PC (mostly Windows file I/O variance; writes use 8 threads). The 192 s run immediately followed a pytest run. | Spec target < 3 min; may need a retry/optimisation on a slower runner. |
+| 18 | Python | Developed on Python 3.14 with pandas 3.1; requirements are pinned to those versions. CI (3.12) not yet run. | Local interpreter. |

@@ -1,0 +1,30 @@
+{
+  "backfillFrom": "2025-11-01",
+  "lookbackDaysForFetch": 7,
+  "requestDelaySec": 1.0,
+  "universeSeries": ["EQ"],
+  "excludedSeries": ["SM", "ST"],
+  "t2tSeries": ["BE", "BZ"],
+  "windows": { "short": 5, "base": 20, "long": 50, "z": 60, "pctile": 250 },
+  "minPeriodsFraction": 0.5,
+  "liquidity": { "minTurnoverAvg20Cr": 1.0, "minBaseDelivValCr": 0.5 },
+  "mcapBuckets": { "largeMaxRank": 100, "midMaxRank": 250, "smallMaxRank": 500 },
+  "carryForwardMaxDays": 60,
+  "sources": {
+    "cm_delivery":     { "runIn": ["actions", "local"] },
+    "cm_udiff":        { "runIn": ["actions", "local"] },
+    "fo_udiff":        { "runIn": ["actions", "local"] },
+    "pr_zip":          { "runIn": ["actions", "local"] },
+    "participant_oi":  { "runIn": ["actions", "local"] },
+    "participant_vol": { "runIn": ["actions", "local"] },
+    "fii_stats":       { "runIn": ["actions", "local"] },
+    "fii_dii_cash":    { "runIn": ["actions", "local"] },
+    "deals":           { "runIn": ["actions", "local"] },
+    "constituents":    { "runIn": ["actions", "local"] },
+    "indices_close":   { "runIn": ["actions", "local"] },
+    "hl52":            { "runIn": ["actions", "local"] },
+    "fo_ban":          { "runIn": ["actions", "local"] },
+    "equity_list":     { "runIn": ["actions", "local"] },
+    "shareholding":    { "runIn": ["actions", "local"], "quartersBack": 4, "maxRequestsPerRun": 600, "recheckDays": 7 }
+  }
+}

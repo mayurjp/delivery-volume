@@ -1,0 +1,5 @@
+Securities in Ban For Trade Date 18-SEP-2026:
+1,BANDHANBNK
+2,INOXWIND
+3,MANAPPURAM
+4,SAIL

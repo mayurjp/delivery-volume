@@ -1,0 +1,125 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "market.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "dates",
+  "groups",
+  "indexClose"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "dates": {
+   "type": "array",
+   "items": {
+    "type": "string",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+   }
+  },
+  "groups": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "required": [
+     "turnoverCr",
+     "delivValCr",
+     "delivPctW",
+     "medianDelivPct",
+     "adv",
+     "dec",
+     "unch",
+     "spikeCount2x"
+    ],
+    "properties": {
+     "turnoverCr": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "delivValCr": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "delivPctW": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "medianDelivPct": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "adv": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "dec": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "unch": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     },
+     "spikeCount2x": {
+      "type": "array",
+      "items": {
+       "type": [
+        "number",
+        "null"
+       ]
+      }
+     }
+    }
+   }
+  },
+  "indexClose": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "array",
+    "items": {
+     "type": [
+      "number",
+      "null"
+     ]
+    }
+   }
+  }
+ }
+}

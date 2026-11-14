@@ -1,0 +1,296 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "symbols/{f}.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows",
+  "sym",
+  "name",
+  "sector",
+  "idx",
+  "bucket",
+  "deals",
+  "corpActions",
+  "holdings",
+  "namedHolders",
+  "dealFlows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "date",
+    "series",
+    "open",
+    "high",
+    "low",
+    "close",
+    "vwap",
+    "vol",
+    "turnoverCr",
+    "trades",
+    "delivQty",
+    "delivPct",
+    "delivValCr",
+    "delivPctAvg20",
+    "spike",
+    "signal",
+    "flags",
+    "futOi",
+    "futOiChgPct",
+    "buildup",
+    "pcr"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/row"
+   }
+  },
+  "sym": {
+   "type": "string"
+  },
+  "name": {
+   "type": "string"
+  },
+  "sector": {
+   "type": "string"
+  },
+  "idx": {
+   "type": "integer"
+  },
+  "bucket": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "deals": {
+   "type": "array"
+  },
+  "corpActions": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "exDate",
+     "kind",
+     "purpose"
+    ]
+   }
+  },
+  "holdings": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "quarter",
+      "filedOn",
+      "promoterPct",
+      "fiiPct",
+      "diiPct",
+      "mfPct",
+      "insurancePct",
+      "bankPct",
+      "pensionPct",
+      "otherDiiPct",
+      "retailPct",
+      "othersPct",
+      "totalShares"
+     ]
+    },
+    "rows": {
+     "type": "array"
+    }
+   }
+  },
+  "namedHolders": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "quarter",
+      "category",
+      "subType",
+      "holder",
+      "entityId",
+      "shares",
+      "pct"
+     ]
+    },
+    "rows": {
+     "type": "array"
+    }
+   }
+  },
+  "dealFlows": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "date",
+      "category",
+      "buyValueCr",
+      "sellValueCr",
+      "netValueCr"
+     ]
+    },
+    "rows": {
+     "type": "array"
+    }
+   }
+  }
+ },
+ "$defs": {
+  "row": {
+   "type": "array",
+   "minItems": 21,
+   "maxItems": 21,
+   "prefixItems": [
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    {
+     "type": [
+      "number",
+      "null"
+     ]
+    }
+   ]
+  }
+ }
+}

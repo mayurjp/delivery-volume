@@ -1,0 +1,8 @@
+"Disclaimer - The Data provided in the adjusted 52 week high and adjusted 52 week low columns  are adjusted for corporate actions (bonus, splits & rights).For actual (unadjusted) 52 week high & low prices, kindly refer bhavcopy."
+"Effective for 13-Nov-2026"
+"SYMBOL","SERIES","Adjusted_52_Week_High","52_Week_High_Date","Adjusted_52_Week_Low","52_Week_Low_DT"
+"1STCUS$","EQ","-","-","-","-"
+"20MICRONS","EQ","    237.40","26-DEC-2025","    129.61","30-MAR-2026"
+"21STCENMGM","BE","     65.10","04-NOV-2026","     28.25","06-APR-2026"
+"360ONE","EQ","   1236.20","16-JAN-2026","    906.05","07-APR-2026"
+"3BBLACKBIO","EQ","   1740.00","30-SEP-2026","   1085.00","02-JUN-2026"

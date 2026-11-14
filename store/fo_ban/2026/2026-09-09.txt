@@ -1,0 +1,6 @@
+Securities in Ban For Trade Date 09-SEP-2026:
+1,INOXWIND
+2,KAYNES
+3,LICHSGFIN
+4,MANAPPURAM
+5,SAIL

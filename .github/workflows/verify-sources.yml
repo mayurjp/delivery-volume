@@ -1,0 +1,36 @@
+name: verify-sources
+
+# Phase 0 spike: probes every NSE source from a GitHub-hosted runner (US datacenter) and uploads the JSON report.
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Trade date to probe (YYYY-MM-DD); use the last trading day"
+        required: true
+        default: "2026-11-13"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PIPELINE_ENV: actions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Verify all sources
+        # exit code 1 when a VERIFIED source fails; keep going so the report is still uploaded
+        run: python -m pipeline verify-sources --date "${{ inputs.date }}" --json --out reports/verify-sources-actions.json
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verify-sources-report
+          path: reports/verify-sources-actions.json
+          if-no-files-found: error
