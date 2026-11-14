@@ -1,0 +1,92 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "holdings/holders/{quarter}.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "sym",
+    "category",
+    "subType",
+    "holder",
+    "entityId",
+    "shares",
+    "pct",
+    "prevPct",
+    "chg"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "array",
+    "minItems": 9,
+    "maxItems": 9,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

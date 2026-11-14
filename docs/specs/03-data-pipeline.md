@@ -311,6 +311,11 @@ Columns `sym, exDate, kind, purpose`: every SPLIT and BONUS ex-date in the store
 - `holdings/aggregates.json`: per quarter per group (`ALL`, `IDX:*`, `SEC:*`, `MC:*`). Market-cap-weighted `promoterPct, fiiPct, diiPct, mfPct, retailPct`. Weights are the S4 market cap on the last trading day of the quarter.
 - `holdings/latest.json`: an alias of the latest *complete* quarter's file, plus the in-progress quarter's rows wherever they exist. Each row carries a `quarter` column. The Screener joins this file.
 
+**As built (Phase 4B, DEVIATIONS #90 to #99):** the per-filing store file is `store/shareholding/{quarter}/{fileKey}.json.gz`
+(about 870 bytes). `holdings/{quarter}.json` and the stock rows carry `dilutionFlag`. `holdings/holders/{quarter}.json` is
+written for the latest two quarters only, and named-holder rows carry `prevPct`. `holdings/latest.json` has one row per stock
+(its latest stored quarter). The per-stock `holdings` block holds every stored quarter, and `namedHolders` the latest one.
+
 ## 6. Rolling-window implementation rules
 
 - Compute per symbol in date order, over **valid delivery days only** (04 §1).

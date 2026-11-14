@@ -75,6 +75,7 @@ class Client:
         self.log_dir = log_dir
         self.env = env or os.environ.get("PIPELINE_ENV", "local")
         self.warmed: set[str] = set()
+        self.requests = 0  # network attempts (retries included): the cap in fetch-shareholding counts these
 
     def _throttle(self) -> None:
         wait = self.delay - (time.monotonic() - self._last)
@@ -87,6 +88,7 @@ class Client:
         resp = Response(url, None, b"", 0, "not attempted")
         for attempt in range(retries):
             self._throttle()
+            self.requests += 1
             t0 = time.monotonic()
             try:
                 r = self.session.get(url, headers=headers, timeout=TIMEOUT, allow_redirects=True)

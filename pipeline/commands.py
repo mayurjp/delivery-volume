@@ -112,6 +112,10 @@ def cmd_status(args: argparse.Namespace) -> int:
             gaps[name] = miss
     cash_days = sorted({r.split('"')[3] for r in (STORE_DIR / "fii_dii_cash").glob("*.jsonl") and
                         [ln for f in (STORE_DIR / "fii_dii_cash").glob("*.jsonl") for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip()]})         if (STORE_DIR / "fii_dii_cash").exists() else []
+    from . import shareholding
+
+    for line in shareholding.status_lines():
+        print(line)
     print(f"S8 fii_dii_cash: {len(cash_days)} trade dates stored ({cash_days[0] if cash_days else '-'} .. {cash_days[-1] if cash_days else '-'})")
     deal_days = sorted({f.name for f in (STORE_DIR / "deals").glob("*.csv")}) if (STORE_DIR / "deals").exists() else []
     print(f"S9/S10 deals: files {deal_days}; rows in store: {sum(max(0, len(f.read_text(encoding='utf-8').splitlines()) - 1) for f in (STORE_DIR / 'deals').glob('*.csv')) if deal_days else 0}")
@@ -131,6 +135,18 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_fetch_shareholding(args: argparse.Namespace) -> int:
+    from . import shareholding
+
+    syms = {x.strip().upper() for x in args.symbols.split(",")} if args.symbols else None
+    res = shareholding.run("backfill" if args.backfill else "daily", max_requests=args.max_requests,
+                           symbols=syms, quarter=args.quarter)
+    print("fetch-shareholding:", res, flush=True)
+    for line in shareholding.status_lines():
+        print(line)
+    return 0
+
+
 def dispatch(args: argparse.Namespace) -> int:
-    return {"fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
+    return {"fetch-shareholding": cmd_fetch_shareholding, "fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
             "merge-history": cmd_merge_history, "status": cmd_status}[args.cmd](args)

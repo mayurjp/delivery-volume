@@ -130,3 +130,21 @@ def is_round_trip(buy_qty: float, sell_qty: float) -> bool:
     if buy_qty <= 0 or sell_qty <= 0:
         return False
     return abs(buy_qty - sell_qty) <= 0.1 * max(buy_qty, sell_qty)
+
+
+def with_promoters(names, index: EntityIndex | None = None) -> EntityIndex:
+    """Phase 4B: named promoter-group holders from the S16 XBRL are entities of type Promoter (category Other, 04
+    section 5.3). Their seeds go first, so a promoter name wins over a generic pattern. `names` are raw holder names."""
+    base = (index or default_index()).seeds
+    extra = []
+    seen: set[str] = set()
+    for raw in sorted(set(names)):
+        clean = clean_name(raw)
+        if not clean or clean in seen:
+            continue
+        seen.add(clean)
+        extra.append({"id": f"promoter-{slug(clean)}", "name": clean, "type": "Promoter", "category": "Other",
+                      "patterns": [clean]})
+    seeds = extra + [{"id": s["id"], "name": s["name"], "type": s["type"], "category": s["category"],
+                      "patterns": [p.strip() for p in s["patterns"]]} for s in base]
+    return EntityIndex(seeds)

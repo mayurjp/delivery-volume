@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
     mh.add_argument("--staging", type=Path, default=Path(".history_staging"))
 
     sub.add_parser("status", help="coverage table and gaps")
+
+    fs = sub.add_parser("fetch-shareholding", help="S16 quarterly shareholding: capped daily mode or --backfill")
+    fs.add_argument("--backfill", action="store_true", help="every quarter in quartersBack, uncapped unless --max-requests")
+    fs.add_argument("--quarter", type=_d, help="one quarter end, e.g. 2026-09-30")
+    fs.add_argument("--symbols", help="comma list of symbols to limit to")
+    fs.add_argument("--max-requests", type=int, help="cap on network requests (listing, warm-up and XBRL)")
     return ap
 
 

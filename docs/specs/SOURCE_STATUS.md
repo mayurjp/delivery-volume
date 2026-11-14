@@ -190,3 +190,27 @@ so FPI named holders will often be absent.
 | S9 / S10 deals | 19,047 rows in `store/deals/2025.csv` and `2026.csv`, from 2025-11-03 to 2026-11-13. The build keeps 16,599 (SME-only names dropped, DEVIATIONS #77). | The dedupe holds: a re-run on the same day adds 0 rows (tested). **History gap:** the historical endpoint returns at most 70 records per request, so busy days before 2026-11-14 are truncated (`store/deals/_backfill.json`). Daily files are complete from 2026-11-14. |
 
 `verify-sources` was not re-run for this phase: it calls the cookie-gated S8 and S16, and cookie-gated calls are not made from this PC (instruction). S5 to S7 and S9/S10 were checked through the parsers and the backfill above.
+
+## S16 in Phase 4B (2026-11-14, local development)
+
+- **Calls made from this PC:** 3 of 10 listing calls (date windows 2026-07-18..11-14, 2026-01-01..04-30 and 2026-05-01..07-17)
+  and 76 XBRL downloads (no cookies) of the 80 allowed, for 19 companies (7 Large, 7 Mid, 5 Small) x 4 quarters
+  (Dec-25, Mar-26, Jun-26, Sep-26). A first background download stopped after 11 files; the rerun got the rest.
+- **Listing fields:** `symbol`, `date` (quarter end, `DD-MON-YYYY`), `broadcastDate` (`DD-MON-YYYY HH:MM:SS`, IST),
+  `revisedData` (`N`/`Revised`), `recordId`, `xbrl`, `pr_and_prgrp`, `public_val`, `employeeTrusts`. There is **no SME field**
+  in the listing. The XBRL SME flag is masked (`******`).
+- **XBRL format:** BSE-format `in-bse-shp` with ScripCode. All 76 files are in the `2025-10-31` namespace. The `2025-05-31`
+  variant is covered by a synthetic test (local-name matching only).
+- **Hand-checks (latest quarter, 30-Sep-2026),** parsed against the listing summary (test `test_hand_check_*`):
+
+| Company | Bucket | Promoter % parsed / listing | Public % parsed / listing |
+|---------|--------|-----------------------------|---------------------------|
+| LT | Large (rank 9) | 0.00 / 0 | 100.00 / 100 |
+| AUROPHARMA | Mid (rank 115) | 51.88 / 51.88 | 48.12 / 48.12 |
+| GESHIP | Small (rank 348) | 30.07 / 30.07 | 69.93 / 69.93 |
+
+- **Totals:** 76 of 76 sampled filings sum to 100 +/- 0.1 (shares-based). Problems: 4 HDFC Life filings (HDFC Bank, the
+  promoter, filed under the legacy banks member; DEVIATIONS #93) and 4 LT filings (a DR holder without a share count).
+- **Named promoter names in the XBRL:** present only through the government-promoted-company axis (IOC: ONGC, Oil India)
+  and the overlap rule (HDFC Bank, HOLDERIND INVESTMENTS, Indian Oil). ADANI INFRA INDIA and TOBACCO MANUFACTURERS INDIA
+  were not in the sample, so they are **not verified** either way.

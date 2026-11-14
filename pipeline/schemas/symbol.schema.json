@@ -213,11 +213,14 @@
       "diiPct",
       "mfPct",
       "insurancePct",
-      "bankPct",
-      "pensionPct",
-      "otherDiiPct",
       "retailPct",
-      "othersPct",
+      "fiiChgPp",
+      "diiChgPp",
+      "mfChgPp",
+      "promoterChgPp",
+      "sharesChgPct",
+      "dilutionFlag",
+      "holderCount",
       "totalShares"
      ]
     },
@@ -241,7 +244,9 @@
       "holder",
       "entityId",
       "shares",
-      "pct"
+      "pct",
+      "prevPct",
+      "chg"
      ]
     },
     "rows": {

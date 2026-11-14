@@ -11,6 +11,10 @@ on:
       backfill_from:
         description: "Optional: run `pipeline backfill --from YYYY-MM-DD` first (one-off history load)"
         required: false
+      shareholding_backfill:
+        description: "S16 shareholding backfill: fetch-shareholding --backfill, capped at 2,500 requests per dispatch (resumable; re-dispatch until coverage is met)"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ["store/**", "pipeline/**", "config/**", "site/**"]
@@ -31,7 +35,7 @@ env:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 90 # a normal run takes minutes; a backfill_from dispatch can take up to an hour
+    timeout-minutes: 340 # a normal run takes minutes; a shareholding backfill dispatch (2,500 requests at 1/s) takes ~45 min
     env:
       PIPELINE_ENV: actions
     outputs:
@@ -52,10 +56,13 @@ jobs:
         if: github.event_name != 'push'
         run: python -m pipeline update --no-build
 
-      # S16 shareholding is Phase 4B: the command does not exist yet, so this step is switched off.
-      # When it is built, change `false` to: github.event_name == 'schedule' && github.event.schedule == '30 2 * * 2-6'
-      - name: Shareholding catch-up (Phase 4B, disabled)
-        if: ${{ false }}
+      - name: Shareholding backfill (manual dispatch with shareholding_backfill)
+        if: github.event_name == 'workflow_dispatch' && inputs.shareholding_backfill
+        run: python -m pipeline fetch-shareholding --backfill --max-requests 2500
+
+      # S16 catch-up: the 08:00 IST run only, capped by config/settings.json -> sources.shareholding.maxRequestsPerRun
+      - name: Shareholding catch-up (08:00 IST schedule only)
+        if: github.event_name == 'schedule' && github.event.schedule == '30 2 * * 2-6'
         run: python -m pipeline fetch-shareholding
 
       - name: Commit store changes

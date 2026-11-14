@@ -159,6 +159,12 @@ def schemas() -> dict[str, dict]:
     out["deals_year"] = _table(C.DEALS, title="deals/{YYYY}.json")
     out["deals_flows"] = _table(C.FLOWS, title="deals/flows.json")
     out["deals_entities"] = _table(C.ENTITIES, title="deals/entities.json")
+    out["holdings_quarters"] = _table(C.HOLD_QUARTERS, title="holdings/quarters.json")
+    out["holdings_quarter"] = _table([("sym", "s", None)] + [c for c in C.HOLD_STOCK if c[0] != "sym"],
+                                     title="holdings/{quarter}.json")
+    out["holdings_holders"] = _table(C.HOLD_NAMED, title="holdings/holders/{quarter}.json")
+    out["holdings_latest"] = _table([("quarter", "s", None)] + C.HOLD_STOCK, title="holdings/latest.json")
+    out["holdings_aggregates"] = _table(C.HOLD_AGG, title="holdings/aggregates.json")
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},
         "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]}, "etf": {"type": "boolean"},

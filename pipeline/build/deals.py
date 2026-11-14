@@ -41,13 +41,21 @@ def _deal_files(root: Path | None) -> list[pd.DataFrame]:
     return frames
 
 
-def build_deals(out: Path, alias, eq_syms: set[str], root: Path | None = None) -> DealsBuild:
+def build_deals(out: Path, alias, eq_syms: set[str], root: Path | None = None, index=None,
+                disclosed: dict | None = None, holding_entities: dict | None = None) -> DealsBuild:
+    """index: the entity index with Phase 4B Promoter tags (build/holdings.py); disclosed: entityId -> (stocks, quarter)
+    from the latest holdings quarter (None when the store has no shareholding data yet); holding_entities: entityId ->
+    (name, type, category) for every named holder, so a holder with no deals still has an entity row (0 deals)."""
     raw = D.load_raw(_deal_files(root))
     resolve = alias.resolve_dated if hasattr(alias, "resolve_dated") else None
-    ds = D.build_deals(raw, default_index(), eq_syms, resolve)
+    ds = D.build_deals(raw, index or default_index(), eq_syms, resolve)
     flows = D.flows(ds)
     ent = D.entity_totals(ds)
-    ent = ent.assign(disclosedHoldingsCount=None, disclosedHoldingsQuarter=None)  # S16 (Phase 4B) not built yet
+    if disclosed:  # 4B: the entity's named-holder count in the latest holdings quarter (0 when it is not a holder)
+        ent = ent.assign(disclosedHoldingsCount=[disclosed.get(e, (0, None))[0] for e in ent["entityId"]],
+                         disclosedHoldingsQuarter=[disclosed.get(e, (0, None))[1] for e in ent["entityId"]])
+    else:
+        ent = ent.assign(disclosedHoldingsCount=None, disclosedHoldingsQuarter=None)
 
     for year, grp in ds.groupby(ds["date"].str[:4]):
         doc = {"schemaVersion": 1, "columns": C.names(C.DEALS), "rows": D.deal_row_values(grp)}
@@ -62,7 +70,17 @@ def build_deals(out: Path, alias, eq_syms: set[str], root: Path | None = None) -
     for r in ent.itertuples(index=False):
         ent_rows.append([r.entityId, r.entityName, r.entityType, r.entityCategory, list(r.aliases), int(r.dealCount),
                          round(float(r.buyValueCr), 2), round(float(r.sellValueCr), 2), round(float(r.netValueCr), 2),
-                         r.firstDate, r.lastDate, list(r.topSymbols), None, None])
+                         r.firstDate, r.lastDate, list(r.topSymbols),
+                         None if r.disclosedHoldingsCount is None or pd.isna(r.disclosedHoldingsCount)
+                         else int(r.disclosedHoldingsCount),
+                         r.disclosedHoldingsQuarter if isinstance(r.disclosedHoldingsQuarter, str) else None])
+    if disclosed and holding_entities:  # holders with no deal: shown with zero deals and their disclosed count
+        have = {row[0] for row in ent_rows}
+        for eid, (cnt, qtr) in sorted(disclosed.items()):
+            if eid in have or eid not in holding_entities:
+                continue
+            name, typ, cat = holding_entities[eid]
+            ent_rows.append([eid, name, typ, cat, [], 0, 0.0, 0.0, 0.0, None, None, [], int(cnt), qtr])
     ent_doc = {"schemaVersion": 1, "columns": C.names(C.ENTITIES), "rows": ent_rows}
     validate("deals_entities", ent_doc)
     outputs.dump(out / "deals" / "entities.json", ent_doc)

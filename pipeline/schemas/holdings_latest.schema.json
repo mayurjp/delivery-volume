@@ -1,0 +1,147 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "holdings/latest.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "columns",
+  "rows"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "columns": {
+   "const": [
+    "quarter",
+    "sym",
+    "filedOn",
+    "promoterPct",
+    "fiiPct",
+    "diiPct",
+    "mfPct",
+    "insurancePct",
+    "retailPct",
+    "fiiChgPp",
+    "diiChgPp",
+    "mfChgPp",
+    "promoterChgPp",
+    "sharesChgPct",
+    "dilutionFlag",
+    "holderCount",
+    "totalShares"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "array",
+    "minItems": 17,
+    "maxItems": 17,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "boolean"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

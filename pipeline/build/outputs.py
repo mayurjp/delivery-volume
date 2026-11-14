@@ -382,7 +382,7 @@ def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, o
 
 
 def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: Path, first_date: str | None = None,
-                  deals_by_sym: dict | None = None, flow_rows: dict | None = None) -> int:
+                  deals_by_sym: dict | None = None, flow_rows: dict | None = None, holdings_by_sym: dict | None = None) -> int:
     ca_by_sym = {s: g for s, g in corp.groupby("sym")}
     total = 0
     ud = uni.set_index("sym")
@@ -405,9 +405,9 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
             "bucket": u["bucket"] if isinstance(u["bucket"], str) else None, "etf": bool(u["etf"]),
             "columns": C.names(C.SYMBOL_HIST), "rows": ft.rows(a, b),
             "deals": (deals_by_sym or {}).get(sym, []), "corpActions": actions,
-            "holdings": {"columns": C.HOLDINGS_COLS, "rows": []},
-            "namedHolders": {"columns": C.NAMED_HOLDER_COLS, "rows": []},
             "dealFlows": {"columns": C.DEAL_FLOW_COLS, "rows": (flow_rows or {}).get(sym, [])},
+            "holdings": (holdings_by_sym or {}).get(sym, {}).get("holdings", {"columns": C.HOLDINGS_COLS, "rows": []}),
+            "namedHolders": (holdings_by_sym or {}).get(sym, {}).get("namedHolders", {"columns": C.NAMED_HOLDER_COLS, "rows": []}),
         }
         validate("symbol", doc)
         total += dump(out / "symbols" / f"{u['f']}.json", doc)

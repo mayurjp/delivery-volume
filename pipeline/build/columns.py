@@ -53,9 +53,19 @@ UNIVERSE = [("sym", "s", None), ("f", "s", None), ("name", "s", None), ("isin", 
             ("etf", "b", None)]
 SPLIT_BONUS = [("sym", "s", None), ("exDate", "s", None), ("kind", "s", None),
               ("purpose", "s", None)]
-HOLDINGS_COLS = ["quarter", "filedOn", "promoterPct", "fiiPct", "diiPct", "mfPct", "insurancePct", "bankPct",
-                 "pensionPct", "otherDiiPct", "retailPct", "othersPct", "totalShares"]
-NAMED_HOLDER_COLS = ["quarter", "category", "subType", "holder", "entityId", "shares", "pct"]
+# Phase 4B holdings (03 section 5.10, 04 section 5.4). Each `*ChgPp` is against the previous stored quarter.
+HOLD_QUARTERS = [("quarter", "s", None), ("filedCount", "i", None), ("universeCount", "i", None), ("complete", "b", None)]
+HOLD_STOCK = [("sym", "s", None), ("filedOn", "s", None), ("promoterPct", "f", 2), ("fiiPct", "f", 2), ("diiPct", "f", 2),
+              ("mfPct", "f", 2), ("insurancePct", "f", 2), ("retailPct", "f", 2), ("fiiChgPp", "f", 2),
+              ("diiChgPp", "f", 2), ("mfChgPp", "f", 2), ("promoterChgPp", "f", 2), ("sharesChgPct", "f", 2),
+              ("dilutionFlag", "b", None), ("holderCount", "i", None), ("totalShares", "i", None)]
+HOLD_NAMED = [("sym", "s", None), ("category", "s", None), ("subType", "s", None), ("holder", "s", None),
+              ("entityId", "s", None), ("shares", "i", None), ("pct", "f", 2), ("prevPct", "f", 2), ("chg", "s", None)]
+HOLD_AGG = [("quarter", "s", None), ("group", "s", None), ("n", "i", None), ("promoterPct", "f", 2), ("fiiPct", "f", 2),
+            ("diiPct", "f", 2), ("mfPct", "f", 2), ("retailPct", "f", 2)]
+# per-stock blocks in symbols/{f}.json: the quarter in front of the stock table, and the latest quarter's named holders
+HOLDINGS_COLS = ["quarter"] + [c[0] for c in HOLD_STOCK if c[0] != "sym"]
+NAMED_HOLDER_COLS = ["quarter", "category", "subType", "holder", "entityId", "shares", "pct", "prevPct", "chg"]
 DEAL_FLOW_COLS = ["date", "category", "buyValueCr", "sellValueCr", "netValueCr"]
 MARKET_METRICS = ["turnoverCr", "delivValCr", "delivPctW", "medianDelivPct", "adv", "dec", "unch", "spikeCount2x"]
 INDEX_CLOSE_NAMES = ["Nifty 50", "Nifty Next 50", "Nifty Bank", "Nifty Midcap 150", "Nifty Smallcap 250"]

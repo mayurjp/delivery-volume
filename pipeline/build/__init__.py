@@ -9,6 +9,7 @@ from pathlib import Path
 from .. import config, metrics
 from . import columns as C
 from . import deals as deals_build
+from . import holdings as holdings_build
 from . import loader, outputs, signal_perf
 from . import periods as period_build
 from . import trail as trail_build
@@ -49,7 +50,7 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
                            loader.load_hl52(alias, root), etf, loader.first_date("corp_actions", root=root))
 
     if out.exists():
-        for sub in ("daily", "cum", "symbols", "stats", "weekly", "monthly", "trail", "deals", "institutional"):
+        for sub in ("daily", "cum", "symbols", "stats", "weekly", "monthly", "trail", "deals", "institutional", "holdings"):
             shutil.rmtree(out / sub, ignore_errors=True)
     out.mkdir(parents=True, exist_ok=True)
     outputs._DIRS.clear()
@@ -70,7 +71,12 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     validate("universe", uni_doc)
     outputs.dump(out / "universe.json", uni_doc)
 
-    dealb = deals_build.build_deals(out, alias, eq_syms, root)
+    # Phase 4B first: its Promoter entity tags feed the deals build, and its counts feed deals/entities.json
+    uni_w = uni[["sym", "mcapCr", "bucket"]].astype(object).where(lambda x: x.notna(), None)
+    hold = holdings_build.build_holdings(out, uni_w.to_dict("records"), days[-1], root)
+    lap(f"holdings: {len(hold.quarters)} quarters, {len(hold.by_sym)} stocks, {len(hold.promoter_names)} promoter names")
+    dealb = deals_build.build_deals(out, alias, eq_syms, root, index=hold.index, disclosed=hold.disclosed,
+                                    holding_entities=hold.entities)
     deals_build.build_institutional(out, iso_all_days, root)
     outputs.flush()
     lap(f"deals: {deals_build.outputs_summary(dealb)}")
@@ -80,7 +86,8 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     sizes["cum"] = outputs.write_cum(df, days, list(uni["sym"]), settings["carryForwardMaxDays"], out, pub_start)
     outputs.flush()
     lap(f"cum written ({sizes['cum'] / 1e6:.1f} MB)")
-    sizes["symbols"] = outputs.write_symbols(df, uni, corp, out, pub_first, dealb.by_sym, dealb.flow_rows)
+    sizes["symbols"] = outputs.write_symbols(df, uni, corp, out, pub_first, dealb.by_sym, dealb.flow_rows,
+                                             holdings_by_sym=hold.by_sym)
     outputs.flush()
     lap(f"symbols written ({sizes['symbols'] / 1e6:.1f} MB)")
     iso_days = [d.isoformat() for d in days]
