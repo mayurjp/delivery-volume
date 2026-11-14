@@ -4,6 +4,15 @@ import { describe, expect, it } from 'vitest';
 import type { TrailPerfRow, UniverseRow } from '../types/data';
 import { rowsToObjects } from './dataClient';
 import { buildInsights, historyLine, narrative, parseTrail } from './trailView';
+import {
+  EMPTY_HOLDINGS,
+  ENTITY_DISCLOSURE,
+  EXITED_CAVEAT,
+  MODEL_NOTE,
+  OWNERSHIP_PRESETS,
+  coverageLine,
+  dilutionCaveat,
+} from './ownership';
 
 /**
  * No UI string may call a signal bullish, bearish, a buy or a sell, or "confirmed" (04 section 0, 06 Phase 3).
@@ -115,6 +124,10 @@ describe('smart money trail wording', () => {
     'src/lib/trailView.ts',
     'src/charts/trail.ts',
     'src/components/TrailLearn.tsx',
+    // Phase 4B: shareholding (ownership section, Institutions holdings tab, entity disclosed holdings, Screener presets)
+    'src/components/Ownership.tsx',
+    'src/components/HoldingsTab.tsx',
+    'src/lib/ownership.ts',
   ].map((f) => resolve(process.cwd(), f));
 
   it('no trail source string or JSX text gives advice or a rating', () => {
@@ -125,6 +138,20 @@ describe('smart money trail wording', () => {
         if (TRAIL_ADVICE.test(t)) bad.push(`${f}: ${t.slice(0, 80)}`);
       }
     }
+    expect(bad).toEqual([]);
+  });
+
+  it('the ownership texts (caveats, preset explanations, coverage) pass the same check', () => {
+    const texts = [
+      dilutionCaveat(3.4),
+      EXITED_CAVEAT,
+      MODEL_NOTE,
+      ENTITY_DISCLOSURE,
+      EMPTY_HOLDINGS,
+      coverageLine(19, 2970, '2026-09-30'),
+      ...OWNERSHIP_PRESETS.flatMap((p) => [p.label, p.explain]),
+    ];
+    const bad = texts.filter((t) => TRAIL_ADVICE.test(t) || FORBIDDEN.test(t));
     expect(bad).toEqual([]);
   });
 

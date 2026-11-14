@@ -255,3 +255,11 @@ Static content written from 04 §0, §4 and §8:
 - **Stock page:** deal markers on the price chart (triangles above the high for bought, below the low for sold, sized by value); the deal list with entity links and round-trip notes; the monthly net via deals bar chart.
 - **Trail:** the sector table gains "FII via deals" and "DII via deals"; the stock mode gains a "Named deals" card with the entity behind each deal (DEVIATIONS #81, #82).
 - **Caveat and history gap:** every deals view shows the large-trades caveat (04 5.3) and the history-gap note (DEVIATIONS #87).
+
+## Phase 4B as built (2026-11-14)
+
+- **P1 Stock page Ownership** (`components/Ownership.tsx`): a stacked bar per quarter (last four stored) of Promoter, FII, MF, Insurance, Other DII, Retail and Others, with the table beside it; the change chips in pp, ⚠ and the dilution caveat when the share count moved by more than 2%; the named holders above 1% of the latest quarter with NEW, UP, DOWN, SAME and EXITED status and entity links; the EXITED caveat; the filed date of each quarter; and the empty state "No shareholding filings stored for this stock yet." (DEVIATIONS #112, #113, #116, #118).
+- **P6 Institutions, Holdings tab** (`components/HoldingsTab.tsx`): coverage ("Holdings stored for N of M companies", with an in-progress note), market-cap-weighted trends by group (All, Large, Mid, Small, Micro, `tab=holdings&hg=`), and the biggest QoQ rises and falls for FII, DII, MF and Promoter, excluding dilution (DEVIATIONS #110, #111).
+- **P7 Entity page, disclosed holdings** (`components/Ownership.tsx`): stocks where the entity is a named holder above 1%, latest quarter first, with % and status (DEVIATIONS #115).
+- **P2 Screener**: ownership columns (Promoter %, FII %, DII %, MF %, the three pp changes, Filed) and an "Ownership (quarterly filings)" preset group in the day view, with one explanation per preset (DEVIATIONS #114, #117).
+- Local data: 19 stocks have holdings; every view shows its empty state for the rest. The Micro group has no stocks yet.

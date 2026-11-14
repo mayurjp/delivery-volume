@@ -245,6 +245,53 @@ ROUTES.push(
     wait: 'h1:has-text("Goldman Sachs")',
     expect: async (p) => (await p.locator('section[aria-label="Aliases"] li').count()) >= 2,
   },
+  // Phase 4B: shareholding (S16). Ownership on the stock page (holdings and none), the Holdings tab, a disclosed-holdings entity, the Screener ownership preset
+  {
+    path: '#/stock/AUROPHARMA',
+    wait: 'h1:has-text("AUROPHARMA")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=ownership-bars] li', { timeout: 25000 });
+      return (
+        (await p.locator('[data-testid=ownership-bars] li').count()) === 4 &&
+        (await p.locator('[data-testid=ownership-changes]').count()) === 1 &&
+        (await p.locator('table[aria-label="Named holders above 1%"] tbody tr').count()) > 0
+      );
+    },
+  },
+  {
+    path: '#/stock/RELIANCE',
+    wait: 'section[aria-label="Ownership"]',
+    expect: async (p) =>
+      /No shareholding filings stored for this stock yet\./.test(
+        await p.locator('section[aria-label="Ownership"]').innerText(),
+      ),
+  },
+  {
+    path: '#/institutions?tab=holdings',
+    wait: '[data-testid=holdings-tab]',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=holdings-trend] tbody tr', { timeout: 25000 });
+      return (
+        /Holdings stored for \d+ of \d+ companies/.test(await p.locator('[data-testid=holdings-coverage]').innerText()) &&
+        (await p.locator('section[aria-label="Biggest changes"] li').count()) > 0
+      );
+    },
+  },
+  {
+    path: '#/entity/hdfc-mf',
+    wait: 'section[aria-label="Disclosed holdings"]',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=disclosed-holdings] tbody tr', { timeout: 25000 });
+      return (await p.locator('[data-testid=disclosed-holdings] tbody tr').count()) > 0;
+    },
+  },
+  {
+    path: '#/screener?p=fiiUp',
+    wait: 'h1:has-text("Screener")',
+    expect: async (p) =>
+      (await p.locator('button[aria-pressed=true]:has-text("FII stake up last quarter")').count()) === 1 &&
+      /ranking, not an event/.test(await p.locator('[data-testid=history-fiiUp]').innerText()),
+  },
   {
     path: '#/learn',
     wait: 'h1:has-text("Learn")',

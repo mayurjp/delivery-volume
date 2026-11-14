@@ -18,6 +18,10 @@ import type {
   FlowRow,
   EntityRow,
   FiiDerivRow,
+  HoldingsAggregateRow,
+  HoldingsFiling,
+  HoldingsQuarterRow,
+  HolderRow,
 } from '../types/data';
 import { dataClient } from './dataClient';
 import { activeFilterCount, defaultFilters, type Filters } from './filters';
@@ -101,6 +105,17 @@ export const useDeals = (): Async<DealRow[]> =>
     const years = Array.from({ length: last - first + 1 }, (_, i) => first + i);
     return (await Promise.all(years.map((y) => dataClient.dealsYear(y)))).flat();
   });
+
+// ---- Phase 4B: shareholding (S16) -------------------------------------------------------------------------------------
+
+export const useHoldingsQuarters = (): Async<HoldingsQuarterRow[]> =>
+  useAsync('holdings:quarters', () => dataClient.holdingsQuarters());
+export const useHoldingsLatest = (enabled = true): Async<HoldingsFiling[]> =>
+  useAsync(enabled ? 'holdings:latest' : null, () => dataClient.holdingsLatest());
+export const useHoldingsAggregates = (): Async<HoldingsAggregateRow[]> =>
+  useAsync('holdings:aggregates', () => dataClient.holdingsAggregates());
+export const useHolders = (quarters: string[] | null): Async<{ quarter: string; rows: HolderRow[] }[]> =>
+  useAsync(quarters ? `holders:${quarters.join(',')}` : null, () => dataClient.holders(quarters ?? []));
 
 export const usePeriods = (): Async<PeriodsDoc> => useAsync('periods', () => dataClient.periods());
 export const usePeriodSnapshot = (tf: 'w' | 'm', info: PeriodInfo | null): Async<PeriodSnapshot> =>

@@ -25,6 +25,10 @@ import type {
   DealRow,
   FlowRow,
   EntityRow,
+  HoldingsAggregateRow,
+  HoldingsFiling,
+  HoldingsQuarterRow,
+  HolderRow,
 } from '../types/data';
 
 /**
@@ -285,6 +289,38 @@ export class DataClient {
   /** deals/entities.json: one row per entity, with its aliases. */
   entities(): Promise<EntityRow[]> {
     return this.table<EntityRow>('deals/entities.json');
+  }
+
+  /** holdings/quarters.json: the stored quarters, with how many companies filed (S16, Phase 4B). */
+  holdingsQuarters(): Promise<HoldingsQuarterRow[]> {
+    return this.table<HoldingsQuarterRow>('holdings/quarters.json');
+  }
+
+  /** holdings/latest.json: one filing per stock (its latest stored quarter). */
+  holdingsLatest(): Promise<HoldingsFiling[]> {
+    return this.table<HoldingsFiling>('holdings/latest.json');
+  }
+
+  /** holdings/aggregates.json: market-cap-weighted group percentages per quarter. */
+  holdingsAggregates(): Promise<HoldingsAggregateRow[]> {
+    return this.table<HoldingsAggregateRow>('holdings/aggregates.json');
+  }
+
+  /**
+   * holdings/holders/{q}.json for each quarter (the store writes the latest two). A quarter whose file is missing or
+   * unreadable is left out of the result rather than failing the view.
+   */
+  holders(quarters: readonly string[]): Promise<{ quarter: string; rows: HolderRow[] }[]> {
+    return Promise.all(
+      quarters.map(async (quarter) => {
+        try {
+          const rows = await this.table<HolderRow>(`holdings/holders/${quarter}.json`);
+          return { quarter, rows };
+        } catch {
+          return null;
+        }
+      }),
+    ).then((all) => all.filter((x): x is { quarter: string; rows: HolderRow[] } => x !== null));
   }
 
   /** institutional/cash.json: the FII/DII cash table and the first collected day. */

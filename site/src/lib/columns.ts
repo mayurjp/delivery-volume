@@ -2,6 +2,7 @@ import { deliveryClass, priceClass } from '../charts/theme';
 import type { Bucket, DailyRow, SignalCode } from '../types/data';
 import {
   fmtCr,
+  fmtDate,
   fmtInt,
   fmtSigned,
   fmtNum,
@@ -13,22 +14,24 @@ import {
   fmtRatio,
 } from './format';
 import { SIGNAL_LABEL } from './signals';
+import { dilutionCaveat, fmtChangePp, type OwnershipFields } from './ownership';
 
 /** A Screener row: one daily row joined with its universe row. */
-export type ScreenRow = DailyRow & {
-  name: string;
-  sector: string;
-  mcapCr: number | null;
-  bucket: Bucket | null;
-  /** Close minus previous close, ₹. */
-  chg: number | null;
-  /** Period-snapshot extras (08 section 5; set only in the weekly and monthly views). */
-  days?: number | null;
-  delivBalance?: number | null;
-  avgTradeSize?: number | null;
-  /** 1 when the period's prices were split-adjusted. */
-  adjusted?: number;
-};
+export type ScreenRow = DailyRow &
+  Partial<OwnershipFields> & {
+    name: string;
+    sector: string;
+    mcapCr: number | null;
+    bucket: Bucket | null;
+    /** Close minus previous close, ₹. */
+    chg: number | null;
+    /** Period-snapshot extras (08 section 5; set only in the weekly and monthly views). */
+    days?: number | null;
+    delivBalance?: number | null;
+    avgTradeSize?: number | null;
+    /** 1 when the period's prices were split-adjusted. */
+    adjusted?: number;
+  };
 
 /** What every Screener row type (day or range) provides for the shared table. */
 export interface RowLike {
@@ -190,6 +193,60 @@ export const COLUMNS: ColumnSpec[] = [
     fmt: (r) => r.buildup ?? '—',
   },
   num('pcr', 'PCR', 'Put-call ratio (Phase 5)', 66, (v) => fmtNum(v)),
+  // Ownership (Phase 4B): the latest shareholding filing, joined from holdings/latest.json. Dashes for stocks with none.
+  num('promoterPct', 'Promoter %', 'Promoter share of total shares, latest shareholding filing', 88, (v) =>
+    fmtPct(v),
+  ),
+  num('fiiPct', 'FII %', 'FII share of total shares, latest shareholding filing', 76, (v) => fmtPct(v)),
+  num('diiPct', 'DII %', 'DII share of total shares (includes MF and insurance), latest filing', 76, (v) =>
+    fmtPct(v),
+  ),
+  num('mfPct', 'MF %', 'Mutual fund share of total shares (inside DII), latest filing', 76, (v) => fmtPct(v)),
+  {
+    ...num(
+      'fiiChgPp',
+      'FII chg',
+      'FII share change against the previous filed quarter, percentage points',
+      92,
+      fmtChangePp,
+      priceClass,
+    ),
+    cellTip: (r) => (r.dilutionFlag ? dilutionCaveat(r.sharesChgPct ?? 0) : undefined),
+  },
+  {
+    ...num(
+      'diiChgPp',
+      'DII chg',
+      'DII share change against the previous filed quarter, percentage points',
+      92,
+      fmtChangePp,
+      priceClass,
+    ),
+    cellTip: (r) => (r.dilutionFlag ? dilutionCaveat(r.sharesChgPct ?? 0) : undefined),
+  },
+  {
+    ...num(
+      'mfChgPp',
+      'MF chg',
+      'MF share change against the previous filed quarter, percentage points',
+      92,
+      fmtChangePp,
+      priceClass,
+    ),
+    cellTip: (r) => (r.dilutionFlag ? dilutionCaveat(r.sharesChgPct ?? 0) : undefined),
+  },
+  {
+    key: 'holdingsFiledOn',
+    label: 'Filed',
+    tip: 'Date the latest shareholding filing was made (its quarter is in the tooltip)',
+    width: 96,
+    align: 'right',
+    fmt: (r) => fmtDate(r.holdingsFiledOn ?? null),
+    cellTip: (r) =>
+      r.holdingsQuarter
+        ? `Quarter ${r.holdingsQuarter}, filed ${fmtDate(r.holdingsFiledOn ?? null)}`
+        : 'No shareholding filing stored for this stock yet',
+  },
 ];
 
 const PERIOD_ONLY_TIP_BAL =

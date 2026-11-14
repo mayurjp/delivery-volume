@@ -1,3 +1,4 @@
+import { DisclosedHoldings } from '../components/Ownership';
 import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import EChart from '../charts/EChart';
@@ -284,6 +285,7 @@ export default function Deals() {
                       {r.entityName}
                     </Link>{' '}
                     <span className="chip">{r.entityCategory}</span>
+                    {r.entityType === 'Promoter' && <span className="chip">Promoter</span>}
                     {r.entityTypeInferred && <span className="text-xs text-slate-500"> (inferred)</span>}
                     {r.roundTrip && <span className="text-xs text-slate-500"> round trip</span>}
                   </td>
@@ -462,13 +464,7 @@ export function EntityPage() {
           </div>
         </div>
       </section>
-      <section aria-label="Disclosed holdings" className="card p-3 text-sm">
-        <h2 className="mb-1 font-semibold">Disclosed holdings</h2>
-        <p className="text-slate-600 dark:text-slate-300">
-          Only holdings above 1% are disclosed in shareholding filings. Those arrive with Phase 4B; until then
-          this entity's page shows its named deals only.
-        </p>
-      </section>
+      <DisclosedHoldings entityId={entityId} />
       <section aria-label="Per-stock net" className="card overflow-x-auto p-3">
         <h2 className="mb-1 text-sm font-semibold">Net via deals, by stock (round trips excluded)</h2>
         {perStock.length === 0 ? (

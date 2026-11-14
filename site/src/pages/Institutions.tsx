@@ -16,6 +16,7 @@ import { useFiiDeriv, useInstitutionalCash, useMeta, useParticipants } from '../
 import { cashSum, monthlyCash, participantLongPct } from '../lib/institutional';
 import { useDark } from '../lib/theme';
 import { AppLink, Empty, ErrorBox, Skeleton, Tip } from '../components/ui';
+import HoldingsTab from '../components/HoldingsTab';
 import type { FiiDerivRow, ParticipantRow } from '../types/data';
 
 type Tab = 'cash' | 'deriv' | 's7' | 'holdings';
@@ -75,15 +76,7 @@ export default function Institutions() {
       {tab === 'cash' && <CashTab range={range} onRange={(r) => set('r', r)} />}
       {tab === 'deriv' && <DerivTab />}
       {tab === 's7' && <S7Tab />}
-      {tab === 'holdings' && (
-        <section className="card p-3" aria-label="Holdings">
-          <h2 className="text-sm font-semibold">Holdings (quarterly, S16)</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Quarterly shareholding patterns arrive with Phase 4B. Until then, the stock page and the Deals
-            page show named bulk and block deals only.
-          </p>
-        </section>
-      )}
+      {tab === 'holdings' && <HoldingsTab />}
     </div>
   );
 }

@@ -49,12 +49,21 @@ import {
   useApp,
   useAsync,
   useDaily,
+  useHoldingsLatest,
   useGlobalState,
   usePeriodSnapshot,
   useSignalPerf,
   useTimeframe,
 } from '../lib/hooks';
 import { PRESET_BY_ID, PRESET_EVENT, PRESET_GROUPS, runPreset } from '../lib/presets';
+import {
+  NO_OWNERSHIP,
+  OWNERSHIP_BY_ID,
+  OWNERSHIP_PRESETS,
+  ownershipBySym,
+  runOwnershipPreset,
+  type OwnershipPreset,
+} from '../lib/ownership';
 import { parseFilters } from '../lib/urlState';
 import { readJson, writeJson } from '../lib/storage';
 import { useWatchlist } from '../lib/watchlist';
@@ -179,6 +188,9 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
   const info = periodTf && periods.data ? periodFor(periodsOf(periods.data, periodTf), date) : null;
   const snap = usePeriodSnapshot(periodTf ?? 'w', info);
   const daily = useDaily(view === 'day' ? date : null, meta.latestDate);
+  // Ownership (Phase 4B): the latest shareholding filing per stock, joined onto the day rows
+  const holdings = useHoldingsLatest(view === 'day');
+  const ownMap = useMemo(() => (holdings.data ? ownershipBySym(holdings.data) : null), [holdings.data]);
 
   const legacyRange = useRangeState();
   const tfSpec = useMemo(
@@ -261,6 +273,9 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     presetId && (view === 'day' || view === 'period') ? PRESET_BY_ID.get(presetId) : undefined;
   const blockedReason = presetAny ? reasonOf(presetAny.id) : null;
   const preset = presetAny && !blockedReason ? presetAny : undefined;
+  // ownership presets: day view only (the filings are quarterly)
+  const ownPreset: OwnershipPreset | undefined =
+    presetId && view === 'day' ? OWNERSHIP_BY_ID.get(presetId) : undefined;
   const q = params.get('q') ?? '';
   const explicit = parseSort(params.get('s'), (id) =>
     rangeish ? RANGE_COLUMN_BY_KEY.has(id) : dayRegistry.has(id),
@@ -271,7 +286,9 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
       ? [{ id: 'delivValChgPct', desc: true }]
       : preset
         ? [{ id: preset.sort as string, desc: preset.dir === 'desc' }]
-        : [{ id: 'delivValCr', desc: true }]);
+        : ownPreset
+          ? [{ id: ownPreset.sort as string, desc: ownPreset.dir === 'desc' }]
+          : [{ id: 'delivValCr', desc: true }]);
 
   const setParam = (k: string, v: string | null) => {
     const n = new URLSearchParams(params);
@@ -290,23 +307,24 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     const eff = watchlistMode ? { ...filters, u: 'WATCHLIST' } : filters;
     let list = applyFilters(source, bySym, eff, ctx);
     if (preset) list = runPreset(preset, list, bySym);
-    return list
-      .map((r) => {
-        const u = bySym.get(r.sym)!;
-        return {
-          ...r,
-          name: u.name,
-          sector: u.sector,
-          mcapCr: u.mcapCr,
-          bucket: u.bucket,
-          chg:
-            r.close !== null && r.prevClose !== null ? Math.round((r.close - r.prevClose) * 100) / 100 : null,
-        };
-      })
-      .filter(
-        (r) => !needle || r.sym.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle),
-      );
-  }, [source, filters, bySym, ctx, preset, needle, watchlistMode]);
+    const joined: ScreenRow[] = list.map((r) => {
+      const u = bySym.get(r.sym)!;
+      return {
+        ...r,
+        name: u.name,
+        sector: u.sector,
+        mcapCr: u.mcapCr,
+        bucket: u.bucket,
+        chg:
+          r.close !== null && r.prevClose !== null ? Math.round((r.close - r.prevClose) * 100) / 100 : null,
+        ...(ownMap?.get(r.sym) ?? NO_OWNERSHIP),
+      };
+    });
+    const ranked = ownPreset ? runOwnershipPreset(ownPreset, joined) : joined;
+    return ranked.filter(
+      (r) => !needle || r.sym.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle),
+    );
+  }, [source, filters, bySym, ctx, preset, ownPreset, ownMap, needle, watchlistMode]);
 
   const rRows: RangeScreenRow[] = useMemo(() => {
     if (!rangeRows.data || !rangeish) return [];
@@ -400,6 +418,42 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     const m = PRESET_EVENT[id];
     const line = m ? historyLine(perf.data, m.event, m.group ?? 'ALL') : undefined;
     return line ?? (m ? 'Historically: not enough history for this list yet.' : RANKING_LINE);
+  };
+
+  const ownershipBlock = (p: OwnershipPreset) => {
+    const on = ownPreset?.id === p.id;
+    const why = view === 'day' ? null : 'Shareholding is quarterly, so this list is shown in the day view.';
+    return (
+      <div key={p.id} className="min-w-0">
+        <button
+          type="button"
+          aria-pressed={on}
+          disabled={why !== null}
+          title={why ?? undefined}
+          className={`chip whitespace-nowrap ${on ? 'bg-blue-600 text-white' : ''} ${why ? 'cursor-not-allowed opacity-50' : ''}`}
+          onClick={() => {
+            const n = new URLSearchParams(params);
+            n.set('p', p.id);
+            n.delete('s');
+            setParams(n);
+          }}
+        >
+          {p.label}
+        </button>
+        {why ? (
+          <p
+            className="mt-0.5 text-xs text-amber-700 dark:text-amber-400"
+            data-testid={`unavailable-${p.id}`}
+          >
+            Not available here. {why}
+          </p>
+        ) : (
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" data-testid={`history-${p.id}`}>
+            {p.explain}
+          </p>
+        )}
+      </div>
+    );
   };
 
   const presetBlock = (id: string) => {
@@ -567,6 +621,12 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
                   </div>
                 );
               })}
+              <div role="group" aria-label="Ownership (quarterly filings)" className="min-w-0 space-y-1.5">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Ownership (quarterly filings)
+                </h2>
+                <div className="grid gap-3 md:grid-cols-3">{OWNERSHIP_PRESETS.map(ownershipBlock)}</div>
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">{PERF_DISCLAIMER}</p>
               {view === 'period' && (
                 <p className="text-xs text-slate-500 dark:text-slate-400">

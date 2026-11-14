@@ -452,6 +452,65 @@ export interface EntityRow {
   disclosedHoldingsQuarter: string | null;
 }
 
+/**
+ * One shareholding filing (S16, 03 5.10). holdings/latest.json and holdings/{q}.json rows carry `sym` and `quarter`;
+ * the per-stock `holdings` block of a symbol file has the same fields without `sym`. Percentages are of total shares;
+ * `*ChgPp` is the change against the previous quarter in percentage points; `sharesChgPct` is the change in total
+ * shares in percent (|x| > 2 sets `dilutionFlag`, 04 5.4).
+ */
+export interface HoldingsFiling {
+  sym?: string;
+  quarter: string;
+  filedOn: string | null;
+  promoterPct: number | null;
+  fiiPct: number | null;
+  diiPct: number | null;
+  mfPct: number | null;
+  insurancePct: number | null;
+  retailPct: number | null;
+  fiiChgPp: number | null;
+  diiChgPp: number | null;
+  mfChgPp: number | null;
+  promoterChgPp: number | null;
+  sharesChgPct: number | null;
+  dilutionFlag: boolean;
+  holderCount: number | null;
+  totalShares: number | null;
+}
+
+/** holdings/quarters.json: `filedCount` of `universeCount` companies filed; `complete` once the quarter is closed. */
+export interface HoldingsQuarterRow {
+  quarter: string;
+  filedCount: number;
+  universeCount: number;
+  complete: boolean;
+}
+
+/** holdings/aggregates.json: market-cap-weighted group percentages (ALL, MC:L, MC:M, MC:S, MC:U). */
+export interface HoldingsAggregateRow {
+  quarter: string;
+  group: string;
+  n: number;
+  promoterPct: number | null;
+  fiiPct: number | null;
+  diiPct: number | null;
+  mfPct: number | null;
+  retailPct: number | null;
+}
+
+/** holdings/holders/{quarter}.json: a named holder above 1%. `chg` is NEW, UP, DOWN, SAME or EXITED (pct null). */
+export interface HolderRow {
+  sym: string;
+  category: string;
+  subType: string;
+  holder: string;
+  entityId: string;
+  shares: number | null;
+  pct: number | null;
+  prevPct: number | null;
+  chg: 'NEW' | 'UP' | 'DOWN' | 'SAME' | 'EXITED' | null;
+}
+
 /** institutional/cash.json (Rs Crore; nulls on days with no S8 record). */
 export interface CashRow {
   date: string;
