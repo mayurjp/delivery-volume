@@ -6,7 +6,7 @@ All commands are idempotent and safe to re-run.
 
 | Command | Behaviour |
 |---------|-----------|
-| `python -m pipeline verify-sources --date 2026-11-13` | Phase 0 tool. For every source S1–S15 it prints the HTTP status, byte size, detected header, row count and validation result. Exits non-zero if any VERIFIED source fails. `--json` writes a machine-readable report. |
+| `python -m pipeline verify-sources --date 2026-11-13` | Phase 0 tool. For every source S1–S17 it prints the HTTP status, byte size, detected header, row count and validation result. Exits non-zero if any VERIFIED source fails. `--json` writes a machine-readable report. |
 | `python -m pipeline fetch --date D` / `--since D` / `--sources s1,s5` | Downloads into `store/`. Skips any file already stored, unless `--force`. |
 | `python -m pipeline backfill --from 2025-11-01 [--to D]` | Loops `fetch` over the range for the sources that have history. Resumable. Prints progress and an ETA. |
 | `python -m pipeline backfill-deals --from D --to D` | Optional, local only. Uses the cookie-gated historical bulk/block API (S9/S10 note). |
@@ -47,6 +47,7 @@ The run environment is read from env `PIPELINE_ENV=actions|local` (default `loca
     "hl52":            { "runIn": ["actions", "local"] },
     "fo_ban":          { "runIn": ["actions", "local"] },
     "equity_list":     { "runIn": ["actions", "local"] },
+    "symbol_change":   { "runIn": ["actions", "local"] },
     "shareholding":    { "runIn": ["actions", "local"], "quartersBack": 4, "maxRequestsPerRun": 600, "recheckDays": 7 }
   }
 }
@@ -74,6 +75,7 @@ store/
   fo_ban/2026/2026-11-13.txt             S14
   constituents/2026-11-09/*.csv          S11 snapshot folder, created only when any file changed
   equity_list/2026-11-09.csv.gz          S15 snapshot, created only when changed
+  ref/symbolchange/2026-11-14.csv.gz     S17 symbol changes (whole file), created only when the content changed (gzip mtime 0)
   shareholding/index.json                per symbol: quarters stored, lastChecked, listing payload hash
   shareholding/2026-09-30/RELIANCE.xml.gz   S16 XBRL as downloaded (quarter-end folder; symbol via fileKey)
   shareholding/2026-09-30/RELIANCE.json  S16 parsed: category totals + named holders > 1% (03 §5.10 shape)
@@ -96,7 +98,8 @@ Rules:
 
 - **Analytics universe** for a day: rows with `SERIES` in `universeSeries` (EQ). Rows in `excludedSeries` (SME: SM, ST) are dropped at parse time and appear in no generated file. The raw S1 file in `store/` still contains them, because it is stored exactly as downloaded.
 - **BE/BZ days** stay in a symbol's history for price continuity, but with delivery fields null and flag `t2t`. They are excluded from every delivery average and ranking.
-- **Symbol changes:** build an ISIN→symbol timeline from `cm_isin` (and S15 snapshots). When a new symbol takes over an ISIN that an older symbol held, merge the history under the new symbol and keep `aliases: [old]`. If no ISIN data exists for a period, do not merge.
+- **Symbol changes (S17, Phase 3C; supersedes the ISIN-only rule below, DEVIATIONS #70):** `store/ref/symbolchange/` is fetched with the other weekly reference snapshots (`fetch`, `backfill` and `update` re-check S11, S15 and S17 every 6 days) and in `verify-sources`. The build maps stored history under an old symbol to today's symbol **only for rows dated before the effective date**, transitively (LTI → LTIM → LTM). The ISIN timeline wins where both know the symbol. A mapped row that would collide with a row of the target symbol on the same date stays unmapped (symbol reuse), and an old symbol that trades again today is never mapped for undated uses. Every file family (`symbols/`, `cum/`, `daily/`, periods, stats) therefore sees one continuous series.
+- **Symbol changes (ISIN):** build an ISIN→symbol timeline from `cm_isin` (and S15 snapshots). When a new symbol takes over an ISIN that an older symbol held, merge the history under the new symbol and keep `aliases: [old]`. If no ISIN data exists for a period, do not merge.
 - **Filenames:** `fileKey(symbol)` keeps `[A-Za-z0-9-]` and replaces every other character with `_` plus its 2-digit uppercase hex code. For example, `M&M` becomes `M_26M` and `BAJAJ-AUTO` stays `BAJAJ-AUTO`. The key is emitted in `universe.json` as `f`. The frontend never derives it.
 - **Sector:** from the latest TOTALMARKET constituents (S11), otherwise `"Unclassified"`.
 - **Market cap:** `mcapCr = mcapRs / 1e7` from S4. Rank by `mcapCr` descending among universe stocks each day. Buckets: `L` rank 1–100, `M` 101–250, `S` 251–500, `U` (micro) 501+, `null` if no mcap. This follows SEBI's rank method (top 100 / 101–250). Splitting 251+ into Small and Micro is our own addition for usability. The UI must say so.
@@ -269,6 +272,12 @@ Forward excess returns after each delivery event, per 04 §6 (method, events, gr
 - The UI hides every cell with `n` < `minN`.
 - Forward returns are close-to-close and drop any window that crosses a price adjustment (04 §6).
 
+### 5.9a Smart Money Trail files (Phase 3C, 07 §6A)
+
+- `trail/latest.json` and `trail/asof/{YYYY-MM-DD}.json` (month-end snapshots, only for days inside the published window; no lookahead, tested): `columns ["sym","strip","3M","6M","1Y"]`. A row is one stock eligible on the as-of day. `strip` is 52 characters of weekly codes (`A`, `D`, `N`, `-`). Each window cell is `null` or an array in `windowColumns` order: `codes` (4 characters, one per indicator: delivery balance, delivery % trend, trade size trend, spike persistence), `delivBal`, `delivPctTrend` (pp), `tradeSizeTrend` (%), `spikeDays`, `spikeUp`, `spikeDn`, `baseSpikeRate` (%), `upCr`, `dnCr`, `consA`, `consD` (% of the window's weeks), `flip` (`A→D`, `D→A` or null) and `flipSince` (the end date of the first week of the opposite run). Top level: `stripWeeks` (52 week-end dates), `indicators` (id, label, rule), `slots` (named deals, holdings, promoter, F&O: "arrives in Phase 4 / 4B / 5"), `config` (the thresholds the browser twin reads), `listSize`, and, in latest.json only, `snapshots` (the as-of dates that exist). `latest.json` has every eligible stock; as-of snapshots only stocks in any index list (today's membership: survivorship is labelled). Sector aggregates and insights are computed in the browser (DEVIATIONS #67).
+- `stats/trail_perf.json`: the track record. `columns ["kind","id","window","horizon","n","dates","medianExcess","meanExcess","hitRate"]`; `kind` is `list` (strongA, strongD, flip, flipAD, flipDA) or `indicator` (`delivBal:A`, `delivBal:D`, `delivBal:N`, and so on); horizons 60 and 120 trading days; entry at close(t+1); excess against the median of the Nifty 500 eligible stocks on the same as-of date; windows crossing a price adjustment are dropped (DEVIATIONS #53); `asOfDates` lists the month-ends used.
+- Schemas: `trail.schema.json`, `trail_perf.schema.json`. All trail outputs together are about 4.4 MB (budget 25 MB). Stock mode has no per-stock file: the browser computes it from `symbols/{f}.json` (`site/src/lib/trail.ts`, shared vectors `trailVectors.json`).
+
 ### 5.9b `stats/split_bonus.json`
 
 Columns `sym, exDate, kind, purpose`: every SPLIT and BONUS ex-date in the stored corporate actions (alias-resolved). Period Compare and range mode use it for the ⚠ "corporate action in range" marker (04 §3), because the symbol files that also carry corporate actions are too many to load for a ranking.
@@ -309,6 +318,8 @@ Columns `sym, exDate, kind, purpose`: every SPLIT and BONUS ex-date in the store
 - Value-weighted averages are ratios of sums, never averages of ratios.
 - Put every formula in `pipeline/metrics.py` and give each a unit test with hand-computed expected values.
 - `build` rebuilds everything from `store/` every run. It must finish in **under 6 minutes for 3 years of data on a GitHub runner** (it was 3 minutes for 1 year; updated in Phase 3B). Text columns are plain `object` (pandas 3's str dtype is slow to group without pyarrow), group keys are integer codes, and table validation checks cell types with a column scan instead of per-cell jsonschema. Vectorise with pandas `groupby` and do not loop over rows in Python.
+
+**Rolling publish window (07 §8, Phase 3C).** `publish.historyTradingDays` (default 750) limits the published files to the last N trading days: `daily/`, `cum/`, `weekly/`, `monthly/`, `symbols/` rows, `market.json`, `periods.json`, `meta.tradingDays` and `trail/asof/`. `store/` and every statistic (`stats/`, `trail_perf`) keep the whole history. `cum/` stays cumulative from the first stored day, so a range difference is the same with or without the clip (tested). `meta.publish` carries `historyTradingDays` and `storeFirstDate`; `meta.firstDate` is the first published day. Periods that start before the window are not published.
 
 ## 7. Scheduling and deployment
 

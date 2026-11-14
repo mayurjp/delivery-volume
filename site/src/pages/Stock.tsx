@@ -3,13 +3,23 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { calendarOption, stockChartOption } from '../charts/options';
 import { barHolding, barSpecOf, baselineLabel, periodChartOption, periodTitle } from '../charts/periods';
 import { FootprintCard, PeriodSummary, rangeSpanText } from '../components/PeriodPanels';
-import { aggregatePeriods, aggregateRange } from '../lib/aggregate';
+import { aggregatePeriods, aggregateRange, skipSet } from '../lib/aggregate';
 import { dataClient } from '../lib/dataClient';
 import { footprintRows, priorWindow } from '../lib/footprint';
 import { periodSignalHistory } from '../lib/signalPerf';
 import EChart from '../charts/EChart';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
-import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, SignalBadge, Skeleton, Tip } from '../components/ui';
+import {
+  AppLink,
+  Empty,
+  ErrorBox,
+  EtfBadge,
+  FlagIcons,
+  SignalBadge,
+  Skeleton,
+  Tip,
+  TrailButton,
+} from '../components/ui';
 import { BUCKET_LABEL } from '../lib/labels';
 import {
   fmtCr,
@@ -125,6 +135,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
             </button>
           </h1>
           <p className="truncate text-sm text-slate-600 dark:text-slate-300">{u.name}</p>
+          <TrailButton sym={u.sym} className="mt-2" />
         </div>
         <div className="num text-right">
           <div className="text-xl font-semibold">{fmtPrice(last?.close)}</div>
@@ -215,7 +226,10 @@ export default function Stock() {
   const periodRows = useMemo(
     () =>
       spec && data.data && periodsDoc.data && u
-        ? aggregatePeriods(data.data.rows, spec, meta.tradingDays, periodsDoc.data.config, { etf: u.etf })
+        ? aggregatePeriods(data.data.rows, spec, meta.tradingDays, periodsDoc.data.config, {
+            etf: u.etf,
+            sym: u.sym,
+          })
         : null,
     [spec, data.data, periodsDoc.data, meta.tradingDays, u],
   );
@@ -235,11 +249,12 @@ export default function Stock() {
     if (!custom || !rows || !tfState.from || !tfState.to) return null;
     const lo = tfState.from <= tfState.to ? tfState.from : tfState.to;
     const hi = tfState.from <= tfState.to ? tfState.to : tfState.from;
-    const cur = aggregateRange(rows, lo, hi);
+    const skip = periodsDoc.data ? skipSet(periodsDoc.data.config, u?.sym) : undefined;
+    const cur = aggregateRange(rows, lo, hi, skip);
     const pw = priorWindow(meta.tradingDays, lo, hi);
-    const prev = pw ? aggregateRange(rows, pw.a, pw.b) : null;
+    const prev = pw ? aggregateRange(rows, pw.a, pw.b, skip) : null;
     return { lo, hi, cur, pw, prev };
-  }, [custom, rows, tfState.from, tfState.to, meta.tradingDays]);
+  }, [custom, rows, tfState.from, tfState.to, meta.tradingDays, periodsDoc.data, u?.sym]);
   const rangeChart = useMemo(
     () =>
       rangeInfo?.cur && periodsDoc.data

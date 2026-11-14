@@ -13,11 +13,15 @@ const OUTDIR = process.env.SMOKE_OUTDIR; // optional: preview a build made with 
 const ORIGIN = `http://localhost:${PORT}`;
 const SHOTS = process.env.SMOKE_SHOTS;
 
-const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', ...(OUTDIR ? ['--outDir', OUTDIR] : [])], {
-  env: { ...process.env, VITE_BASE: BASE },
-  shell: true,
-  stdio: 'ignore',
-});
+const preview = spawn(
+  'npx',
+  ['vite', 'preview', '--port', String(PORT), '--strictPort', ...(OUTDIR ? ['--outDir', OUTDIR] : [])],
+  {
+    env: { ...process.env, VITE_BASE: BASE },
+    shell: true,
+    stdio: 'ignore',
+  },
+);
 
 async function waitUp() {
   for (let i = 0; i < 60; i++) {
@@ -31,6 +35,7 @@ async function waitUp() {
   throw new Error('vite preview did not start');
 }
 
+await waitUp();
 const failures = [];
 const fail = (m) => {
   failures.push(m);
@@ -38,8 +43,16 @@ const fail = (m) => {
 };
 
 const ROUTES = [
-  { path: '#/', wait: 'h1:has-text("Dashboard")', expect: async (p) => (await p.locator('section[aria-label="Delivery spikes"] li').count()) > 0 },
-  { path: '#/screener', wait: 'h1:has-text("Screener")', expect: async (p) => (await p.locator('[aria-label="Screener table"]').count()) === 1 },
+  {
+    path: '#/',
+    wait: 'h1:has-text("Dashboard")',
+    expect: async (p) => (await p.locator('section[aria-label="Delivery spikes"] li').count()) > 0,
+  },
+  {
+    path: '#/screener',
+    wait: 'h1:has-text("Screener")',
+    expect: async (p) => (await p.locator('[aria-label="Screener table"]').count()) === 1,
+  },
   {
     path: '#/screener?u=NIFTY50&p=spikes',
     wait: 'h1:has-text("Screener")',
@@ -49,16 +62,28 @@ const ROUTES = [
       return n > 0 && n <= 50;
     },
   },
-  { path: '#/stock/RELIANCE', wait: 'h1:has-text("RELIANCE")', expect: async (p) => (await p.locator('canvas').count()) >= 2 },
+  {
+    path: '#/stock/RELIANCE',
+    wait: 'h1:has-text("RELIANCE")',
+    expect: async (p) => (await p.locator('canvas').count()) >= 2,
+  },
   { path: '#/stock/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
-  { path: '#/learn', wait: 'h1:has-text("Learn")', expect: async (p) => (await p.locator('text=Every delivered share has both a buyer and a seller').count()) > 0 },
+  {
+    path: '#/learn',
+    wait: 'h1:has-text("Learn")',
+    expect: async (p) =>
+      (await p.locator('text=Every delivered share has both a buyer and a seller').count()) > 0,
+  },
   { path: '#/watchlist', wait: 'h1:has-text("Watchlist")', expect: async () => true },
   {
     path: '#/compare',
     wait: 'h1:has-text("Period Compare")',
     expect: async (p) => {
       await p.waitForSelector('section[aria-label="Delivery increased"] tbody tr', { timeout: 20000 });
-      return (await p.locator('canvas').count()) >= 1 && /vs baseline/.test(await p.locator('[data-testid=range-text]').innerText());
+      return (
+        (await p.locator('canvas').count()) >= 1 &&
+        /vs baseline/.test(await p.locator('[data-testid=range-text]').innerText())
+      );
     },
   },
   {
@@ -89,23 +114,111 @@ const ROUTES = [
       return (await p.locator('canvas').count()) >= 1;
     },
   },
-  { path: '#/heatmap?t=grid', wait: 'h1:has-text("Heatmaps")', expect: async (p) => (await p.locator('canvas').count()) >= 1 },
-  { path: '#/heatmap?t=grid&u=NIFTY50&gr=stocks', wait: 'h1:has-text("Heatmaps")', expect: async (p) => (await p.locator('canvas').count()) >= 1 },
-  { path: '#/heatmap?t=cal&cs=RELIANCE', wait: 'h1:has-text("Heatmaps")', expect: async (p) => { await p.waitForSelector('canvas', { timeout: 20000 }); return true; } },
+  {
+    path: '#/heatmap?t=grid',
+    wait: 'h1:has-text("Heatmaps")',
+    expect: async (p) => (await p.locator('canvas').count()) >= 1,
+  },
+  {
+    path: '#/heatmap?t=grid&u=NIFTY50&gr=stocks',
+    wait: 'h1:has-text("Heatmaps")',
+    expect: async (p) => (await p.locator('canvas').count()) >= 1,
+  },
+  {
+    path: '#/heatmap?t=cal&cs=RELIANCE',
+    wait: 'h1:has-text("Heatmaps")',
+    expect: async (p) => {
+      await p.waitForSelector('canvas', { timeout: 20000 });
+      return true;
+    },
+  },
   {
     path: '#/stats',
     wait: 'h1:has-text("Market Statistics")',
     expect: async (p) => {
       await p.waitForSelector('section[aria-label="Signal performance"] tbody tr', { timeout: 20000 });
-      return (await p.locator('canvas').count()) >= 3 && /Not a prediction/.test(await p.locator('[data-testid=perf-label]').innerText());
+      return (
+        (await p.locator('canvas').count()) >= 3 &&
+        /Not a prediction/.test(await p.locator('[data-testid=perf-label]').innerText())
+      );
     },
   },
 ];
 
+// 07 section 6A: the Smart Money Trail (market mode, its controls, an as-of snapshot, stock mode)
+ROUTES.push(
+  {
+    path: '#/trail',
+    wait: 'h1:has-text("Smart Money Trail")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=list-a] tbody tr', { timeout: 25000 });
+      await p.waitForSelector('[data-testid=track-record] tbody tr', { timeout: 25000 });
+      const hist = await p.locator('[data-testid=history-a]').innerText();
+      const ins = await p.locator('[data-testid=insights] li').count();
+      const label = await p.locator('[data-testid=evidence-label]').innerText();
+      return (
+        /Historically/.test(hist) &&
+        ins >= 5 &&
+        ins <= 10 &&
+        /not advice\. You decide/.test(label) &&
+        (await p.locator('canvas').count()) >= 2
+      );
+    },
+  },
+  {
+    path: '#/trail?tw=1Y&tu=NIFTY200',
+    wait: 'h1:has-text("Smart Money Trail")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=list-flip]', { timeout: 25000 });
+      return (await p.locator('[data-testid=indicator-rows] li').count()) === 4;
+    },
+  },
+  {
+    path: '#/trail/RELIANCE',
+    wait: 'h1:has-text("RELIANCE")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=narrative] li', { timeout: 25000 });
+      await p.waitForSelector('[data-testid=timeline] tbody tr', { timeout: 25000 });
+      const n = await p.locator('[data-testid=narrative] li').count();
+      return (
+        n >= 3 &&
+        n <= 5 &&
+        (await p.locator('canvas').count()) >= 1 &&
+        (await p.locator('[data-testid=sector-compare]').count()) === 1
+      );
+    },
+  },
+  { path: '#/trail/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
+  {
+    path: '#/learn',
+    wait: 'h1:has-text("Learn")',
+    expect: async (p) => (await p.locator('[data-testid=learn-trail]').count()) === 1,
+  },
+);
+{
+  const latest = await (await fetch(`${ORIGIN}${BASE}data/trail/latest.json`)).json();
+  const d = latest.snapshots?.[Math.floor((latest.snapshots?.length ?? 0) / 2)];
+  if (d) {
+    ROUTES.push({
+      path: `#/trail?ta=${d}`,
+      wait: 'h1:has-text("Smart Money Trail")',
+      expect: async (p) => {
+        await p.waitForSelector('[data-testid=asof-note]', { timeout: 25000 });
+        await p.waitForSelector('[data-testid=list-a] tbody tr', { timeout: 25000 });
+        return (await p.locator('[data-testid=list-a] th:has-text("Since")').count()) === 1;
+      },
+    });
+  } else fail('trail/latest.json has no as-of snapshots');
+}
+
 // 08 section 6: D / W / M / Q / Custom (N-day bars) / Custom (date range) on Screener, Stock, Compare, Heatmaps and Stats.
 const TFS = ['', 'tf=w', 'tf=m', 'tf=q', 'tf=c&n=10', 'tf=r&from=2026-06-01&to=2026-09-30&base=prev'];
 const TF_PAGES = [
-  { base: '#/screener', wait: 'h1:has-text("Screener")', sel: '[aria-label="Screener table"], [aria-label="Screener table"] a' },
+  {
+    base: '#/screener',
+    wait: 'h1:has-text("Screener")',
+    sel: '[aria-label="Screener table"], [aria-label="Screener table"] a',
+  },
   { base: '#/stock/RELIANCE', wait: 'h1:has-text("RELIANCE")', sel: 'canvas' },
   { base: '#/compare', wait: 'h1:has-text("Period Compare")', sel: 'canvas' },
   { base: '#/heatmap?u=NIFTY500', wait: 'h1:has-text("Heatmaps")', sel: 'canvas' },
@@ -120,7 +233,11 @@ for (const pg of TF_PAGES) {
       wait: pg.wait,
       expect: async (p) => {
         await p.waitForSelector(pg.sel, { timeout: 25000 });
-        return (await p.locator('[data-testid=period-picker], [data-testid=custom-controls], [aria-label=Timeframe]').count()) > 0;
+        return (
+          (await p
+            .locator('[data-testid=period-picker], [data-testid=custom-controls], [aria-label=Timeframe]')
+            .count()) > 0
+        );
       },
     });
   }
@@ -128,10 +245,16 @@ for (const pg of TF_PAGES) {
 
 let initial = null;
 try {
-  await waitUp();
   const browser = await chromium.launch();
-  for (const vp of [{ w: 360, h: 740 }, { w: 1280, h: 800 }]) {
-    const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1, hasTouch: vp.w < 500 });
+  for (const vp of [
+    { w: 360, h: 740 },
+    { w: 1280, h: 800 },
+  ]) {
+    const ctx = await browser.newContext({
+      viewport: { width: vp.w, height: vp.h },
+      deviceScaleFactor: 1,
+      hasTouch: vp.w < 500,
+    });
     for (const route of ROUTES) {
       const page = await ctx.newPage();
       const errors = [];
@@ -156,9 +279,14 @@ try {
       } catch (e) {
         fail(`${label}: ${e.message.split('\n')[0]}`);
       }
-      const sw = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+      const sw = await page.evaluate(() => ({
+        s: document.documentElement.scrollWidth,
+        c: document.documentElement.clientWidth,
+      }));
       const ok = await route.expect(page).catch(() => false);
-      console.log(`${ok && sw.s <= sw.c && errors.length === 0 ? 'ok  ' : 'FAIL'} ${label} (scrollWidth ${sw.s} / ${sw.c})`);
+      console.log(
+        `${ok && sw.s <= sw.c && errors.length === 0 ? 'ok  ' : 'FAIL'} ${label} (scrollWidth ${sw.s} / ${sw.c})`,
+      );
       if (sw.s > sw.c) fail(`${label}: horizontal page scroll ${sw.s} > ${sw.c}`);
       if (!ok) fail(`${label}: expected content missing`);
       for (const e of errors) fail(`${label}: ${e}`);
@@ -167,7 +295,10 @@ try {
       }
       if (SHOTS) {
         mkdirSync(SHOTS, { recursive: true });
-        await page.screenshot({ path: `${SHOTS}/${vp.w}-${route.path.replace(/[^a-z0-9]+/gi, '_')}.png`, fullPage: false });
+        await page.screenshot({
+          path: `${SHOTS}/${vp.w}-${route.path.replace(/[^a-z0-9]+/gi, '_')}.png`,
+          fullPage: false,
+        });
       }
       await page.close();
     }
@@ -184,16 +315,46 @@ try {
       await wp.waitForSelector('[aria-label="Screener table"] a', { timeout: 20000 });
       const q = new URLSearchParams(wp.url().split('?')[1] ?? '');
       const want = { u: 'NIFTY500', mt: '5', he: '1', hetf: '1', p: 'spikes' };
-      for (const [k, v] of Object.entries(want)) if (q.get(k) !== v) fail(`${vp.w}px watch: ${k}=${q.get(k)} (want ${v})`);
-      const count = Number(/([\d,]+) stocks/.exec(await wp.locator('h1 + p').innerText())?.[1]?.replace(/,/g, ''));
+      for (const [k, v] of Object.entries(want))
+        if (q.get(k) !== v) fail(`${vp.w}px watch: ${k}=${q.get(k)} (want ${v})`);
+      const count = Number(
+        /([\d,]+) stocks/.exec(await wp.locator('h1 + p').innerText())?.[1]?.replace(/,/g, ''),
+      );
       if (!(count > 0 && count <= 500)) fail(`${vp.w}px watch: ${count} stocks`);
-      if ((await wp.locator('[data-testid="history-acc"]').count()) !== 1) fail(`${vp.w}px: history line missing under the ACC preset`);
-      const sw2 = await wp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+      if ((await wp.locator('[data-testid="history-acc"]').count()) !== 1)
+        fail(`${vp.w}px: history line missing under the ACC preset`);
+      const sw2 = await wp.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      );
       if (!sw2) fail(`${vp.w}px: horizontal scroll on the screener with presets`);
       if (SHOTS) await wp.screenshot({ path: `${SHOTS}/${vp.w}-screener-watch.png` });
       for (const e of werr) fail(`${vp.w}px watch: ${e}`);
-      console.log(`${werr.length ? 'FAIL' : 'ok  '} ${vp.w}px Daily delivery watch (${count} stocks, ${wp.url().split('?')[1]})`);
+      console.log(
+        `${werr.length ? 'FAIL' : 'ok  '} ${vp.w}px Daily delivery watch (${count} stocks, ${wp.url().split('?')[1]})`,
+      );
       await wp.close();
+    }
+
+    // the three Smart Money Trail buttons: Dashboard, Screener and Stock page
+    for (const [from, testid, want] of [
+      ['#/', 'trail-button', /#\/trail$/],
+      ['#/screener', 'trail-button', /#\/trail$/],
+      ['#/stock/RELIANCE', 'trail-button-stock', /#\/trail\/RELIANCE$/],
+    ]) {
+      const bp = await ctx.newPage();
+      const berr = [];
+      bp.on('console', (m) => m.type() === 'error' && berr.push(`console: ${m.text()}`));
+      bp.on('pageerror', (e) => berr.push(`pageerror: ${e.message}`));
+      await bp.goto(`${ORIGIN}${BASE}${from}`);
+      await bp.waitForSelector(`[data-testid=${testid}]`, { timeout: 20000 });
+      const text = (await bp.locator(`[data-testid=${testid}]`).first().innerText()).trim();
+      await bp.click(`[data-testid=${testid}]`);
+      await bp.waitForSelector('h1:has-text("Trail"), h1:has-text("RELIANCE")', { timeout: 20000 });
+      if (!want.test(bp.url().split('?')[0])) fail(`${vp.w}px ${from}: trail button went to ${bp.url()}`);
+      if (!/Smart Money Trail|trail/i.test(text)) fail(`${vp.w}px ${from}: trail button text "${text}"`);
+      for (const e of berr) fail(`${vp.w}px ${from} trail button: ${e}`);
+      console.log(`${berr.length ? 'FAIL' : 'ok  '} ${vp.w}px "${text}" button on ${from}`);
+      await bp.close();
     }
 
     // interactions: filter drawer, theme toggle, star + watchlist, date control
@@ -209,13 +370,17 @@ try {
     await page.waitForTimeout(200);
     const url = page.url();
     if (!url.includes('u=NIFTY50')) fail(`${vp.w}px: filter did not reach the URL (${url})`);
-    const sw = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+    const sw = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    );
     if (!sw) fail(`${vp.w}px: horizontal scroll with the filter drawer open`);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp.w}-filters.png` });
     await page.click('[role=dialog] button:has-text("Done")');
     await page.click('button[aria-label^="Theme"]');
     await page.click('button[aria-label^="Theme"]');
-    await page.goto(`${ORIGIN}${BASE}#/watchlist${new URL(page.url()).hash.includes('?') ? '?' + page.url().split('?')[1] : ''}`);
+    await page.goto(
+      `${ORIGIN}${BASE}#/watchlist${new URL(page.url()).hash.includes('?') ? '?' + page.url().split('?')[1] : ''}`,
+    );
     await page.waitForSelector('h1:has-text("Watchlist")');
     await page.waitForTimeout(800);
     const hasRow = (await page.locator('[aria-label="Screener table"] a:has-text("RELIANCE")').count()) === 1;
@@ -226,15 +391,20 @@ try {
     if (!/[?&]d=\d{4}-\d{2}-\d{2}/.test(page.url())) fail(`${vp.w}px: date arrows did not set ?d=`);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${vp.w}-watchlist-dark.png` });
     for (const e of errors) fail(`${vp.w}px interactions: ${e}`);
-    console.log(`${errors.length ? 'FAIL' : 'ok  '} ${vp.w}px interactions (filters, theme, star, watchlist, date)`);
+    console.log(
+      `${errors.length ? 'FAIL' : 'ok  '} ${vp.w}px interactions (filters, theme, star, watchlist, date)`,
+    );
     await ctx.close();
   }
   await browser.close();
   if (initial) {
     const js = initial.bodies.filter((b) => b.url.endsWith('.js')).reduce((s, b) => s + b.size, 0);
     const data = initial.bodies.filter((b) => b.url.includes('/data/')).reduce((s, b) => s + b.size, 0);
-    console.log(`Initial Dashboard load (gzip): total ${(initial.total / 1024).toFixed(0)} KB; JS ${(js / 1024).toFixed(0)} KB; data ${(data / 1024).toFixed(0)} KB`);
-    for (const b of initial.bodies.sort((a, c) => c.size - a.size).slice(0, 8)) console.log(`   ${(b.size / 1024).toFixed(0).padStart(5)} KB  ${b.url.replace(ORIGIN, '')}`);
+    console.log(
+      `Initial Dashboard load (gzip): total ${(initial.total / 1024).toFixed(0)} KB; JS ${(js / 1024).toFixed(0)} KB; data ${(data / 1024).toFixed(0)} KB`,
+    );
+    for (const b of initial.bodies.sort((a, c) => c.size - a.size).slice(0, 8))
+      console.log(`   ${(b.size / 1024).toFixed(0).padStart(5)} KB  ${b.url.replace(ORIGIN, '')}`);
   }
 } finally {
   preview.kill();

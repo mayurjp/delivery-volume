@@ -27,7 +27,7 @@ jobs:
       # The Python test exports the shared range-maths vectors; the committed copy must be current so the
       # Vitest run in the site job checks the same numbers.
       - name: Shared vectors are up to date
-        run: git diff --exit-code site/src/lib/vectors.json site/src/lib/periodVectors.json
+        run: git diff --exit-code site/src/lib/vectors.json site/src/lib/periodVectors.json site/src/lib/trailVectors.json
 
   site:
     runs-on: ubuntu-latest

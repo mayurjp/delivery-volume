@@ -157,6 +157,50 @@ Controls: window (3M / 6M / 1Y), universe (default **Nifty 500**, with the liqui
 
 Each of those phases' acceptance includes "the indicator is wired into the trail, and the trail tests are updated".
 
+### v1 definitions (Phase 3C; thresholds in `config/signals.json → smartMoney`)
+
+**Eligible stocks:** non-ETF EQ/BE rows that are valid delivery days, excluding `lowLiquidity` and `newListing`.
+
+**Baseline for the trend indicators:** the 250 trading days before the window starts. At least 120 valid days are required; otherwise the indicator is `null`, shown as "not enough history".
+
+**Window indicators.** These are computed for the window (3M = 63, 6M = 126, 1Y = 250 trading days ending on the as-of date). Each one is coded A, D or N.
+
+| Key | Value | A | D |
+|-----|-------|---|---|
+| `delivBal` | Σ delivery value on up days ÷ Σ on down days. Up/down means close vs the raw prevClose, the same rule as `cDelivValUpCr`/`cDelivValDnCr`. | > 1.2 | < 0.8 |
+| `delivPctTrend` | Value-weighted delivery % (Σ delivValCr ÷ Σ turnoverCr) in the window, minus the same in the baseline, in pp | > +3 | < −3 |
+| `tradeSizeTrend` | Average trade size (Σ turnover ÷ Σ trades) in the window ÷ the baseline, minus 1 | > +10% | < −10% |
+| `spikePersist` | The window counts as persistent when spike days (spike ≥ 2) number at least 3 **and** the spike-day rate is ≥ 1.5× the baseline rate. If persistent: A when spike days on up days are ≥ 2× those on down days; D for the reverse. Everything else is N. | (as described) | (as described) |
+
+**Weekly codes**, used for the strip, consistency and the stock timeline:
+
+- Each ISO week (as in 08) is coded from the same four indicators over the trailing 20 trading days ending on the week's last trading day.
+- The week's overall code is A when A-count − D-count ≥ 2, D when D-count − A-count ≥ 2, and N otherwise. The same rule applies once there are 7 indicators.
+
+**Window metrics:**
+
+- `tally` = {A: count, D: count, N: count, missing: count} of the window indicators. Ranking uses the A (or D) count, then `consistency`.
+- `consistency` = the share of the window's weeks whose overall code is A (or D).
+- `flip`:
+  - "A→D" when the window tally leans A (A ≥ 2 and A > D) **and** the trailing 6-week (30-day) tally has D-count ≥ `flipMinIndicators`;
+  - "D→A" for the mirror case.
+  - `flipMinIndicators` defaults to 2 while fewer than 6 indicators exist, then 3.
+  - The flip's `since` is the first week of the run of opposite weekly codes.
+
+**Why the track record must be visible.** The 3-year run-footprint study found that delivery concentrated on up days *preceded down-runs* (2.16× before down-runs vs 0.62× before up-runs). Larger trades also came before down-runs. So the conventional "A" reading of `delivBal` and `tradeSizeTrend` may not hold. The trail keeps the conventional labels but:
+
+1. `stats/trail_perf.json` holds the track record per **list** (strongest A, strongest D, flips) **and per indicator** (A vs D vs N). It reports the 60- and 120-day forward excess vs the eligible universe median: median, hit rate and n. Entry is at close(t+1). Windows are dropped per DEVIATIONS #53.
+2. Each list header and each indicator row shows its "Historically: …" line from that file, next to the list, not only at the page bottom.
+3. The Learn page explains the up-day-delivery finding in plain words.
+
+**Stock mode is computed in the browser** from `symbols/{f}.json` by a TS twin of the Python indicator code, using shared vectors as for `aggregatePeriods`. This means there are no per-stock trail files.
+
+**As-of snapshots** are taken at every month-end trading day from the first date that has a full 3M window plus baseline. The 1Y window shows "not enough history" until it can be computed. Each snapshot covers the stocks in any index list (today's lists: label the survivorship bias) that pass the liquidity floor on that date. The strip is stored as a 52-character string. Budget: all trail outputs together ≤ 25 MB.
+
+### Implementation notes (Phase 3C, built)
+
+`pipeline/trail.py` (indicators, weekly codes, window metrics, one-stock twin entry point), `pipeline/build/trail.py` (snapshots, track record), `site/src/lib/trail.ts` (TS twin, shared vectors `trailVectors.json`), `site/src/lib/trailView.ts` (lists, sector rotation, insights, "Historically" lines, narrative), `site/src/pages/Trail.tsx`. Departures from the text above are listed in DEVIATIONS #66 to #69.
+
 ### Acceptance
 
 - Direction-code and flip unit tests on synthetic weekly series.
@@ -202,6 +246,7 @@ Each of those phases' acceptance includes "the indicator is wired into the trail
   - **Publish all 3 years on the site, within the GitHub Pages 1 GB limit:**
     - `cum/`, `symbols/` (full history), `market.json`, run outputs and statistics: full 3 years.
     - `daily/`: full columns for the last `publish.dailyFullTradingDays` (default 260). Older days use a slim column set (sym, series, OHLC, prevClose, vwap, vol, turnoverCr, trades, delivQty, delivPct, delivValCr, spike, delivPctDiff, ret1, signal, flags). Day mode works for any date in 3 years; columns that are missing show "—" with a tooltip. (Phase 3B also keeps `streak` in the slim set: DEVIATIONS #56.)
+  - **Rolling window (added for Phase 3C):** `publish.historyTradingDays` (default 750, about 3 years). Published `daily/`, `cum/`, `weekly/`, `monthly/`, symbol rows, `market.json` series, `periods.json` and `meta.tradingDays` cover only the last N trading days. Older days stay in `store/`. Range maths is unaffected, because cum differences don't depend on the basis start. This keeps `dist/` roughly flat over time instead of growing about 150 MB a year.
   - **Size budget:** `npm run build` must report the total size of `dist/`. Fail CI if it exceeds 900 MB, and warn above 700 MB. Document the fallback in DEVIATIONS when it is needed: move hosting to Cloudflare Pages (no total-size cap; 20,000 files and 25 MiB per file) with `cloudflare/wrangler-action`, which needs the user's Cloudflare account. Ask the user before switching.
 
 ## 9. Acceptance (Phase 5B)

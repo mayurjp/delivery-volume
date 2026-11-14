@@ -122,7 +122,8 @@ def build_period_vectors() -> dict:
     while __import__("datetime").date.fromisoformat(days[-1]).weekday() != 2:
         days.pop()
     rng = np.random.default_rng(11)
-    specs = {"AAA": dict(first=0, split=None), "BBB": dict(first=0, split=70), "CCC": dict(first=40, split=None, tiny=True)}
+    specs = {"AAA": dict(first=0, split=None), "BBB": dict(first=0, split=70), "CCC": dict(first=40, split=None, tiny=True),
+             "DDD": dict(first=0, split=None, demerger=105)}
     stocks: dict[str, list[dict]] = {}
     for sym, sp in specs.items():
         rows, px = [], 100.0 * (1 if sym != "BBB" else 10)
@@ -135,6 +136,8 @@ def build_period_vectors() -> dict:
             px *= 1 + float(rng.uniform(-0.03, 0.035))
             if sp["split"] == i:
                 px *= 0.5  # 1:2 split: NSE keeps prevClose raw
+            if sp.get("demerger") == i:
+                px *= 0.6  # a demerger: looks like a 3:5 split to the ratio rule, but must not be adjusted
             o = round(pc * float(rng.uniform(0.99, 1.01)), 2)
             h = round(max(o, px) * float(rng.uniform(1.0, 1.02)), 2)
             lo = round(min(o, px) * float(rng.uniform(0.98, 1.0)), 2)
@@ -150,6 +153,7 @@ def build_period_vectors() -> dict:
                          "delivQty": None if series == "BE" else dq, "flags": 1 if series == "BE" else (64 if i % 53 == 0 else 0)})
         stocks[sym] = rows
     cfg = {"minPeriodsFraction": settings["minPeriodsFraction"], "liquidity": settings["liquidity"],
+           "notSplits": [{"sym": "X", "date": days[105]}],
            "periods": {tf: {**metrics.DEFAULT_PERIOD_CFG[tf], **signals["periods"][tf]} for tf in ("w", "m", "q")}}
     sets, sigs = {k: v for k, v in cfg.items() if k != "periods"}, {"periods": cfg["periods"]}
     ranges = [(days[10], days[30]), (days[60], days[90]), (days[3], days[-1])]
@@ -157,7 +161,7 @@ def build_period_vectors() -> dict:
     for sym, rows in stocks.items():
         e = {tf: metrics.aggregate_periods(rows, tf, days, sets, sigs) for tf in ("w", "m", "q")}
         e["n7"] = metrics.aggregate_periods(rows, ("n", 7), days, sets, sigs)
-        e["ranges"] = [{"a": a, "b": b, "expected": metrics.aggregate_range(rows, a, b)} for a, b in ranges]
+        e["ranges"] = [{"a": a, "b": b, "expected": metrics.aggregate_range(rows, a, b, sets)} for a, b in ranges]
         expected[sym] = e
     return {"config": cfg, "tradingDays": days, "stocks": stocks, "expected": json.loads(json.dumps(expected))}
 
@@ -169,6 +173,9 @@ def test_period_vectors_cover_the_cases_and_file_is_current():
     assert any(p["adjusted"] == 1 for p in e["BBB"]["w"]) and any(p["signal"] for k in e for p in e[k]["w"])
     assert e["BBB"]["w"][0]["key"] == "2026-W02" and any(p["daysIn"] == 6 and p["end"] == "2026-03-08" and not p["partial"] for p in e["AAA"]["w"])
     assert all(r["expected"] is not None for r in e["AAA"]["ranges"])
+    # the demerger week is not marked adjusted and its return shows the full drop; with the event un-skipped it would be
+    wk = next(p for p in e["DDD"]["w"] if p["start"] <= vec["config"]["notSplits"][0]["date"] <= p["end"])
+    assert wk["adjusted"] == 0 and wk["ret"] < -25
     text = json.dumps(vec, sort_keys=True, separators=(",", ":")) + "\n"
     if not PERIOD_VECTORS.exists() or PERIOD_VECTORS.read_text(encoding="utf-8") != text:
         PERIOD_VECTORS.write_text(text, encoding="utf-8", newline="\n")  # regenerate; commit the new file

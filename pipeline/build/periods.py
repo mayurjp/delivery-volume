@@ -39,9 +39,24 @@ def compute_period_frames(df: pd.DataFrame, days_iso: list[str], settings: dict,
     return out
 
 
+def clip_frames(frames: dict, first_date: str) -> dict:
+    """The period frames restricted to periods that START on or after `first_date` (the rolling publish window, 07 section 8);
+    baselines were computed on the full history, so the kept rows are identical to the unclipped build's."""
+    out = {}
+    for tf, (periods, pf) in frames.items():
+        keep = [i for i, p in enumerate(periods) if p["start"] >= first_date]
+        remap = {old: new for new, old in enumerate(keep)}
+        pf2 = pf[pf["pi"].isin(remap)].copy() if len(pf) else pf
+        if len(pf2):
+            pf2["pi"] = pf2["pi"].map(remap)
+        out[tf] = ([periods[i] for i in keep], pf2.reset_index(drop=True))
+    return out
+
+
 def period_config(settings: dict, signals: dict) -> dict:
     """The thresholds and windows the client's aggregatePeriods needs (the same numbers the build used)."""
     return {"minPeriodsFraction": settings["minPeriodsFraction"], "liquidity": settings["liquidity"],
+            "notSplits": settings.get("notSplits", []),
             "periods": {tf: {**metrics.DEFAULT_PERIOD_CFG[tf], **signals.get("periods", {}).get(tf, {})}
                         for tf in TF_ALL}}
 

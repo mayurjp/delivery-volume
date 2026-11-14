@@ -107,7 +107,7 @@ def cmd_status(args: argparse.Namespace) -> int:
         if miss:
             gaps[name] = miss
     snaps = [(k, sorted(p.name for p in (STORE_DIR / k).glob("*")) if (STORE_DIR / k).exists() else [])
-             for k in ("constituents", "equity_list")]
+             for k in ("constituents", "equity_list", "ref/symbolchange")]
     for k, items in snaps:
         print(f"{k}: snapshots {items}")
     cal = cal_mod.load()

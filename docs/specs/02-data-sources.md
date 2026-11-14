@@ -43,6 +43,7 @@ All sources must be re-verified **from a GitHub Actions runner** in Phase 0. The
 | S14 | F&O ban list | Daily | Yes | VERIFIED |
 | S15 | Equity master list (`EQUITY_L.csv`) | When changed | Current only | VERIFIED |
 | S16 | Shareholding-pattern filings (per company) | Quarterly | Yes (past quarters per company) | UNVERIFIED (cookie-gated API) |
+| S17 | Symbol changes (`symbolchange.csv`) | When changed | Full history (since 2003) in one file | VERIFIED 2026-11-14 (approved by the user) |
 
 ---
 
@@ -333,6 +334,29 @@ https://www.nseindia.com/companies-listing/corporate-filings-shareholding-patter
 
 - Per-symbol listing needs about 2,750 companies × (1 listing call + 1 XBRL per new quarter).
 - Backfilling 4 quarters ≈ 14,000 requests ≈ 4 hours at 1 request/second. It must be resumable and capped per run (03 §2). A date-range listing, if it exists, cuts this sharply.
+
+## S17 — Symbol changes (approved by the user on 2026-11-14)
+
+```
+https://nsearchives.nseindia.com/content/equities/symbolchange.csv
+```
+
+```
+NAME OF THE COMPANY,OLD SYMBOL,NEW SYMBOL,EFFECTIVE DATE
+ETERNAL LIMITED,ZOMATO,ETERNAL,09-APR-2025
+Tata Motors Passenger Vehicles Limited,TATAMOTORS,TMPV,24-OCT-2025
+LTM Limited,LTIM,LTM,27-FEB-2026
+```
+
+- **Access:** static archive, no cookies, HTTP 200 from a browser-like User-Agent. On 2026-11-14 it was 70 KB, about 1,080 rows from 2003 to 2026, UTF-8, `DD-MON-YYYY` dates. 258 rows fall in 2023–2026, including MF, ETF and debt symbols.
+- **Quirks:**
+  - Some company names have leading spaces, or are empty.
+  - Renames chain (LTI → LTIM → LTM), so resolve them transitively.
+  - An old symbol can later be reused by a different company. Map the old symbol to the new one **only for dates before the effective date**.
+- **Companion file**, not used: `namechange.csv` holds company-name changes, with the symbol unchanged.
+- **Fetch:** weekly, plus on every backfill. Snapshot to `store/ref/symbolchange/{YYYY-MM-DD}.csv.gz` when the content changes.
+- **Use:** see DEVIATIONS #65 and its successor. The build maps stored history under an old symbol to today's symbol, so a renamed stock's symbol file, cum and period rows carry its full history.
+- **A rename is not always a pure rename.** TATAMOTORS → TMPV came with a demerger. The price discontinuity on the demerger ex-date (2025-10-14) is not a split. If the ratio rule (#52) flags it, keep it as a corporate-action window; don't invent an adjustment factor.
 
 ## 2. Trading calendar
 

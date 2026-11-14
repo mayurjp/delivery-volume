@@ -224,7 +224,7 @@ export interface SignalPerfRow {
 export interface SplitBonusRow {
   sym: string;
   exDate: string;
-  kind: 'SPLIT' | 'BONUS';
+  kind: 'SPLIT' | 'BONUS' | 'ADJ' | 'DEMERGER';
   purpose: string;
 }
 
@@ -341,4 +341,55 @@ export interface SignalPerfPeriodRow {
   medianExcess: number | null;
   meanExcess: number | null;
   hitRate: number | null;
+}
+
+/** trail/latest.json and trail/asof/{date}.json (07 section 6A). A window cell is null when it cannot be computed. */
+export interface TrailDoc {
+  schemaVersion: 1;
+  asOf: string;
+  stripWeeks: (string | null)[];
+  windows: string[];
+  windowDays: number[];
+  windowColumns: string[];
+  indicators: { id: string; label: string; rule: string }[];
+  slots: { id: string; label: string; arrives: string }[];
+  listSize: number;
+  label: string;
+  columns: string[];
+  rows: [string, string, unknown[] | null, unknown[] | null, unknown[] | null][];
+  eligible?: number;
+  survivorship?: string;
+  /** Month-end as-of snapshots that exist (latest.json only). */
+  snapshots?: string[];
+  /** The thresholds the build used; the browser twin reads the same numbers. */
+  config: unknown;
+}
+
+/** stats/trail_perf.json (07 section 6A): the track record per list and per indicator. */
+export interface TrailPerfRow {
+  kind: 'list' | 'indicator';
+  id: string;
+  window: string;
+  horizon: number;
+  n: number;
+  dates: number;
+  medianExcess: number | null;
+  meanExcess: number | null;
+  hitRate: number | null;
+}
+
+export interface TrailPerfDoc {
+  schemaVersion: 1;
+  asOf: string;
+  universe: string;
+  windows: string[];
+  horizons: number[];
+  asOfDates: string[];
+  minN: number;
+  listSize: number;
+  lists: { id: string; label: string }[];
+  indicators: { id: string; label: string }[];
+  label: string;
+  columns: string[];
+  rows: unknown[][];
 }

@@ -192,15 +192,24 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
 
 # ---- flags ---------------------------------------------------------------------------------------------------------
 
-def detected_adjustments(df: pd.DataFrame, ca_first: str | None) -> pd.DataFrame:
+def detected_adjustments(df: pd.DataFrame, ca_first: str | None, not_splits=None) -> pd.DataFrame:
     """Price adjustments detected from the prices themselves (metrics.adjustment_events) on days
     BEFORE the first stored S4 corporate-action file (`ca_first`), where no corporate-action data exists. Columns sym,
     date (the ex-date), ratio, dayIdx-free. df must be sorted by (sym, date)."""
-    ev, r = metrics.adjustment_events(df["sym"].to_numpy(dtype=object), df["close"].to_numpy(dtype="float64"))
+    sym, dt = df["sym"].to_numpy(dtype=object), df["date"].to_numpy(dtype=object)
+    ev, r = metrics.adjustment_events(sym, df["close"].to_numpy(dtype="float64"), dt, not_splits)
+    # events the ratio rule would call a split but that are known not to be (a demerger): kept as corporate-action
+    # windows, with no adjustment factor (kind DEMERGER, ratio = the observed close ratio, for information only)
+    skip = metrics.not_split_mask(sym, dt, not_splits)
+    close = df["close"].to_numpy(dtype="float64")
+    prev = np.r_[np.nan, close[:-1]]
+    kind = np.where(skip, "DEMERGER", "ADJ")
+    keep = ev | skip
     if ca_first is not None:
-        ev = ev & (df["date"].to_numpy(dtype=object) < ca_first)
-    return pd.DataFrame({"sym": df["sym"].to_numpy(dtype=object)[ev], "date": df["date"].to_numpy(dtype=object)[ev],
-                         "ratio": r[ev]})
+        keep = keep & (dt < ca_first)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ratio = np.where(skip, close / prev, r)
+    return pd.DataFrame({"sym": sym[keep], "date": dt[keep], "ratio": ratio[keep], "kind": kind[keep]})
 
 
 def own_hl52_breaks(df: pd.DataFrame, n_days: int, window: int = 250, min_obs: int = 200) -> tuple[np.ndarray, np.ndarray]:
@@ -209,7 +218,10 @@ def own_hl52_breaks(df: pd.DataFrame, n_days: int, window: int = 250, min_obs: i
     needs `window` days of market history before t and `min_obs` of the stock's own days inside the window, else no
     flag. df must be sorted by (sym, date) and carry dayIdx."""
     sym = df["sym"].to_numpy(dtype=object)
-    A = metrics.price_adjustment(sym, df["close"].to_numpy(dtype="float64"))
+    from .. import config
+
+    A = metrics.price_adjustment(sym, df["close"].to_numpy(dtype="float64"), df["date"].to_numpy(dtype=object),
+                                 config.settings().get("notSplits", []))
     codes, _ = pd.factorize(sym)
     ti = df["dayIdx"].to_numpy()
     n = int(codes.max()) + 1 if len(codes) else 0
@@ -250,7 +262,9 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
             ca, ex_idx = ca[keep], ex_idx[keep]
         pairs += [pd.DataFrame({"sym": ca["sym"].to_numpy(), "dayIdx": ex_idx + off}) for off in range(-2, 3)]
     has_prices = {"close", "prevClose", "high", "low"} <= set(df.columns)
-    adj = detected_adjustments(df, ca_first) if has_prices else pd.DataFrame(columns=["sym", "date", "ratio"])
+    from .. import config
+
+    adj = detected_adjustments(df, ca_first, config.settings().get("notSplits", [])) if has_prices else pd.DataFrame(columns=["sym", "date", "ratio"])
     if len(adj):
         ai = np.searchsorted(iso, adj["date"].to_numpy())
         pairs += [pd.DataFrame({"sym": adj["sym"].to_numpy(), "dayIdx": ai + off}) for off in range(-2, 3)]
@@ -315,7 +329,9 @@ def write_daily(df: pd.DataFrame, days: list[date], out: Path, full_days: int | 
     return total
 
 
-def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, out: Path) -> int:
+def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, out: Path, publish_from: int = 0) -> int:
+    """cum/{date}.json for every day from index `publish_from` on. The cumulative sums run from the first stored day, so a
+    published range difference does not depend on where the published window starts (07 section 8, rolling window)."""
     T, m = len(days), len(syms)
     pos = {s: i for i, s in enumerate(syms)}
     d_idx = {d.isoformat(): i for i, d in enumerate(days)}
@@ -351,6 +367,8 @@ def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, o
     iso = np.array([d.isoformat() for d in days], dtype=object)
     total = 0
     for t, d in enumerate(days):
+        if t < publish_from:
+            continue
         p = present[t]
         ltd = iso[last_idx[t][p].astype(int)]
         frame = pd.DataFrame({
@@ -363,11 +381,11 @@ def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, o
     return total
 
 
-def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: Path) -> int:
+def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: Path, first_date: str | None = None) -> int:
     ca_by_sym = {s: g for s, g in corp.groupby("sym")}
     total = 0
     ud = uni.set_index("sym")
-    dfu = df[df["sym"].isin(ud.index)].sort_values(["sym", "date"], kind="stable").reset_index(drop=True)
+    dfu = df[df["sym"].isin(ud.index) & ((df["date"] >= first_date) if first_date else True)].sort_values(["sym", "date"], kind="stable").reset_index(drop=True)
     ft = FastTable(dfu, C.SYMBOL_HIST)
     bounds = {s: (int(g.index[0]), int(g.index[-1]) + 1) for s, g in dfu.groupby("sym", sort=False)}
     urec = {r["sym"]: r for r in uni.to_dict("records")}
@@ -461,7 +479,9 @@ def build_split_bonus(corp: pd.DataFrame, adj: pd.DataFrame | None = None) -> di
     c = corp[corp["kind"].isin(("SPLIT", "BONUS"))]
     rows = [[r.sym, r.exDate, r.kind, r.purpose] for r in c.itertuples()]
     if adj is not None and len(adj):
-        rows += [[r.sym, r.date, "ADJ", f"Price adjusted by {r.ratio:.4g}x (split or bonus, detected from the prices)"]
+        rows += [[r.sym, r.date, "DEMERGER", f"Demerger: the price fell to {r.ratio:.2g}x in a day; not a split, so "
+                  "prices are not adjusted"] if r.kind == "DEMERGER" else
+                 [r.sym, r.date, "ADJ", f"Price adjusted by {r.ratio:.4g}x (split or bonus, detected from the prices)"]
                  for r in adj.itertuples()]
     rows.sort(key=lambda r: (r[1], r[0]))
     return {"schemaVersion": 1, "columns": ["sym", "exDate", "kind", "purpose"], "rows": rows}
@@ -493,7 +513,8 @@ def source_status(days: list[date], root: Path | None = None) -> dict:
     return out
 
 
-def build_meta(days: list[date], uni: pd.DataFrame, asof: str | None, settings: dict, root: Path | None = None) -> dict:
+def build_meta(days: list[date], uni: pd.DataFrame, asof: str | None, settings: dict, root: Path | None = None,
+               store_first: str | None = None) -> dict:
     full = settings.get("publish", {}).get("dailyFullTradingDays", len(days))
     sectors = sorted(s for s in uni["sector"].unique() if s != "Unclassified")
     return {
@@ -507,5 +528,7 @@ def build_meta(days: list[date], uni: pd.DataFrame, asof: str | None, settings: 
                      "minBaseDelivValCr": settings["liquidity"]["minBaseDelivValCr"]},
         # daily/ files of days before dailyFullFrom carry only dailySlimColumns (07 section 8)
         "publish": {"dailyFullTradingDays": full, "dailyFullFrom": days[max(0, len(days) - full)].isoformat(),
-                    "dailySlimColumns": C.DAILY_SLIM},
+                    "dailySlimColumns": C.DAILY_SLIM,
+                    "historyTradingDays": settings.get("publish", {}).get("historyTradingDays"),
+                    "storeFirstDate": store_first or days[0].isoformat()},
     }

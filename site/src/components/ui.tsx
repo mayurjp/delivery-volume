@@ -6,6 +6,31 @@ import { useSignalPerf } from '../lib/hooks';
 import { signalHistory } from '../lib/signalPerf';
 import type { Bucket, SignalCode } from '../types/data';
 
+/** The filled primary button. `.btn` lives in the Tailwind components layer, so these utilities override its colours. */
+export const PRIMARY_BTN =
+  'btn border-blue-700 bg-blue-600 font-semibold text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700';
+
+/** The prominent "Smart Money Trail" entry point (07 section 6A): Dashboard, Screener, and "Show this stock's trail". */
+export function TrailButton({
+  sym,
+  label,
+  className = '',
+}: {
+  sym?: string;
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <Link
+      to={sym ? `/trail/${encodeURIComponent(sym)}` : '/trail'}
+      className={`${PRIMARY_BTN} ${className}`}
+      data-testid={sym ? 'trail-button-stock' : 'trail-button'}
+    >
+      {label ?? (sym ? `Show this stock’s trail` : 'Smart Money Trail')}
+    </Link>
+  );
+}
+
 /** A router link that carries the global filter and date params to the next page. */
 export function AppLink({ to, children, ...rest }: Omit<LinkProps, 'to'> & { to: string }) {
   const { search } = useLocation();

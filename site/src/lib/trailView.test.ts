@@ -1,0 +1,162 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import type { TrailDoc, TrailPerfDoc, TrailPerfRow, UniverseRow } from '../types/data';
+import { rowsToObjects } from './dataClient';
+import {
+  buildInsights,
+  filterEntries,
+  historyLine,
+  leansA,
+  leansD,
+  narrative,
+  parseTrail,
+  perfRow,
+  rankLists,
+  sectorGrid,
+  sectorMedian,
+  sectorRotation,
+} from './trailView';
+
+const fx = (f: string) =>
+  JSON.parse(readFileSync(resolve(process.cwd(), 'src/lib/__fixtures__/trail', f), 'utf8'));
+const doc = fx('latest.json') as TrailDoc;
+const perfDoc = fx('perf.json') as TrailPerfDoc;
+const uniDoc = fx('universe.json') as { columns: string[]; rows: unknown[][] };
+const perf = rowsToObjects<TrailPerfRow>(perfDoc);
+const universe = rowsToObjects<UniverseRow>(uniDoc);
+const bySym = new Map(universe.map((u) => [u.sym, u]));
+const entries = parseTrail(doc);
+const INDICES = ['NIFTY50', 'NIFTYNEXT50', 'NIFTY100', 'NIFTY200', 'NIFTY500'];
+
+describe('lists', () => {
+  const l = rankLists(entries, '6M', 25);
+  it('ranks the strongest A and D by count, then consistency, and flips newest first', () => {
+    expect(l.strongA.length).toBeGreaterThan(0);
+    for (let i = 1; i < l.strongA.length; i++) {
+      const a = l.strongA[i - 1]!.w['6M']!;
+      const b = l.strongA[i]!.w['6M']!;
+      expect(a.A > b.A || (a.A === b.A && (a.consA ?? -1) >= (b.consA ?? -1))).toBe(true);
+    }
+    expect(l.strongA.every((e) => leansA(e.w['6M']!)) && l.strongD.every((e) => leansD(e.w['6M']!))).toBe(
+      true,
+    );
+    const since = l.flips.map((e) => e.w['6M']!.flipSince ?? '');
+    expect([...since].sort().reverse()).toEqual(since);
+    expect(l.flips.every((e) => e.w['6M']!.flip !== null)).toBe(true);
+  });
+  it('filters by universe and sector', () => {
+    const all = filterEntries(entries, bySym, { u: 'ALL', sector: null }, INDICES);
+    const sec = all[0] && bySym.get(all[0].sym)!.sector;
+    const one = filterEntries(entries, bySym, { u: 'NIFTY500', sector: sec ?? null }, INDICES);
+    expect(one.length).toBeGreaterThan(0);
+    expect(one.every((e) => bySym.get(e.sym)!.sector === sec)).toBe(true);
+  });
+});
+
+describe('sector rotation', () => {
+  const rot = sectorRotation(entries, bySym, '6M');
+  it('counts match the entries and the balance is value weighted', () => {
+    expect(rot.reduce((s, r) => s + r.n, 0)).toBe(
+      entries.filter((e) => e.w['6M'] && bySym.has(e.sym)).length,
+    );
+    const r0 = rot[0]!;
+    const members = entries.filter((e) => bySym.get(e.sym)!.sector === r0.sector && e.w['6M']);
+    expect(r0.nA).toBe(members.filter((e) => leansA(e.w['6M']!)).length);
+    const up = members.reduce((s, e) => s + (e.w['6M']!.upCr ?? 0), 0);
+    const dn = members.reduce((s, e) => s + (e.w['6M']!.dnCr ?? 0), 0);
+    expect(r0.balance).toBeCloseTo(up / dn, 10);
+    expect([...rot].sort((a, b) => b.netPp - a.netPp || a.sector.localeCompare(b.sector))).toEqual(rot);
+  });
+  it('builds a sector x week grid of net shares', () => {
+    const g = sectorGrid(
+      entries,
+      bySym,
+      26,
+      rot.map((r) => r.sector),
+    );
+    expect(g.cells.length).toBe(g.sectors.length);
+    expect(g.cells.every((row) => row.length === 26)).toBe(true);
+    const flat = g.cells.flat().filter((x): x is number => x !== null);
+    expect(flat.every((x) => x >= -100 && x <= 100)).toBe(true);
+  });
+});
+
+describe('insight templates', () => {
+  const ctx = { win: '6M' as const, universeLabel: 'Nifty 500', sectorLabel: null, perf, minN: 30 };
+  const ins = buildInsights(entries, bySym, ctx);
+  const byId = new Map(ins.map((i) => [i.id, i]));
+  it('produces 5 to 10 sentences', () => {
+    expect(ins.length).toBeGreaterThanOrEqual(5);
+    expect(ins.length).toBeLessThanOrEqual(10);
+  });
+  it('every number equals its source statistic', () => {
+    const w = (e: (typeof entries)[number]) => e.w['6M'];
+    const withW = entries.filter((e) => w(e));
+    const a3 = withW.filter((e) => w(e)!.A >= 3);
+    expect(byId.get('strongA')!.numbers.count).toBe(a3.length);
+    expect(byId.get('strongA')!.syms).toEqual(a3.map((e) => e.sym));
+    expect(byId.get('strongA')!.text.startsWith(`${a3.length} Nifty 500 `)).toBe(true);
+    const d3 = withW.filter((e) => w(e)!.D >= 3);
+    expect(byId.get('strongD')!.numbers.count).toBe(d3.length);
+    const ad = withW.filter((e) => w(e)!.flip === 'A→D').length;
+    const da = withW.filter((e) => w(e)!.flip === 'D→A').length;
+    const fl = byId.get('flips')!;
+    expect(fl.numbers).toEqual({ ad, da });
+    expect(fl.text).toContain(`${ad} Nifty 500`);
+    expect(fl.text).toContain(`and ${da} moved`);
+    const pa = withW.filter((e) => (w(e)!.consA ?? 0) >= 60).length;
+    const pd = withW.filter((e) => (w(e)!.consD ?? 0) >= 60).length;
+    expect(byId.get('persistent')!.numbers).toEqual({ a: pa, d: pd });
+    const rot = sectorRotation(entries, bySym, '6M').filter((s) => s.n >= 5);
+    if (rot.length >= 2) {
+      const top = rot[0]!;
+      const sn = byId.get('sectorNet')!;
+      expect(sn.numbers).toMatchObject({ topN: top.n, topA: top.nA, topD: top.nD });
+      expect(sn.text).toContain(
+        `${top.sector} (${top.nA} of ${top.n} stocks leaning A, ${top.nD} leaning D)`,
+      );
+    }
+    const lastA = withW.filter((e) => e.strip.at(-1) === 'A' && e.strip.at(-2) !== 'A').length;
+    expect(byId.get('latestWeek')!.numbers.toA).toBe(lastA);
+    const h = byId.get('history');
+    expect(h).toBeDefined();
+    const a = perfRow(perf, 'list', 'strongA', '6M', 60)!;
+    expect(h!.numbers).toMatchObject({ a: a.medianExcess, nA: a.n });
+    expect(h!.text).toContain(`n ${a.n}`);
+  });
+  it('every insight links to rows that exist', () => {
+    for (const i of ins) for (const s of i.syms) expect(bySym.has(s)).toBe(true);
+  });
+  it('are deterministic', () => {
+    expect(buildInsights(entries, bySym, ctx)).toEqual(ins);
+  });
+});
+
+describe('history lines and narrative', () => {
+  it('quote the track-record file exactly and hide thin cells', () => {
+    const r60 = perfRow(perf, 'list', 'strongA', '6M', 60)!;
+    const r120 = perfRow(perf, 'list', 'strongA', '6M', 120)!;
+    const line = historyLine(perf, 'list', 'strongA', '6M');
+    expect(line).toContain(`n ${r60.n}`);
+    expect(line).toContain(`n ${r120.n}`);
+    expect(line.startsWith('Historically: 60 days')).toBe(true);
+    const thin = perf.map((r) => ({ ...r, n: 5 }));
+    expect(historyLine(thin, 'list', 'strongA', '6M')).toContain('too few cases (n 5)');
+  });
+  it('writes 3 to 5 sentences whose numbers come from the window record', () => {
+    const e = entries.find((x) => x.w['6M'] && x.w['6M'].spikeDays !== null && x.w['6M'].consA !== null)!;
+    const v = e.w['6M']!;
+    const s = narrative(v, '6M', 26);
+    expect(s.length).toBeGreaterThanOrEqual(3);
+    expect(s.length).toBeLessThanOrEqual(5);
+    expect(s.join(' ')).toContain(`${v.spikeDays} delivery-spike`);
+    expect(s.join(' ')).toContain(`${v.consA}% of the last 26 weeks`);
+  });
+  it('compares a stock with its sector median', () => {
+    const sec = bySym.get(entries[0]!.sym)!.sector;
+    const m = sectorMedian(entries, bySym, sec, '6M')!;
+    expect(m.n).toBe(entries.filter((e) => bySym.get(e.sym)!.sector === sec && e.w['6M']).length);
+    expect(m.shareA + m.shareD).toBeLessThanOrEqual(100);
+  });
+});

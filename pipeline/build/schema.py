@@ -115,6 +115,42 @@ def schemas() -> dict[str, dict]:
             "rows": {"type": "array", "items": {"type": "array", "minItems": len(PERIOD_PERF_COLS),
                                                 "maxItems": len(PERIOD_PERF_COLS)}},
         }}
+    wcols = ["sym", "strip", "3M", "6M", "1Y"]
+    trow = {"type": "array", "minItems": 5, "maxItems": 5, "prefixItems": [
+        {"type": ["string"]}, {"type": ["string"]}, *[{"type": ["array", "null"]}] * 3]}
+    out["trail"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "trail/latest.json, trail/asof/{date}.json",
+        "type": "object",
+        "required": ["schemaVersion", "asOf", "stripWeeks", "windows", "windowDays", "windowColumns", "indicators",
+                     "slots", "listSize", "label", "columns", "rows", "config"],
+        "properties": {
+            "config": {"type": "object"}, "snapshots": {"type": "array", "items": iso},
+            "schemaVersion": {"const": 1}, "asOf": iso, "stripWeeks": {"type": "array", "items": {"type": ["string", "null"]}},
+            "windows": {"const": ["3M", "6M", "1Y"]}, "windowDays": {"type": "array", "items": {"type": "integer"}},
+            "windowColumns": {"type": "array", "items": {"type": "string"}},
+            "indicators": {"type": "array", "items": {"type": "object", "required": ["id", "label", "rule"]}},
+            "slots": {"type": "array", "items": {"type": "object", "required": ["id", "label", "arrives"]}},
+            "listSize": {"type": "integer"}, "label": {"type": "string"}, "columns": {"const": wcols},
+            "rows": {"type": "array", "items": trow},
+        }}
+    tp_cols = ["kind", "id", "window", "horizon", "n", "dates", "medianExcess", "meanExcess", "hitRate"]
+    out["trail_perf"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "stats/trail_perf.json", "type": "object",
+        "required": ["schemaVersion", "asOf", "universe", "windows", "horizons", "asOfDates", "minN", "listSize", "lists",
+                     "indicators", "label", "columns", "rows"],
+        "properties": {
+            "schemaVersion": {"const": 1}, "asOf": iso, "universe": {"type": "string"},
+            "windows": {"type": "array", "items": {"type": "string"}},
+            "horizons": {"type": "array", "items": {"type": "integer"}},
+            "asOfDates": {"type": "array", "items": iso}, "minN": {"type": "integer"}, "listSize": {"type": "integer"},
+            "lists": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
+            "indicators": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
+            "label": {"type": "string"}, "columns": {"const": tp_cols},
+            "rows": {"type": "array", "items": {"type": "array", "minItems": 9, "maxItems": 9, "prefixItems": [
+                {"type": "string"}, {"type": "string"}, {"type": "string"}, {"type": "integer"}, {"type": "integer"},
+                {"type": "integer"}, {"type": ["number", "null"]}, {"type": ["number", "null"]},
+                {"type": ["number", "null"]}]}},
+        }}
     out["split_bonus"] = _table(C.SPLIT_BONUS, title="stats/split_bonus.json")
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},

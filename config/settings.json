@@ -124,9 +124,24 @@
       "quartersBack": 4,
       "maxRequestsPerRun": 600,
       "recheckDays": 7
+    },
+    "symbol_change": {
+      "runIn": [
+        "actions",
+        "local"
+      ]
     }
   },
   "publish": {
-    "dailyFullTradingDays": 260
-  }
+    "dailyFullTradingDays": 260,
+    "historyTradingDays": 750
+  },
+  "notSplits": [
+    {
+      "sym": "TMPV",
+      "date": "2025-10-14",
+      "kind": "DEMERGER",
+      "purpose": "Tata Motors demerger (ex-date 2025-10-14); the symbol became TMPV on 2025-10-24"
+    }
+  ]
 }

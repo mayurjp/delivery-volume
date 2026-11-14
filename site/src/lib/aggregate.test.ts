@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   aggregatePeriods,
   aggregateRange,
+  skipSet,
   periodKey,
   periodsFor,
   priceAdjustment,
@@ -43,19 +44,21 @@ describe('aggregatePeriods matches the Python twin on the shared vectors', () =>
     it(`${sym}: weeks, months, quarters`, () => {
       for (const tf of ['w', 'm', 'q'] as const) {
         expectRows(
-          aggregatePeriods(V.stocks[sym]!, tf, V.tradingDays, V.config),
+          aggregatePeriods(V.stocks[sym]!, tf, V.tradingDays, V.config, { sym: 'X' }),
           e[tf] as Record<string, unknown>[],
           `${sym} ${tf}`,
         );
       }
     });
     it(`${sym}: custom 7-day bars`, () => {
-      const got = aggregatePeriods(V.stocks[sym]!, { kind: 'n', n: 7 }, V.tradingDays, V.config);
+      const got = aggregatePeriods(V.stocks[sym]!, { kind: 'n', n: 7 }, V.tradingDays, V.config, {
+        sym: 'X',
+      });
       expectRows(got, e.n7 as Record<string, unknown>[], `${sym} n7`);
     });
     it(`${sym}: aggregateRange`, () => {
       for (const r of e.ranges as { a: string; b: string; expected: Record<string, unknown> | null }[]) {
-        const got = aggregateRange(V.stocks[sym]!, r.a, r.b);
+        const got = aggregateRange(V.stocks[sym]!, r.a, r.b, skipSet(V.config, 'X'));
         if (r.expected === null) expect(got).toBeNull();
         else expectRows([got!], [r.expected], `${sym} range ${r.a}..${r.b}`);
       }

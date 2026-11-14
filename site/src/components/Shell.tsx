@@ -21,6 +21,7 @@ const NAV: { to: string; label: string; icon: string }[] = [
 
 /** Pages under "More" on the mobile tab bar (also listed in the desktop rail). */
 const MORE: { to: string; label: string; icon: string }[] = [
+  { to: '/trail', label: 'Trail', icon: '⌇' },
   { to: '/stats', label: 'Stats', icon: '∿' },
   { to: '/watchlist', label: 'Watchlist', icon: '★' },
   { to: '/learn', label: 'Learn', icon: '?' },

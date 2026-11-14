@@ -16,7 +16,7 @@ from .sources import REGISTRY
 from .sources import s11_constituents as s11
 
 DAILY_ORDER = ["s1", "s2", "s4", "s12", "s13", "s14"]
-SNAPSHOT_ORDER = ["s11", "s15"]
+SNAPSHOT_ORDER = ["s11", "s15", "s17"]
 FETCHABLE = DAILY_ORDER + SNAPSHOT_ORDER
 SNAPSHOT_RECHECK_DAYS = 6
 
@@ -222,7 +222,7 @@ def _latest_snapshot_dir(kind: str) -> tuple[date | None, object]:
 
 
 def fetch_snapshots(client: Client, as_of: date, cal: dict, force: bool = False, which: list[str] | None = None) -> dict:
-    """S11 constituents / S15 equity list. Stores a new snapshot only if content changed."""
+    """S11 constituents / S15 equity list / S17 symbol changes. Stores a new snapshot only if content changed."""
     out = {}
     which = which or SNAPSHOT_ORDER
     checked = cal.setdefault("snapshotsChecked", {})
@@ -259,6 +259,24 @@ def fetch_snapshots(client: Client, as_of: date, cal: dict, force: bool = False,
             else:
                 for k, v in files.items():
                     store.write_atomic(STORE_DIR / "constituents" / as_of.isoformat() / f"{k}.csv", v, force=True)
+                out[sid] = STORED
+        elif sid == "s17":
+            r = _get(client, "S17", REGISTRY["S17"].urls(as_of)[0][1], as_of)
+            code = _classify(r)
+            if code:
+                out[sid] = code
+                continue
+            _, err = _validate("s17", r, as_of)
+            if err:
+                _warn(f"S17 snapshot not stored: {err}")
+                out[sid] = INVALID
+                continue
+            _, lpath = _latest_snapshot_dir("ref/symbolchange")
+            if lpath is not None and store.read_bytes(lpath) == r.body:
+                out[sid] = SKIPPED
+            else:
+                store.write_atomic(STORE_DIR / "ref" / "symbolchange" / f"{as_of.isoformat()}.csv.gz",
+                                   store.gz_bytes(r.body), force=True)
                 out[sid] = STORED
         else:
             r = _get(client, "S15", REGISTRY["S15"].urls(as_of)[0][1], as_of)

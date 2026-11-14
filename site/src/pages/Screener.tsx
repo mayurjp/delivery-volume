@@ -3,7 +3,7 @@ import type { DailyRow } from '../types/data';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DataTable, { type ExtraColumn } from '../components/DataTable';
-import { Empty, ErrorBox, Skeleton, Sparkline } from '../components/ui';
+import { Empty, ErrorBox, PRIMARY_BTN, Skeleton, Sparkline, TrailButton } from '../components/ui';
 import RangeControls from '../components/RangeControls';
 import {
   COLS_KEY,
@@ -514,13 +514,14 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
               <button
                 key={t}
                 type="button"
-                className="btn !border-blue-700 !bg-blue-600 font-semibold !text-white hover:!bg-blue-700 dark:!border-blue-500 dark:!bg-blue-600 dark:hover:!bg-blue-700"
+                className={PRIMARY_BTN}
                 onClick={() => applyWatch(t)}
                 data-testid={`${t === 'd' ? 'daily' : t === 'w' ? 'weekly' : 'monthly'}-watch`}
               >
                 {t === 'd' ? 'Daily' : t === 'w' ? 'Weekly' : 'Monthly'} delivery watch
               </button>
             ))}
+            <TrailButton />
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-300">{WATCH_NOTE[watchTf]}</p>
           {view !== 'rangeTf' && (

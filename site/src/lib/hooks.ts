@@ -11,6 +11,8 @@ import type {
   SignalPerfPeriodRow,
   SymbolFile,
   SymbolRow,
+  TrailDoc,
+  TrailPerfRow,
   UniverseRow,
 } from '../types/data';
 import { dataClient } from './dataClient';
@@ -62,6 +64,10 @@ export const useCum = (date: string | null): Async<CumRow[]> =>
   useAsync(date ? `cum:${date}` : null, () => dataClient.cum(date as string));
 export const useSymbol = (fileKey: string | null): Async<{ file: SymbolFile; rows: SymbolRow[] }> =>
   useAsync(fileKey ? `symbol:${fileKey}` : null, () => dataClient.symbol(fileKey as string));
+
+export const useTrail = (asOf: string | null): Async<TrailDoc> =>
+  useAsync(`trail:${asOf ?? 'latest'}`, () => dataClient.trail(asOf));
+export const useTrailPerf = (): Async<TrailPerfRow[]> => useAsync('trailPerf', () => dataClient.trailPerf());
 
 export const usePeriods = (): Async<PeriodsDoc> => useAsync('periods', () => dataClient.periods());
 export const usePeriodSnapshot = (tf: 'w' | 'm', info: PeriodInfo | null): Async<PeriodSnapshot> =>

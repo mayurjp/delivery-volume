@@ -148,8 +148,17 @@ def compute_daily(df: pd.DataFrame, settings: dict, signals: dict, etf: set[str]
 
     # flags that depend only on S1-derived values
     v["lowLiquidity"] = v["turnoverAvg20Cr"].notna() & (v["turnoverAvg20Cr"] < liq["minTurnoverAvg20Cr"])
-    v["newListing"] = v["priorDays"] < 20
-    v["sigOk"] = ~v["lowLiquidity"] & (v["priorDays"] >= signals["minHistoryDays"]) & ~v["sym"].isin(etf)
+    # The first 20 days of a stock's history are a warm-up (the 20-day baseline is not full). It is a "New listing" only
+    # when the stock's first stored day is AFTER the store's first trading day; a stock that was already trading when
+    # the store starts has a truncated history, not a new listing, and only has its signals suppressed (DEVIATIONS #72).
+    warmup = v["priorDays"] < 20
+    sym_a, date_a = df["sym"].to_numpy(dtype=object), df["date"].to_numpy(dtype=object)
+    starts = np.flatnonzero(np.r_[True, sym_a[1:] != sym_a[:-1]]) if len(df) else np.empty(0, dtype=int)
+    first_day = np.repeat(date_a[starts], np.diff(np.r_[starts, len(df)])) if len(df) else date_a
+    listed_later = pd.Series(first_day > date_a.min() if len(df) else [], index=df.index).reindex(v.index)
+    v["newListing"] = warmup & listed_later
+    v["sigOk"] = (~v["lowLiquidity"] & (v["priorDays"] >= signals["minHistoryDays"]) & ~v["sym"].isin(etf)
+                  & ~(warmup & ~listed_later))
     v["signal"] = classify_signal(v, signals["daily"])
 
     new_cols = ["delivValCr", "delivValAvg5", "delivValAvg20", "delivValAvg50", "delivPctAvg20", "volAvg20",
@@ -326,7 +335,17 @@ SPLIT_MAX_DOWN, SPLIT_MIN_UP, SPLIT_TOL = 0.78, 1.8, 0.10  # tolerance 10%: on t
 _SPLIT_CANDIDATES = np.array(sorted(set(SPLIT_RATIOS_DOWN) | set(SPLIT_RATIOS_UP)))
 
 
-def adjustment_events(sym: np.ndarray, close: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def not_split_mask(sym: np.ndarray, date: np.ndarray | None, not_splits) -> np.ndarray:
+    """Rows named in `not_splits` ([{sym, date, ...}], settings.json notSplits): price drops that look like a split to the
+    ratio rule but are not one (a demerger, DEVIATIONS #71). Those are corporate-action windows, never price adjustments."""
+    if date is None or not not_splits:
+        return np.zeros(len(sym), dtype=bool)
+    keys = {(x["sym"], x["date"]) for x in not_splits}
+    return np.fromiter(((s_, d_) in keys for s_, d_ in zip(sym, date)), dtype=bool, count=len(sym))
+
+
+def adjustment_events(sym: np.ndarray, close: np.ndarray, date: np.ndarray | None = None,
+                      not_splits=None) -> tuple[np.ndarray, np.ndarray]:
     """(event, factor) per row. An event is a day whose close(t) / close(t-1) (same stock, previous stored row) is at most
     0.78 (or at least 1.8) AND within 10% of a corporate-action ratio (1:2, 1:3, 1:5, 1:10, bonus 1:1 = 1/2, 1:2 = 2/3,
     consolidations 2..100). `factor` is that exact ratio (the observed ratio also contains the day's own move). A fall
@@ -342,14 +361,16 @@ def adjustment_events(sym: np.ndarray, close: np.ndarray) -> tuple[np.ndarray, n
         cand = _SPLIT_CANDIDATES[np.abs(np.log(obs[:, None] / _SPLIT_CANDIDATES[None, :])).argmin(axis=1)]             if n else np.empty(0)
         near = np.abs(obs / cand - 1) <= SPLIT_TOL
         ev = ((obs <= SPLIT_MAX_DOWN) | (obs >= SPLIT_MIN_UP)) & near & ((cand < 1) == (obs < 1))
+    ev = ev & ~not_split_mask(sym, date, not_splits)
     return ev, np.where(ev, cand, 1.0)
 
 
-def price_adjustment(sym: np.ndarray, close: np.ndarray) -> np.ndarray:
+def price_adjustment(sym: np.ndarray, close: np.ndarray, date: np.ndarray | None = None,
+                     not_splits=None) -> np.ndarray:
     """Factor A(t) turning day-t prices into the prices of the LATEST day's basis: A(t) = product of the factors of the
     adjustment events on the days j > t of the same stock (`adjustment_events`)."""
     n = len(sym)
-    ev, f = adjustment_events(sym, close)
+    ev, f = adjustment_events(sym, close, date, not_splits)
     lg = np.log(f)
     cum = np.cumsum(lg)
     starts = np.flatnonzero(np.r_[True, sym[1:] != sym[:-1]])
@@ -394,7 +415,10 @@ def aggregate_frame(df: pd.DataFrame, periods: list[dict], tf, settings: dict | 
         return df[c].to_numpy(dtype="float64", na_value=np.nan)
 
     close, prev_close = f64("close"), f64("prevClose")
-    A = price_adjustment(sym, close)
+    from . import config
+
+    not_splits = (settings or config.settings()).get("notSplits", [])
+    A = price_adjustment(sym, close, df["date"].to_numpy(dtype=object), not_splits)
     pidx = {dt: i for i, p in enumerate(periods) for dt in p["dates"]}
     pi = df["date"].map(pidx).to_numpy(dtype="float64", na_value=-1).astype(np.int64)
     n_all = len(df)
@@ -568,7 +592,7 @@ def aggregate_periods(rows: list[dict], tf, trading_days: list[str], settings: d
     return period_records(pf, periods) if len(pf) else []
 
 
-def aggregate_range(rows: list[dict], a: str, b: str) -> dict | None:
+def aggregate_range(rows: list[dict], a: str, b: str, settings: dict | None = None) -> dict | None:
     """Python twin of aggregateRange(rows, a, b): ONE aggregate over the dates a..b (inclusive) of one stock's rows, for
     the custom single bar and the footprint card. Same fields as a period row, without baseline fields. None when the
     stock has no valid delivery day in the range."""
@@ -578,5 +602,5 @@ def aggregate_range(rows: list[dict], a: str, b: str) -> dict | None:
         return None
     period = {"key": f"{a}..{b}", "start": a, "end": b, "tradingDays": len(dates), "daysIn": len(dates),
               "daysExpected": len(dates), "partial": False, "dates": dates}
-    pf = aggregate_frame(df, [period], ("n", len(dates)), with_baselines=False)
+    pf = aggregate_frame(df, [period], ("n", len(dates)), settings, with_baselines=False)
     return period_records(pf, [period])[0] if len(pf) else None

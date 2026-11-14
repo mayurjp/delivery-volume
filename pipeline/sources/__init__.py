@@ -14,6 +14,7 @@ from . import (
     s11_constituents,
     s12_to_s15,
     s16_shareholding,
+    s17_symbol_change,
 )
 from .base import SourceSpec
 
@@ -21,7 +22,7 @@ REGISTRY: dict[str, SourceSpec] = {s.id: s for s in [
     s1_cm_delivery.SPEC, s2_cm_udiff.SPEC, s3_fo_udiff.SPEC, s4_pr_zip.SPEC, s5_s6_participant.SPEC_OI,
     s5_s6_participant.SPEC_VOL, s7_fii_stats.SPEC, s8_fii_dii_cash.SPEC, s9_s10_deals.SPEC_BULK,
     s9_s10_deals.SPEC_BLOCK, s11_constituents.SPEC, s12_to_s15.SPEC_S12, s12_to_s15.SPEC_S13, s12_to_s15.SPEC_S14,
-    s12_to_s15.SPEC_S15, s16_shareholding.SPEC,
+    s12_to_s15.SPEC_S15, s16_shareholding.SPEC, s17_symbol_change.SPEC,
 ]}
 
 

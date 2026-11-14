@@ -1,3 +1,4 @@
+import TrailLearn from '../components/TrailLearn';
 import { fmtDate } from '../lib/format';
 import { useApp } from '../lib/hooks';
 import { Link } from 'react-router-dom';
@@ -176,6 +177,8 @@ export default function Learn() {
           </p>
         </div>
       </section>
+
+      <TrailLearn />
 
       <section className="space-y-2">
         <h2 className="text-base font-semibold">Traps</h2>

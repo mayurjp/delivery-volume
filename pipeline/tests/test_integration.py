@@ -141,3 +141,39 @@ def test_market_groups_are_stocks_only_and_etf_has_its_own_group(built):
     sectors = sum(g["turnoverCr"][-1] or 0 for k, g in market["groups"].items() if k.startswith("SEC:"))
     assert sectors == pytest.approx(stock_turn, abs=0.5)
     assert (out / "stats" / "signal_perf.json").exists() and (out / "stats" / "split_bonus.json").exists()
+
+
+def test_rolling_publish_window_clips_files_but_not_range_maths(built, tmp_path_factory):
+    """07 section 8: with historyTradingDays below the store, the published day counts match and a range result equals
+    the one from the unclipped build (cum/ stays cumulative from the first stored day)."""
+    from pipeline import config
+
+    out, root, days, *_ = built
+    settings = {**config.settings(), "publish": {**config.settings()["publish"], "historyTradingDays": 30}}
+    clip = tmp_path_factory.mktemp("clip")
+    run_build(clip, root=root, settings=settings)
+    meta = json.loads((clip / "meta.json").read_text())
+    full = json.loads((out / "meta.json").read_text())
+    keep = [d.isoformat() for d in days[-30:]]
+    assert meta["tradingDays"] == keep and meta["firstDate"] == keep[0] and meta["latestDate"] == full["latestDate"]
+    assert meta["publish"]["storeFirstDate"] == days[0].isoformat() and meta["publish"]["historyTradingDays"] == 30
+    assert sorted(p.stem for p in (clip / "daily").glob("20*.json")) == keep
+    assert sorted(p.stem for p in (clip / "cum").glob("*.json")) == keep
+    market = json.loads((clip / "market.json").read_text())
+    assert market["dates"] == keep and len(market["groups"]["ALL"]["delivPctW"]) == 30
+    periods = json.loads((clip / "periods.json").read_text())
+    assert all(p["start"] >= keep[0] for p in periods["weekly"] + periods["monthly"])
+    sym = json.loads((clip / "symbols" / "RELIANCE.json").read_text())
+    assert [r[0] for r in sym["rows"]] == keep
+    # a range inside the window: identical cum differences (and cum rows) from the clipped and the unclipped build
+    a, b = days[-25].isoformat(), days[-1].isoformat()
+
+    def cum(base, d):
+        doc = json.loads((base / "cum" / f"{d}.json").read_text())
+        return {r["sym"]: r for r in rows(doc)}
+
+    assert cum(out, a) == cum(clip, a) and cum(out, b) == cum(clip, b)
+    for s_ in ("RELIANCE", "TCS", "INFY"):
+        full_r = cum(out, b)[s_]["cDelivValCr"] - cum(out, a)[s_]["cDelivValCr"]
+        clip_r = cum(clip, b)[s_]["cDelivValCr"] - cum(clip, a)[s_]["cDelivValCr"]
+        assert full_r == clip_r and full_r > 0

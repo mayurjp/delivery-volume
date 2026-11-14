@@ -10,7 +10,7 @@
   - a theme toggle.
 - **Navigation:** a left rail on desktop (≥ 1024 px) and a bottom tab bar on mobile. The tab bar holds Dashboard, Screener, Compare, Heatmap and More; More holds Institutions, Deals, Stats, Learn and Watchlist (Institutions and Deals appear once those pages exist).
 - **Footer:** the disclaimer from 01 §7, on every page.
-- **Routing:** HashRouter. Routes are `#/`, `#/screener`, `#/compare`, `#/heatmap`, `#/stock/:sym`, `#/institutions`, `#/deals`, `#/entity/:id`, `#/stats`, `#/learn`, `#/watchlist`.
+- **Routing:** HashRouter. Routes are `#/`, `#/screener`, `#/compare`, `#/heatmap`, `#/stock/:sym`, `#/institutions`, `#/deals`, `#/entity/:id`, `#/stats`, `#/trail`, `#/trail/:sym`, `#/learn`, `#/watchlist`.
 - **State in the URL:** all filter and date state lives in query params, e.g. `#/screener?u=NIFTY200&b=L,M&sec=Financial%20Services&d=2026-11-13`. Links are therefore shareable, and Back/Forward work. Store the last-used filters in `localStorage` (inside try/catch) and apply them only when the URL has none.
 
 ## 2. Global filters (a drawer on mobile, a popover on desktop)
@@ -196,6 +196,13 @@ Banner on tabs 1–3: "These FII/DII figures are provisional and combined across
 - Sector bars of delivery value, with delivery % vs the 20-day average.
 - A cap-bucket comparison table.
 - The signal-performance table (Phase 3). Rows are events and columns are cap groups; there is a horizon switch (1/5/20 days). Each cell shows the median excess and the hit rate, with `n` on hover. The disclaimer label from 04 §6 sits above the table.
+
+### P8b Smart Money Trail `#/trail` and `#/trail/:sym` (Phase 3C, 07 §6A)
+
+- **Entry points:** a prominent filled "Smart Money Trail" button on the Dashboard header and next to the Screener's watch buttons, "Show this stock's trail" in every Stock page header, and a "Trail" item in the menu.
+- **Market mode.** Controls, all in the URL: window `tw` (3M, 6M default, 1Y), universe `tu` (Nifty 500 default), sector `ts`, as-of month-end `ta`. Sections: an insights panel (5 to 10 template sentences, each with "Show the N rows"; `ti` selects one), the strongest A and strongest D lists, the Taste-changing list, the four indicators with their rules and A/D counts, sector rotation (bar chart, week grid, table), the track record table, and the slots for later indicators ("arrives in Phase 4 / 4B / 5"). Every list header and indicator row has a "Historically: ..." line read from `stats/trail_perf.json`. In as-of mode a "Since" column shows the change of the last close since that day (blank across a split or bonus).
+- **Stock mode.** Computed in the browser from `symbols/{f}.json` by `trailForRows` (TS twin of `pipeline/trail.py`). Narrative (3 to 5 sentences), the four indicators with code, value and Historically line, the tally and flip, a price line with weekly delivery balance and spike-day bars, the comparison with the sector median, and the weekly timeline table.
+- **Wording:** "Evidence summary, not advice. You decide." No buy/sell/hold/add/reduce, no rating. The wording test (`words.test.ts`) scans the trail source and the generated sentences for imperative advice.
 
 ### P9 Learn `#/learn`
 

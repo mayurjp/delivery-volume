@@ -28,6 +28,8 @@ export interface PeriodsConfig {
   minPeriodsFraction: number;
   liquidity: { minTurnoverAvg20Cr: number; minBaseDelivValCr: number };
   periods: Record<PeriodTf, PeriodCfg>;
+  /** Price drops that look like a split but are not (a demerger): corporate-action windows, never adjusted (DEVIATIONS #71). */
+  notSplits?: { sym: string; date: string }[];
 }
 
 /** The daily-row fields the aggregation reads (a subset of SymbolRow). */
@@ -241,9 +243,14 @@ const SPLIT_TOL = 0.1;
  * 1.8 AND within 10% of a corporate-action ratio (1:2, 1:3, 1:5, 1:10, bonus 1:1 = 1/2, 1:2 = 2/3, consolidations 2..100).
  * The factor is that exact ratio (the observed ratio also contains the day's own move). Mirrors adjustment_events in Python.
  */
-export function adjustmentFactors(closes: readonly (number | null)[]): number[] {
+export function adjustmentFactors(
+  closes: readonly (number | null)[],
+  dates?: readonly string[],
+  skipDates?: ReadonlySet<string>,
+): number[] {
   const f: number[] = new Array<number>(closes.length).fill(1);
   for (let i = 1; i < closes.length; i++) {
+    if (dates && skipDates?.has(dates[i]!)) continue;
     const c = closes[i];
     const p = closes[i - 1];
     if (c == null || p == null || !(p > 0)) continue;
@@ -264,8 +271,12 @@ export function adjustmentFactors(closes: readonly (number | null)[]): number[] 
 }
 
 /** A(t): factor turning day-t prices into the prices of the latest day's basis (product of the event factors after t). */
-export function priceAdjustment(closes: readonly (number | null)[]): number[] {
-  const f = adjustmentFactors(closes);
+export function priceAdjustment(
+  closes: readonly (number | null)[],
+  dates?: readonly string[],
+  skipDates?: ReadonlySet<string>,
+): number[] {
+  const f = adjustmentFactors(closes, dates, skipDates);
   const A: number[] = new Array<number>(closes.length).fill(1);
   for (let i = closes.length - 2; i >= 0; i--) A[i] = Math.round(A[i + 1]! * f[i + 1]! * 1e12) / 1e12;
   return A;
@@ -301,11 +312,15 @@ interface Agg {
 }
 
 /** Segment reductions over one stock's rows: one Agg per period that holds a valid delivery day. */
-function groups(rows: readonly AggInput[], periods: readonly Period[]): Agg[] {
+function groups(rows: readonly AggInput[], periods: readonly Period[], skip?: ReadonlySet<string>): Agg[] {
   const pidx = new Map<string, number>();
   periods.forEach((p, i) => p.dates.forEach((d) => pidx.set(d, i)));
   const closes = rows.map((r) => r.close);
-  const A = priceAdjustment(closes);
+  const A = priceAdjustment(
+    closes,
+    rows.map((r) => r.date),
+    skip,
+  );
   const out: Agg[] = [];
   let i = 0;
   while (i < rows.length) {
@@ -590,23 +605,34 @@ function baselines(aggs: Agg[], out: PeriodRow[], tf: BarSpec, cfg: PeriodsConfi
   }
 }
 
+/** The ex-dates of one stock that are demergers, not splits (config.notSplits). */
+export function skipSet(cfg: PeriodsConfig, sym?: string): ReadonlySet<string> | undefined {
+  if (!sym || !cfg.notSplits?.length) return undefined;
+  return new Set(cfg.notSplits.filter((n) => n.sym === sym).map((n) => n.date));
+}
+
 /** ONE stock's period rows (08 section 2) for weeks, months, quarters or N-trading-day bars; `tradingDays` is the market calendar. */
 export function aggregatePeriods(
   rows: readonly AggInput[],
   tf: BarSpec,
   tradingDays: readonly string[],
   cfg: PeriodsConfig,
-  opts: { etf?: boolean } = {},
+  opts: { etf?: boolean; sym?: string } = {},
 ): PeriodRow[] {
   const periods = periodsFor(tradingDays, tf);
-  const aggs = groups(rows, periods);
+  const aggs = groups(rows, periods, skipSet(cfg, opts.sym));
   const out = aggs.map((g) => toRow(g, periods[g.pi]!));
   baselines(aggs, out, tf, cfg, opts.etf ?? false);
   return out;
 }
 
 /** ONE aggregate over the dates a..b (inclusive) of one stock's rows (custom single bar and footprint card). Null if the stock has no valid delivery day there. */
-export function aggregateRange(rows: readonly AggInput[], a: string, b: string): PeriodRow | null {
+export function aggregateRange(
+  rows: readonly AggInput[],
+  a: string,
+  b: string,
+  skip?: ReadonlySet<string>,
+): PeriodRow | null {
   const dates = rows.map((r) => r.date).filter((d) => d >= a && d <= b);
   if (dates.length === 0) return null;
   const period: Period = {
@@ -619,7 +645,7 @@ export function aggregateRange(rows: readonly AggInput[], a: string, b: string):
     partial: false,
     dates,
   };
-  const aggs = groups(rows, [period]);
+  const aggs = groups(rows, [period], skip);
   return aggs.length ? toRow(aggs[0]!, period) : null;
 }
 

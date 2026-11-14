@@ -2,7 +2,16 @@ import { useMemo } from 'react';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import { marketOption } from '../charts/options';
 import EChart from '../charts/EChart';
-import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, Skeleton, Sparkline } from '../components/ui';
+import {
+  AppLink,
+  Empty,
+  ErrorBox,
+  EtfBadge,
+  FlagIcons,
+  Skeleton,
+  Sparkline,
+  TrailButton,
+} from '../components/ui';
 import { applyFilters } from '../lib/filters';
 import { fmtCr, fmtDate, fmtInt, fmtPct, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
 import { useApp, useDaily, useGlobalState, useMarket } from '../lib/hooks';
@@ -165,7 +174,10 @@ export default function Dashboard() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">{fmtDate(date)}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <TrailButton />
+          <p className="text-sm text-slate-500 dark:text-slate-400">{fmtDate(date)}</p>
+        </div>
       </div>
 
       <section aria-label="Market summary" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">

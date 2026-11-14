@@ -27,6 +27,7 @@ report `reports/verify-sources-actions.json`. **All 16 sources worked from GitHu
 | S13 | 52-week high/low | 200 | 5,974 | yes | works: HTTP 200, 5,974 rows, header OK yes |
 | S14 | F&O ban list | 200 | 1 (KAYNES) | yes | works: HTTP 200, 1 rows, header OK yes |
 | S15 | EQUITY_L | 200 | 2,635 | yes | works: HTTP 200, 2,635 rows, header OK yes |
+| S17 | symbolchange.csv (static archive) | 200 | 1,080 | yes | verified locally 2026-11-14 (70 KB, no cookies); added in Phase 3C |
 | S16 | shareholding listing | 200 (cookie session, 3 variants) | per-symbol 23; date-range 4,153 | n/a (JSON) | works: HTTP 200 x3 (per-symbol 23, date-range 4,153, top-corp-info 5); warm-up page 200 |
 
 All 16 worked locally and all 16 worked on GitHub Actions.

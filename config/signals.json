@@ -169,5 +169,51 @@
         "delivPctDiffMax": -6
       }
     }
+  },
+  "smartMoney": {
+    "windows": {
+      "3M": {
+        "days": 63,
+        "weeks": 13
+      },
+      "6M": {
+        "days": 126,
+        "weeks": 26
+      },
+      "1Y": {
+        "days": 250,
+        "weeks": 52
+      }
+    },
+    "baselineDays": 250,
+    "minBaselineDays": 120,
+    "minWindowFraction": 0.5,
+    "delivBal": {
+      "aboveA": 1.2,
+      "belowD": 0.8
+    },
+    "delivPctTrendPp": 3,
+    "tradeSizeTrendPct": 10,
+    "spike": {
+      "minSpike": 2,
+      "minDays": 3,
+      "rateMult": 1.5,
+      "upDownMult": 2
+    },
+    "weekDays": 20,
+    "weekMargin": 2,
+    "flipDays": 30,
+    "flipMinIndicators": 2,
+    "flipMinIndicatorsFull": 3,
+    "fullIndicatorCount": 6,
+    "persistent": 0.6,
+    "stripWeeks": 52,
+    "listSize": 25,
+    "forwardHorizons": [
+      60,
+      120
+    ],
+    "minN": 30,
+    "trackUniverse": "NIFTY500"
   }
 }

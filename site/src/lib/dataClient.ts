@@ -15,6 +15,9 @@ import type {
   SymbolFile,
   SymbolRow,
   Table,
+  TrailDoc,
+  TrailPerfDoc,
+  TrailPerfRow,
   UniverseRow,
 } from '../types/data';
 
@@ -246,6 +249,19 @@ export class DataClient {
 
   splitBonus(): Promise<SplitBonusRow[]> {
     return this.table<SplitBonusRow>('stats/split_bonus.json');
+  }
+
+  /** trail/latest.json, or the month-end snapshot trail/asof/{date}.json (07 section 6A). */
+  trail(asOf: string | null): Promise<TrailDoc> {
+    return this.getJson<TrailDoc>(asOf ? `trail/asof/${asOf}.json` : 'trail/latest.json');
+  }
+
+  trailPerfDoc(): Promise<TrailPerfDoc> {
+    return this.getJson<TrailPerfDoc>('stats/trail_perf.json');
+  }
+
+  trailPerf(): Promise<TrailPerfRow[]> {
+    return this.cached('trailPerf:rows', async () => rowsToObjects<TrailPerfRow>(await this.trailPerfDoc()));
   }
 
   symbol(fileKey: string): Promise<{ file: SymbolFile; rows: SymbolRow[] }> {

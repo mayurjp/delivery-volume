@@ -132,3 +132,23 @@ def test_signal_boundaries(kw, exp):
 def test_signal_needs_history_and_liquidity():
     df = run(frame(n=30))
     assert df["signal"].isna().iloc[:10].all()
+
+
+def _dated(df, offset=0):
+    df = df.copy()
+    n = len(df)
+    df["date"] = [f"2026-{1 + (i + offset) // 28:02d}-{(i + offset) % 28 + 1:02d}" for i in range(n)]
+    return df
+
+
+def test_new_listing_flag_only_for_stocks_first_stored_after_the_store_start():
+    """DEVIATIONS #72: the first 20 days of the STORE are a warm-up, not a new listing."""
+    old = _dated(frame(n=60, sym="AAA"))  # trading since the store's first day
+    late = _dated(frame(n=30, sym="BBB"), offset=30)  # first stored day is the 31st day of the store
+    df = pd.concat([old, late], ignore_index=True).sort_values(["sym", "date"]).reset_index(drop=True)
+    out = run(df)
+    a, b = out[out.sym == "AAA"], out[out.sym == "BBB"]
+    assert not a["newListing"].any()  # RELIANCE-style: already trading when the store starts
+    assert b["newListing"].iloc[:20].all() and not b["newListing"].iloc[20:].any()
+    assert a["signal"].iloc[:20].isna().all()  # the warm-up still suppresses signals
+    assert a["priorDays"].iloc[19] == 19 and a["priorDays"].iloc[20] == 20
