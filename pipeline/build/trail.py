@@ -20,12 +20,13 @@ IND_LABELS = {"delivBal": "Delivery balance (up days vs down days)", "delivPctTr
               "tradeSizeTrend": "Average trade size trend", "spikePersist": "Delivery spike persistence",
               "dealsNet": "Named deals, FII + DII net (bulk and block)",
               "holdInst": "FII + DII holdings change, last two quarters",
-              "holdPromoter": "Promoter holdings change, last two quarters"}
-SLOTS = [{"id": "fnoOi", "label": "F&O open interest with price", "arrives": "Phase 5"}]
+              "holdPromoter": "Promoter holdings change, last two quarters",
+              "foTrend": "F&O futures: long vs short build-up days"}
+SLOTS: list[dict] = []  # every 07 6A slot is built (named deals 4, holdings 4B, F&O 5)
 CONFIG_KEYS = ["windows", "baselineDays", "minBaselineDays", "minWindowFraction", "delivBal", "delivPctTrendPp",
                "tradeSizeTrendPct", "spike", "weekDays", "weekMargin", "flipDays", "flipMinIndicators", "stripWeeks",
                "listSize", "persistent", "dealsNet", "dealsFrom", "flipMinIndicatorsFull", "fullIndicatorCount",
-               "holdInst", "holdPromoter"]
+               "holdInst", "holdPromoter", "foTrend"]
 LABEL = ("Evidence summary, not advice. You decide. Historical, one sample period, today's index membership "
          "(survivorship bias), before costs. Not a prediction.")
 
@@ -44,6 +45,9 @@ def indicator_defs(cfg: dict) -> list[dict]:
         "tradeSizeTrend": f"A above +{cfg['tradeSizeTrendPct']}%, D below -{cfg['tradeSizeTrendPct']}%",
         "dealsNet": (f"A above +{cfg['dealsNet']['aboveA']} Cr, D below {cfg['dealsNet']['belowD']} Cr of FII + DII net "
                      "value via bulk and block deals over the window (round trips excluded); null before the deal history"),
+        "foTrend": (f"A when long build-up (LB) days are at least {cfg['foTrend']['dominant']:.0%} of the window's "
+                    f"long and short build-up days (at least {cfg['foTrend']['minDirectionalDays']} of them), D for the "
+                    "reverse; null for stocks without F&O data"),
         "spikePersist": (f"persistent when at least {sp['minDays']} spike days and a spike-day rate at least "
                          f"{sp['rateMult']}x the baseline; A when spike days on up days are at least {sp['upDownMult']}x "
                          "those on down days, D for the reverse"),
@@ -80,8 +84,10 @@ class TrailInputs:
             from ..holdings_trail import hold_matrices
 
             hc, hp = hold_matrices(holdings["filings"], syms, days, holdings["quarters"], cfg or {})
+        bu = d["buildup"].to_numpy(dtype=object) if "buildup" in d else np.full(len(d), None, dtype=object)
+        fok = d["futOiChgPct"].notna().to_numpy() if "futOiChgPct" in d else np.zeros(len(d), bool)
         self.cs = T.build_cums(ti, sj, Td, S, v["close"], v["prev"], v["dval"], v["turn"], v["trades"], v["spike"], el,
-                               dfii, ddii, hc, hp)
+                               dfii, ddii, hc, hp, bu == "LB", bu == "SB", fok)
         self.cs["_dealFrom"] = T.deal_from_index(days, cfg or {})
         close = np.full((Td, S), np.nan)
         prev = np.full((Td, S), np.nan)

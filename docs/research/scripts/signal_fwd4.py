@@ -37,7 +37,10 @@ tix = {x: i for i, x in enumerate(days)}
 
 raw = D.load_raw([pd.read_csv(f, dtype=str, keep_default_na=False)
                   for f in sorted(glob.glob(str(root / "store/deals/20*.csv")))])
-ds = D.build_deals(raw, EntityIndex(load_seeds(root)), None, None)
+# deal symbols go through the same S17 renames as the build (DEVIATIONS #128, #84)
+from pipeline.build import loader  # noqa: E402
+alias = loader.load_alias_map(root / "store")
+ds = D.build_deals(raw, EntityIndex(load_seeds(root)), None, alias.resolve_dated)
 ds = ds[ds["sym"].isin(set(daily["sym"]))]
 print(f"deal rows={len(ds)}  round trips dropped={int(ds['roundTrip'].sum())}  "
       f"entities={ds['entityId'].nunique()}")

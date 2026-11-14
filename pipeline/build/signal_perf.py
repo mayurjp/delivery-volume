@@ -30,7 +30,19 @@ def adjustment_matrix(close: np.ndarray, prev: np.ndarray) -> np.ndarray:
         ratio = close / prev_c
         return (np.abs(prev / prev_c - 1) > ADJ_THRESHOLD) | (ratio <= 0.78) | (ratio >= 1.8)
 
-# F&O and deals combinations arrive with Phases 4/5 (their data is not in the build yet).
+# F&O combinations (04 section 6, Phase 5): measured against the F&O-stock benchmark (the median of the eligible F&O stocks
+# of the group on the same day, as docs/research/scripts/signal_fwd3.py does for group ALL). Build-up codes: pipeline/fo.py.
+FO_EVENTS = [
+    ("BU_LB", "Long build-up: price up, open interest up 2% or more"),
+    ("BU_SB", "Short build-up: price down, open interest up 2% or more"),
+    ("BU_SC", "Short covering: price up, open interest down 2% or more"),
+    ("BU_LU", "Long unwinding: price down, open interest down 2% or more"),
+    ("ACC_LB", "Heavy delivery up, plus long build-up"),
+    ("ACC_SC", "Heavy delivery up, plus short covering"),
+    ("DIS_SB", "Heavy delivery down, plus short build-up"),
+    ("DIS_LU", "Heavy delivery down, plus long unwinding"),
+]
+# delivery and price events (the study's own list, Phases 3 and 4 combinations are below)
 EVENTS = [
     ("ACC", "Up on heavy delivery (ACC)"), ("DIS", "Down on heavy delivery (DIS)"),
     ("ABS", "Heavy delivery, flat price (ABS)"), ("SPU", "Up on low delivery (SPU)"),
@@ -45,6 +57,50 @@ EVENTS = [
     ("STREAK10", "Delivery streak reaches 10 days"), ("STREAK10_UP", "Streak reaches 10, price up over 5 days"),
 ]
 COLUMNS = ["event", "group", "entry", "horizon", "events", "n", "days", "medianExcess", "meanExcess", "hitRate"]
+# Named bulk and block deals (Phase 4, 04 section 6): the stock-day's net value via deals per category, round trips
+# excluded (pipeline/deals.py flows). Measured against the same all-liquid-stocks benchmark as the delivery events.
+DEAL_EVENTS = [
+    ("DL_FII_BUY", "FII net bought via deals"), ("DL_FII_SELL", "FII net sold via deals"),
+    ("DL_DII_BUY", "DII net bought via deals"), ("DL_DII_SELL", "DII net sold via deals"),
+    ("DL_FII_BUY25", "FII bought Rs 25 Cr or more via deals"), ("DL_DII_BUY25", "DII bought Rs 25 Cr or more via deals"),
+    ("DL_FII_SELL25", "FII sold Rs 25 Cr or more via deals"), ("DL_DII_SELL25", "DII sold Rs 25 Cr or more via deals"),
+    ("DL_BOTH_BUY", "FII and DII both net bought via deals"), ("DL_HANDOVER", "FII sold, DII bought (handover to DII)"),
+    ("DL_FII_BUY_DII_SELL", "FII bought, DII sold"),
+    ("DL_INST_HEAVY", "FII + DII net bought, delivery 2x or more"),
+    ("DL_INST_ACC", "FII + DII net bought, heavy delivery up (ACC)"),
+    ("DL_OTHER_BUY", "Other (unclassified) net bought only"),
+]
+
+
+def deal_matrix(flows: pd.DataFrame, category: str, tix: dict, pos: dict, T: int, S: int) -> np.ndarray:
+    """(T, S) net value (Rs Cr) via deals of one category; zero where the stock had no deal that day."""
+    out = np.zeros((T, S))
+    f = flows[flows["category"] == category]
+    ti = f["date"].map(tix).to_numpy()
+    sj = f["sym"].map(pos).to_numpy()
+    keep = ~(pd.isna(ti) | pd.isna(sj))
+    np.add.at(out, (ti[keep].astype(np.int64), sj[keep].astype(np.int64)), f["netValueCr"].to_numpy(float)[keep])
+    return out
+
+
+def deal_event_masks(F: np.ndarray, D: np.ndarray, O: np.ndarray, heavy: np.ndarray, acc: np.ndarray) -> dict:
+    inst = F + D
+    return {
+        "DL_FII_BUY": F > 0, "DL_FII_SELL": F < 0, "DL_DII_BUY": D > 0, "DL_DII_SELL": D < 0,
+        "DL_FII_BUY25": F >= 25, "DL_DII_BUY25": D >= 25, "DL_FII_SELL25": F <= -25, "DL_DII_SELL25": D <= -25,
+        "DL_BOTH_BUY": (F > 0) & (D > 0), "DL_HANDOVER": (F < 0) & (D > 0), "DL_FII_BUY_DII_SELL": (F > 0) & (D < 0),
+        "DL_INST_HEAVY": (inst > 0) & heavy, "DL_INST_ACC": (inst > 0) & acc,
+        "DL_OTHER_BUY": (O > 0) & (F == 0) & (D == 0),
+    }
+
+
+def fo_event_masks(d: pd.DataFrame, masks: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """The F&O combinations, from the published build-up code (null outside F&O stock-days)."""
+    bu = d["buildup"].to_numpy(dtype=object) if "buildup" in d else np.full(len(d), None, dtype=object)
+    out = {f"BU_{c}": bu == c for c in ("LB", "SB", "SC", "LU")}
+    out.update({"ACC_LB": masks["ACC"] & (bu == "LB"), "ACC_SC": masks["ACC"] & (bu == "SC"),
+                "DIS_SB": masks["DIS"] & (bu == "SB"), "DIS_LU": masks["DIS"] & (bu == "LU")})
+    return out
 
 
 def event_masks(d: pd.DataFrame, trend5: np.ndarray) -> dict[str, np.ndarray]:
@@ -65,9 +121,10 @@ def event_masks(d: pd.DataFrame, trend5: np.ndarray) -> dict[str, np.ndarray]:
     return out
 
 
-def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int) -> dict:
+def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int,
+            flows: pd.DataFrame | None = None) -> dict:
     """df: every daily row (sym, date, series, close, prevClose, spike, ret1, streak, signal, flags);
-    uni: sym, bucket, idx. `days`: ISO trading dates."""
+    uni: sym, bucket, idx. `days`: ISO trading dates. flows: deals/flows (date, sym, category, netValueCr) or None."""
     T = len(days)
     tix = {d: i for i, d in enumerate(days)}
     syms = sorted(df["sym"].unique())
@@ -87,6 +144,16 @@ def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int)
         tb = np.where(ti >= 5, ti - 5, 0)
         trend5 = np.where(ti >= 5, (close[ti, sj] / close[tb, sj] - 1) * 100, np.nan)
     masks = event_masks(d, trend5)
+    isfo = d["futOi"].notna().to_numpy() if "futOi" in d else np.zeros(len(d), bool)
+    masks.update(fo_event_masks(d, masks))
+    if flows is not None and len(flows):
+        pos = {s_: i for i, s_ in enumerate(syms)}
+        mats = {c: deal_matrix(flows, c, tix, pos, T, len(syms)) for c in ("FII", "DII", "Other")}
+        F, Dv, O = (mats[c][ti, sj] for c in ("FII", "DII", "Other"))
+    else:
+        F = Dv = O = np.zeros(len(d))
+    heavy = np.round(d["spike"].to_numpy(float), 3) >= 2
+    masks.update(deal_event_masks(F, Dv, O, heavy, d["signal"].to_numpy(dtype=object) == "ACC"))
 
     ud = uni.set_index("sym")
     bucket = d["sym"].map(ud["bucket"]).to_numpy(dtype=object)
@@ -94,6 +161,7 @@ def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int)
     members = {"ALL": np.ones(len(d), bool), "IDX:NIFTY200": (idx >> n200_bit) & 1 == 1,
                **{b: bucket == b for b in ("L", "M", "S", "U")}}
 
+    members_fo = {g: m & isfo for g, m in members.items()}  # the F&O-stock benchmark for the F&O combinations
     rows: list[list] = []
     for lag, entry in ((1, "t1"), (0, "t0")):
         for k in HORIZONS:
@@ -105,26 +173,28 @@ def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int)
             clean = ok & (adj_cum[b, sj] == adj_cum[np.where(ok, ti, 0), sj])
             fwd = np.where(clean, r * 100, np.nan)
             for g in GROUPS:
-                m = members[g]
-                med = pd.Series(fwd[m]).groupby(ti[m]).median()
-                ex = fwd - med.reindex(ti).to_numpy()
-                ex[~m] = np.nan
-                for eid, _ in EVENTS:
-                    em = masks[eid] & m
-                    x = ex[em]
-                    keep = ~np.isnan(x)
-                    n = int(keep.sum())
-                    if n == 0:
-                        rows.append([eid, g, entry, k, int(em.sum()), 0, 0, None, None, None])
-                        continue
-                    xv = x[keep]
-                    rows.append([eid, g, entry, k, int(em.sum()), n, int(len(np.unique(ti[em][keep]))),
-                                 round(float(np.median(xv)), 3), round(float(xv.mean()), 3),
-                                 round(float((xv > 0).mean() * 100), 1)])
+                for bench, evs, pool in ((members[g], EVENTS + DEAL_EVENTS, members[g]),
+                                         (members_fo[g], FO_EVENTS, members_fo[g])):
+                    m = bench
+                    med = pd.Series(fwd[m]).groupby(ti[m]).median()
+                    ex = fwd - med.reindex(ti).to_numpy()
+                    ex[~m] = np.nan
+                    for eid, _ in evs:
+                        em = masks[eid] & pool
+                        x = ex[em]
+                        keep = ~np.isnan(x)
+                        n = int(keep.sum())
+                        if n == 0:
+                            rows.append([eid, g, entry, k, int(em.sum()), 0, 0, None, None, None])
+                            continue
+                        xv = x[keep]
+                        rows.append([eid, g, entry, k, int(em.sum()), n, int(len(np.unique(ti[em][keep]))),
+                                     round(float(np.median(xv)), 3), round(float(xv.mean()), 3),
+                                     round(float((xv > 0).mean() * 100), 1)])
     return {
         "schemaVersion": 1, "asOf": days[-1], "window": {"from": days[0], "to": days[-1]},
         "horizons": list(HORIZONS), "entries": list(ENTRIES), "groups": list(GROUPS), "minN": MIN_N,
-        "events": [{"id": i, "label": lab} for i, lab in EVENTS],
+        "events": [{"id": i, "label": lab} for i, lab in EVENTS + FO_EVENTS + DEAL_EVENTS],
         "label": "Historical, one sample period, current index/cap membership, before costs. Not a prediction.",
         "columns": COLUMNS, "rows": rows,
     }

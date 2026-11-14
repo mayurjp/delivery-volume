@@ -14,6 +14,8 @@ import pandas as pd
 from .. import calendar as cal_mod
 from .. import metrics, store
 from ..etf import detect_etf
+from ..fo import attach as fo_attach
+from ..fo import classify_buildup_vec
 from ..sources.base import parse_dmy_mon
 from ..symbols import file_key
 from . import columns as C
@@ -381,6 +383,38 @@ def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, o
     return total
 
 
+def add_fo(df: pd.DataFrame, fo_d: pd.DataFrame, days: list[str], signals: dict) -> pd.DataFrame:
+    """Adds the per (sym, date) F&O measures (pipeline/fo.py) to the daily rows: futOi, futOiChgPct (2 dp, per cent), pcr
+    and buildup (04 section 4.4, thresholds in signals.json -> buildup). Rows without stock futures stay null."""
+    m = fo_attach(df, fo_d, days)
+    thr = signals.get("buildup", {}).get("oiChgPct", 2.0)
+    codes = classify_buildup_vec(m["ret1"].to_numpy(dtype="float64", na_value=np.nan),
+                                 m["dOi"].to_numpy(dtype="float64", na_value=np.nan), thr)
+    m["buildup"] = pd.Series(np.where(codes == "", None, codes), index=m.index, dtype=object)
+    m["futOiChgPct"] = m["dOi"].round(2)
+    return m.drop(columns=["dOi"])
+
+
+def write_fo(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, out: Path, full_days: int | None = None) -> int:
+    """fo/{date}.json for the newest `full_days` published days: one row per F&O stock-day (sym, futOi, futOiChgPct,
+    buildup, pcr), in universe order. Stocks that are not F&O stocks are not listed (no null rows)."""
+    fo = df[df["futOi"].notna()].sort_values(["date", "sym"], kind="stable")
+    bounds = fo["date"].to_numpy()
+    full_from = len(days) - full_days if full_days else 0
+    ft = FastTable(fo, C.FO_DAY)
+    total = 0
+    for i, d in enumerate(days):
+        if i < full_from:
+            continue
+        iso = d.isoformat()
+        a = np.searchsorted(bounds, iso, "left")
+        b = np.searchsorted(bounds, iso, "right")
+        doc = {"schemaVersion": 1, "date": iso, "columns": C.names(C.FO_DAY), "rows": ft.rows(a, b)}
+        validate("fo_day", doc)
+        total += dump(out / "fo" / f"{iso}.json", doc)
+    return total
+
+
 def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: Path, first_date: str | None = None,
                   deals_by_sym: dict | None = None, flow_rows: dict | None = None, holdings_by_sym: dict | None = None) -> int:
     ca_by_sym = {s: g for s, g in corp.groupby("sym")}
@@ -388,6 +422,7 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
     ud = uni.set_index("sym")
     dfu = df[df["sym"].isin(ud.index) & ((df["date"] >= first_date) if first_date else True)].sort_values(["sym", "date"], kind="stable").reset_index(drop=True)
     ft = FastTable(dfu, C.SYMBOL_HIST)
+    ft_fo = FastTable(dfu, C.FO_HIST) if "futOi" in dfu.columns else None
     bounds = {s: (int(g.index[0]), int(g.index[-1]) + 1) for s, g in dfu.groupby("sym", sort=False)}
     urec = {r["sym"]: r for r in uni.to_dict("records")}
     for sym in uni["sym"]:
@@ -409,6 +444,10 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
             "holdings": (holdings_by_sym or {}).get(sym, {}).get("holdings", {"columns": C.HOLDINGS_COLS, "rows": []}),
             "namedHolders": (holdings_by_sym or {}).get(sym, {}).get("namedHolders", {"columns": C.NAMED_HOLDER_COLS, "rows": []}),
         }
+        if ft_fo is not None:  # F&O stocks only: the stock's F&O history (absent key = not an F&O stock)
+            fo_rows = [r for r in ft_fo.rows(a, b) if r[1] is not None]
+            if fo_rows:
+                doc["fo"] = {"columns": C.names(C.FO_HIST), "rows": fo_rows}
         validate("symbol", doc)
         total += dump(out / "symbols" / f"{u['f']}.json", doc)
     return total

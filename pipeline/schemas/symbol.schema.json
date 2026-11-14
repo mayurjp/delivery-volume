@@ -274,6 +274,27 @@
      "type": "array"
     }
    }
+  },
+  "fo": {
+   "type": "object",
+   "required": [
+    "columns",
+    "rows"
+   ],
+   "properties": {
+    "columns": {
+     "const": [
+      "date",
+      "futOi",
+      "futOiChgPct",
+      "buildup",
+      "pcr"
+     ]
+    },
+    "rows": {
+     "type": "array"
+    }
+   }
   }
  }
 }

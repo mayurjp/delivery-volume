@@ -18,10 +18,11 @@ DAILY = [
     ("delivPctZ60", "f", 3), ("delivPctPctile", "f", 2), ("streak", "i", None), ("signal", "s", None),
     ("flags", "i", None),
 ]
-# F&O columns (03 sections 5.3 and 5.5: futOi, futOiChgPct, buildup, pcr) are all null until Phase 5 wires S3 into the
-# build, so they are NOT published now (66 MB of "null," in dist/); Phase 5 appends them here. Consumers read a missing
-# column as null.
-FNO_COLUMNS = [("futOi", "i", None), ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3)]
+# F&O (03 section 5.3, 04 section 4.4, DEVIATIONS #119). The daily/ rows do NOT carry these columns (they would be null for
+# every non-F&O stock). They are published only for F&O stock-days: fo/{date}.json (the full-column window) and the
+# `fo` block of symbols/{f}.json (the stock's F&O history). futOi is in SHARES, summed over stock-futures expiries.
+FO_DAY = [("sym", "s", None), ("futOi", "i", None), ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3)]
+FO_HIST = [("date", "s", None), ("futOi", "i", None), ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3)]
 
 # Days older than publish.dailyFullTradingDays carry only these columns (07 section 8); the rest show "—" in the UI.
 DAILY_SLIM = ["sym", "series", "open", "high", "low", "close", "prevClose", "vwap", "vol", "turnoverCr", "trades",
@@ -35,8 +36,8 @@ SYMBOL_HIST = [
 CUM = [("sym", "s", None), ("lastClose", "f", 2), ("lastTradeDate", "s", None), ("cDelivValCr", "f", 2),
        ("cTurnoverCr", "f", 2), ("cDelivQty", "i", None), ("cVol", "i", None), ("cDays", "i", None),
        ("cDelivValUpCr", "f", 2), ("cDelivValDnCr", "f", 2), ("cTrades", "i", None)]
-# Period snapshots (08 section 4): weekly/{weekEnd}.json and monthly/{YYYY-MM}.json. Slim set only. F&O columns stay null
-# until Phase 5 wires S3 into the build.
+# Period snapshots (08 section 4): weekly/{weekEnd}.json and monthly/{YYYY-MM}.json. Slim set only; F&O is day view only
+# (DEVIATIONS #119).
 PERIOD = [
     ("sym", "s", None), ("days", "i", None), ("open", "f", 2), ("high", "f", 2),
     ("low", "f", 2), ("close", "f", 2), ("prevClose", "f", 2), ("vwap", "f", 2), ("vol", "i", None),

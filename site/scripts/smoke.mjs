@@ -65,7 +65,19 @@ const ROUTES = [
   {
     path: '#/stock/RELIANCE',
     wait: 'h1:has-text("RELIANCE")',
-    expect: async (p) => (await p.locator('canvas').count()) >= 2,
+    // Phase 5: the F&O pane (futures OI with the close, build-up shading, PCR) is on the page for an F&O stock
+    expect: async (p) =>
+      (await p.locator('canvas').count()) >= 2 &&
+      (await p.locator('[data-testid=fo-pane]').count()) === 1 &&
+      /Long build-up|Short build-up|Short covering|Long unwinding|No build-up code/.test(
+        await p.locator('[data-testid=fo-latest]').innerText(),
+      ),
+  },
+  {
+    path: '#/screener?p=buLB',
+    wait: 'h1:has-text("Screener")',
+    // a build-up preset: its "Historically" line from signal_perf (or the not-enough-history line)
+    expect: async (p) => /Historically|a ranking, not an event/.test(await p.locator('body').innerText()),
   },
   { path: '#/stock/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
   {
@@ -170,7 +182,7 @@ ROUTES.push(
     wait: 'h1:has-text("Smart Money Trail")',
     expect: async (p) => {
       await p.waitForSelector('[data-testid=list-flip]', { timeout: 25000 });
-      return (await p.locator('[data-testid=indicator-rows] li').count()) === 7;
+      return (await p.locator('[data-testid=indicator-rows] li').count()) === 8; // eight footprints (Phase 5)
     },
   },
   {
@@ -186,6 +198,9 @@ ROUTES.push(
         (await p.locator('canvas').count()) >= 1 &&
         (await p.locator('[data-testid=sector-compare]').count()) === 1 &&
         (await p.locator('section[aria-label="Named deals"]').count()) === 1 &&
+        // Phase 5: the F&O footprint row replaces the "arrives in Phase 5" slot
+        /F&O build-up days/.test(await p.locator('[data-testid=stock-indicators]').innerText()) &&
+        !/arrives in/.test(await p.locator('body').innerText()) &&
         /No shareholding filings stored for this stock yet/.test(
           await p.locator('[data-testid=holdings-card]').innerText(),
         )

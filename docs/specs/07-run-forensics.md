@@ -39,7 +39,7 @@ Evidence base: [docs/research/2026-11-run-footprints-study.md](../research/2026-
 | `priceChgPct`, `relStrength` | adjusted return; return minus the Nifty 50 return and minus the sector-median return | S1, S12 |
 | `dealsNetCr.{FII,DII,Other}` | net value via bulk/block deals, round trips excluded | S9/S10 + entities (Phase 4) |
 | `holdChgPp.{fii,dii,mf,promoter}` | from the last quarter ending before the pivot to the first quarter ending after the run's end | S16 (Phase 4B) |
-| `futOiChgPct`, `buildupDays.{LB,SB,SC,LU}` | F&O stocks only | S3 (Phase 5) |
+| `futOiChgPct`, `buildupDays.{LB,SB,SC,LU}` | F&O stocks only | S3 (Phase 5: the day's build-up is in `symbols/{f}.json` `fo`, the per-day F&O stock rows in `fo/{date}.json`; DEVIATIONS #119, #120) |
 | `events` | results dates (board meetings whose purpose includes "Financial Results"), corporate actions, circuits | S4 `bm` (§8), S4 `bc`, flags |
 
 ## 3. Daily footprint indicators
@@ -152,7 +152,7 @@ Controls: window (3M / 6M / 1Y), universe (default **Nifty 500**, with the liqui
 | **3C** (new, right after 3B) | Trail **v1 with the delivery footprints only**: delivery balance, delivery % trend, trade size, spike persistence. Includes the market and stock modes, as-of snapshots, insights and the track record. Slots for the other indicators show "arrives in Phase 4 / 4B / 5". |
 | **4** | Named deals indicator, and the FII-vs-DII sector flows |
 | **4B** (wired, part 2) | Holdings indicators (`holdInst`, `holdPromoter`) and named holders: wired into the trail (DEVIATIONS #100 to #108). The stock-page Ownership section, the Institutions Holdings tab and the Screener columns are still to build |
-| **5** | The F&O indicator |
+| **5** | The F&O indicator (`foTrend`, built in Phase 5: DEVIATIONS #119 to #127) |
 | **5B** | Runs integration (runs shaded on the stock trail) and the final track-record polish |
 
 Each of those phases' acceptance includes "the indicator is wired into the trail, and the trail tests are updated".
@@ -273,6 +273,7 @@ Each of those phases' acceptance includes "the indicator is wired into the trail
 
 ## Phase 4B as built, trail wiring (2026-11-14)
 
+- **Staged delivery, row 5 is wired (Phase 5):** `foTrend` is the eighth indicator, after holdPromoter. It leans A when long build-up (LB) days are at least `smartMoney.foTrend.dominant` (0.6) of the window's LB + SB days, with at least `minDirectionalDays` (5) of them; D when SB is; else N. A stock without F&O data is missing (`-`), not neutral. The weekly code uses the trailing 20 days. The codes are 8 letters, the flip minimum stays 3, and the track record has `foTrend:A|D|N` rows. The trail page's "arrives in Phase 5" card is gone (DEVIATIONS #121, #125).
 - **Staged delivery, row 4B is wired:** `holdInst` and `holdPromoter` are the sixth and seventh indicators, after dealsNet. The window records carry `holdInstPp` and `holdPromoterPp`. The flip minimum is 3 (7 indicators). The insight and the track record include both.
 - **Thresholds:** `config/signals.json → smartMoney.holdInst` and `holdPromoter` (`aboveA` +0.5 pp, `belowD` −0.5 pp).
 - **Holdings are coded only from the filings broadcast on or before the day** (no lookahead), with the base two quarters earlier in the store's quarter list.

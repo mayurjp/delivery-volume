@@ -14,6 +14,7 @@ import {
   INDICATORS,
   WINDOWS,
   holdingsOf,
+  foByDate,
   trailForRows,
   windowView,
   type TrailCfg,
@@ -61,10 +62,18 @@ const IND_SHORT: Record<string, string> = {
   dealsNet: 'Named deals',
   holdInst: 'FII + DII holdings',
   holdPromoter: 'Promoter holdings',
+  foTrend: 'F&O build-up days',
 };
-/** The order of the seven codes in a window's `codes` string (trail/latest.json, 07 6A). */
+/** The order of the eight codes in a window's `codes` string (trail/latest.json, 07 6A). */
 const CODE_ORDER =
-  'Codes in order: delivery balance, delivery % trend, trade size trend, spike persistence, named deals, FII + DII holdings, promoter holdings';
+  'Codes in order: delivery balance, delivery % trend, trade size trend, spike persistence, named deals, FII + DII holdings, promoter holdings, F&O build-up';
+/** What the F&O footprint says in words: its code only (the record carries no counts). */
+const FO_WORD: Record<string, string> = {
+  A: 'long build-up days lead the classed F&O days',
+  D: 'short build-up days lead the classed F&O days',
+  N: 'neither long nor short build-up leads',
+  '-': 'no F&O data (not an F&O stock, or too few F&O days in the window)',
+};
 const STATUS_CLASS: Record<string, string> = {
   NEW: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900',
   UP: 'bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100',
@@ -233,6 +242,7 @@ function HoldingsCard({ file }: { file: SymbolFile }) {
 }
 
 function Slots({ doc }: { doc: TrailDoc }) {
+  if (doc.slots.length === 0) return null; // every footprint is built (Phase 5)
   return (
     <section aria-label="Indicators arriving later" className="card p-3">
       <h2 className="mb-1 text-sm font-semibold">Footprints arriving in later phases</h2>
@@ -878,6 +888,7 @@ function TrailStock({ sym }: { sym: string }) {
             undefined,
             dealsByDate(data.data.file.dealFlows),
             holdingsOf(data.data.file.holdings),
+            foByDate(data.data.file.fo),
           )
         : null,
     [data.data, cfg, meta.tradingDays],
@@ -974,7 +985,9 @@ function TrailStock({ sym }: { sym: string }) {
                               ? `${fmtPp(view.holdPromoterPp, 1)} over two quarters`
                               : id === 'dealsNet'
                                 ? `FII ${fmtCr(view.dealsFii)}, DII ${fmtCr(view.dealsDii)}`
-                                : `${view.spikeDays ?? '—'} spike days (${view.spikeUp ?? 0} up, ${view.spikeDn ?? 0} down)`;
+                                : id === 'foTrend'
+                                  ? (FO_WORD[code] ?? '')
+                                  : `${view.spikeDays ?? '—'} spike days (${view.spikeUp ?? 0} up, ${view.spikeDn ?? 0} down)`;
                   const secV =
                     id === 'delivBal' && sector?.medianBal != null
                       ? `sector median ${fmtRatio(sector.medianBal, 2)}`
@@ -996,15 +1009,6 @@ function TrailStock({ sym }: { sym: string }) {
                     </li>
                   );
                 })}
-                {latest.data?.slots.map((s) => (
-                  <li
-                    key={s.id}
-                    className="flex items-center justify-between gap-2 py-2 text-sm text-slate-500"
-                  >
-                    <span>{s.label}</span>
-                    <span className="chip">arrives in {s.arrives}</span>
-                  </li>
-                ))}
               </ul>
             )}
             {view && (

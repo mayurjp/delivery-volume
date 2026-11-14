@@ -89,7 +89,7 @@ def test_weekly_codes_show_no_change_until_the_base_and_the_latest_are_both_out(
 HQ = ["2024-12-31", "2025-03-31", "2025-06-30", "2025-09-30"]  # the synthetic calendar (2024-2025)
 
 
-def test_window_and_weekly_codes_have_seven_positions_with_holdings_last():
+def test_window_and_weekly_codes_have_eight_positions_with_holdings_and_fo_last():
     from pipeline.tests.test_trail import CFG, DAYS, synth
 
     rows = synth(DAYS)
@@ -101,8 +101,8 @@ def test_window_and_weekly_codes_have_seven_positions_with_holdings_last():
     out = T.trail_for_rows(rows, DAYS, CFG, holdings=hold)
     for w in ("3M", "6M", "1Y"):
         rec = out["windows"][w]
-        assert len(rec[0]) == 7 and rec[0][5] in "AND-" and rec[0][6] in "AND-"
-    assert all(len(t["codes"]) == 7 for t in out["timeline"])
+        assert len(rec[0]) == 8 and rec[0][5] in "AND-" and rec[0][6] in "AND-" and rec[0][7] in "AND-"
+    assert all(len(t["codes"]) == 8 for t in out["timeline"])
     # promoter 60 -> 58 over the last two quarters (base Dec-24, latest Jun-25, filed 2025-07-20): D on the last week
     assert out["windows"]["3M"][0][6] == "D" and out["timeline"][-1]["codes"][6] == "D"
     assert out["windows"]["3M"][16] == 0.0 and out["windows"]["3M"][17] == -2.0  # holdInst 0, holdPromoter -2 pp

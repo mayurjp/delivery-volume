@@ -227,6 +227,11 @@
     "holdPromoter": {
       "aboveA": 0.5,
       "belowD": -0.5
+    },
+    "foTrend": {
+      "dominant": 0.6,
+      "minDirectionalDays": 5,
+      "note": "Long build-up (LB) days as a share of the window's LB + SB days (the directional build-up days of 04 4.4). A when LB is at least dominant of them, with at least minDirectionalDays of them; D when SB is; else N. Missing for stocks without F&O data (DEVIATIONS #121)."
     }
   }
 }

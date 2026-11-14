@@ -31,19 +31,35 @@ describe('Daily delivery watch', () => {
 
 describe('preset groups', () => {
   it('has the approved groups and order, with More collapsed', () => {
-    expect(PRESET_GROUPS.map((g) => g.label)).toEqual(['Start here', 'Direction', 'Patterns', 'More']);
+    expect(PRESET_GROUPS.map((g) => g.label)).toEqual([
+      'Start here',
+      'Direction',
+      'Patterns',
+      'F&O build-up',
+      'More',
+    ]);
     const label = (id: string) => PRESET_BY_ID.get(id)!.label;
     expect(PRESET_GROUPS[0]!.ids.map(label)).toEqual([
       'Delivery spikes',
       'Unusual vs own history',
       'Largest delivery value',
     ]);
-    expect(PRESET_GROUPS[1]!.ids.map(label)).toEqual(['Up on heavy delivery', 'Down on heavy delivery']);
+    expect(PRESET_GROUPS[1]!.ids.map(label)).toEqual([
+      'Up on heavy delivery',
+      'Down on heavy delivery',
+      'Delivery ↑ + Long build-up',
+    ]);
     expect(PRESET_GROUPS[2]!.ids.map(label)).toEqual([
       'New 52-week high, low delivery',
       'New 52-week high, heavy delivery',
     ]);
-    expect(PRESET_GROUPS[3]!.collapsed).toBe(true);
+    expect(PRESET_GROUPS[3]!.ids.map(label)).toEqual([
+      'Long build-up',
+      'Short build-up',
+      'Short covering',
+      'Long unwinding',
+    ]);
+    expect(PRESET_GROUPS[4]!.collapsed).toBe(true);
     const all = PRESET_GROUPS.flatMap((g) => g.ids);
     expect(new Set(all).size).toBe(all.length);
     expect(all.length).toBe(PRESET_BY_ID.size); // every preset sits in a group

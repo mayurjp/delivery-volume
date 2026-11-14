@@ -11,6 +11,7 @@ import { footprintRows, priorWindow } from '../lib/footprint';
 import { periodSignalHistory } from '../lib/signalPerf';
 import EChart from '../charts/EChart';
 import { OwnershipSection } from '../components/Ownership';
+import { FoSection } from '../components/FoPane';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import {
   AppLink,
@@ -493,6 +494,7 @@ export default function Stock() {
       </section>
 
       {data.data && <OwnershipSection file={data.data.file} />}
+      {data.data && <FoSection file={data.data.file} rows={data.data.rows} pal={pal} mobile={mobile} />}
       <section aria-label="Delivery calendar" className="card min-w-0 p-3">
         <h2 className="mb-1 text-sm font-semibold">Delivery % calendar</h2>
         <div className="overflow-x-auto">

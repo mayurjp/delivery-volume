@@ -290,8 +290,8 @@ export interface InsightCtx {
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const round2 = (x: number): number => Math.round((x + Number.EPSILON) * 100) / 100;
 
-/** The number of indicators the trail computes (seven since Phase 4B: delivery x4, named deals, holdings x2). */
-export const INDICATOR_COUNT = 7;
+/** The number of indicators the trail computes (eight since Phase 5: delivery x4, named deals, holdings x2, F&O). */
+export const INDICATOR_COUNT = 8;
 /** A holdings rise is reported above this many pp over the last two quarters (config/signals.json holdInst.aboveA). */
 export const HOLD_RISE_PP = 0.5;
 

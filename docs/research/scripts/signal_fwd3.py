@@ -26,15 +26,18 @@ df = pd.concat(frames, ignore_index=True)
 days = sorted(df["date"].unique())
 tix = {x: i for i, x in enumerate(days)}
 
-fo = []
-for f in sorted((root / "store/fo_extract").rglob("*.csv.gz")):
-    x = pd.read_csv(io.BytesIO(gzip.decompress(f.read_bytes())), usecols=["symbol", "instType", "expiry", "oi"])
-    x = x[x["instType"] == "STF"]
-    x["date"] = f.name[:10]
-    fo.append(x)
-fo = pd.concat(fo, ignore_index=True)
-oi = fo.groupby(["symbol", "date"], as_index=False)["oi"].sum().rename(columns={"symbol": "sym", "oi": "futOi"})
-exp = fo.groupby("symbol")["expiry"].unique().to_dict()          # all expiries seen per symbol
+# The extract is read by the build's own loader, so F&O rows follow the S17 symbol renames exactly as the build does
+# (DEVIATIONS #128): ZOMATO -> ETERNAL, LTIM -> LTM, TATAMOTORS -> TMPV, ICICIPRULI -> ICICILIFE, GUJGASLTD -> GUJENERGY,
+# GMRINFRA -> GMRAIRPORT.
+sys.path.insert(0, str(root))
+from pipeline.build import loader  # noqa: E402
+
+store_dir = root / "store"
+store_days = loader.trading_days(store_dir)
+fo = loader.load_fo(store_days, loader.load_alias_map(store_dir), store_dir)  # sym, date, instType, expiry, optType, oi
+fo = fo[fo["instType"] == "STF"]
+oi = fo.groupby(["sym", "date"], as_index=False)["oi"].sum().rename(columns={"sym": "sym", "oi": "futOi"})
+exp = fo.groupby("sym")["expiry"].unique().to_dict()          # all expiries seen per symbol
 oi["t"] = oi["date"].map(tix)
 oi = oi.dropna(subset=["t"]).sort_values(["sym", "t"])
 oi["t"] = oi["t"].astype(int)
@@ -72,7 +75,7 @@ P[full["date"].map(tix), full["sym"].map(si)] = full["prevClose"]
 prev_c = np.vstack([np.full((1, len(syms)), np.nan), C[:-1]])
 # a split/bonus shows up as a one-day close ratio: NSE's PREV_CLOSE is raw on the ex-date
 adj_cum = np.cumsum(np.nan_to_num((np.abs(P / prev_c - 1) > 0.03) | (C / prev_c <= 0.78) | (C / prev_c >= 1.8), nan=0).astype(int), axis=0)
-ti, sj = df["t"].to_numpy(), df["sym"].map(si).to_numpy()
+ti, sj = df["t"].to_numpy().astype(np.int64), df["sym"].map(si).to_numpy().astype(np.int64)
 for k in (5, 20):
     tk = np.where(ti + k < T, ti + k, 0)
     r = C[tk, sj] / C[ti, sj] - 1

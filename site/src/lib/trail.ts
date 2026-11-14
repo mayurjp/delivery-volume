@@ -17,6 +17,7 @@ export const INDICATORS = [
   'dealsNet',
   'holdInst',
   'holdPromoter',
+  'foTrend',
 ] as const;
 export type IndicatorId = (typeof INDICATORS)[number];
 export type Code = 'A' | 'D' | 'N' | '-';
@@ -89,6 +90,8 @@ export interface TrailCfg {
   /** Holdings (Phase 4B): change in pp over the last two quarters, A above aboveA, D below belowD. */
   holdInst: { aboveA: number; belowD: number };
   holdPromoter: { aboveA: number; belowD: number };
+  /** F&O (Phase 5): LB share of the window's LB + SB days, A / D at or above dominant with at least minDirectionalDays. */
+  foTrend: { dominant: number; minDirectionalDays: number };
   /** Flip threshold: flipMinIndicators below fullIndicatorCount indicators, flipMinIndicatorsFull from it on (07 6A). */
   flipMinIndicatorsFull: number;
   fullIndicatorCount: number;
@@ -109,6 +112,9 @@ export interface HoldingsInput {
   quarters: string[];
   filings: HoldingFiling[];
 }
+
+/** One stock's F&O measures by date (symbols/{f}.json fo block): the build-up code and the OI change (null if not classed). */
+export type FoByDate = Readonly<Record<string, { buildup: string | null; futOiChgPct: number | null }>>;
 
 /** Named deal flows of one stock on one day, Rs Crore, round trips excluded (symbols/{f}.json dealFlows). */
 export type DealsByDate = Readonly<Record<string, { fii: number; dii: number }>>;
@@ -150,7 +156,7 @@ export interface TrailResult {
 const EXCLUDED = 256 | 512 | 1024;
 const MISSING = 9;
 const CH: Record<number, Code> = { 1: 'A', [-1]: 'D', 0: 'N', 9: '-' };
-const KEYS = ['NE', 'DV', 'TV', 'TR', 'UP', 'DN', 'SP', 'SPU', 'SPD', 'DF', 'DD'] as const;
+const KEYS = ['NE', 'DV', 'TV', 'TR', 'UP', 'DN', 'SP', 'SPU', 'SPD', 'DF', 'DD', 'FL', 'FS', 'FV'] as const;
 type Cums = Record<(typeof KEYS)[number], Float64Array>;
 
 /** Python's round() on a float: ties to even (cons values are percentages of small integers). */
@@ -169,6 +175,7 @@ function buildCums(
   rows: readonly TrailInput[],
   days: readonly string[],
   deals: DealsByDate,
+  fo: FoByDate,
 ): { cs: Cums; elig: boolean[] } {
   const T = days.length;
   const pos = new Map(days.map((d, i) => [d, i]));
@@ -204,6 +211,10 @@ function buildCums(
     m.SP[t] = sp ? 1 : 0;
     m.SPU[t] = sp && up ? 1 : 0;
     m.SPD[t] = sp && dn ? 1 : 0;
+    const f = fo[row.date];
+    m.FL[t] = f?.buildup === 'LB' ? 1 : 0;
+    m.FS[t] = f?.buildup === 'SB' ? 1 : 0;
+    m.FV[t] = f && f.futOiChgPct !== null && f.futOiChgPct !== undefined ? 1 : 0;
   }
   // cumulative sums with a leading zero: a window (a, b] is C[b + 1] - C[a + 1]
   const cs = {} as Cums;
@@ -273,6 +284,20 @@ function indicators(
   const ddw = w('DD');
   const net = r(dfw + ddw, 2) ?? 0;
   const dealCode = !dealOk ? MISSING : net > cfg.dealsNet.aboveA ? 1 : net < cfg.dealsNet.belowD ? -1 : 0;
+  // foTrend (Phase 5): the LB share of the window's LB + SB days (trail.py indicators)
+  const fvw = w('FV');
+  const flw = w('FL');
+  const fsw = w('FS');
+  const foOk = okW && fvw >= Math.ceil(cfg.minWindowFraction * n);
+  const dirw = flw + fsw;
+  const enough = dirw >= cfg.foTrend.minDirectionalDays;
+  const foCode = !foOk
+    ? MISSING
+    : enough && flw >= cfg.foTrend.dominant * dirw && flw > fsw
+      ? 1
+      : enough && fsw >= cfg.foTrend.dominant * dirw && fsw > flw
+        ? -1
+        : 0;
   const codes = [
     lead(bal, cfg.delivBal.aboveA, cfg.delivBal.belowD),
     lead(dp, cfg.delivPctTrendPp, -cfg.delivPctTrendPp),
@@ -281,6 +306,7 @@ function indicators(
     dealCode,
     hold.codes[end]![0]!,
     hold.codes[end]![1]!,
+    foCode,
   ];
   return {
     ok: okW,
@@ -405,6 +431,25 @@ export function dealFromIndex(days: readonly string[], cfg: TrailCfg): number {
   return i < 0 ? days.length : i;
 }
 
+/**
+ * A symbol file's F&O block (columns date, futOi, futOiChgPct, buildup, pcr; absent for a non-F&O stock) as the trail's
+ * FoByDate. A stock without the block has no F&O days, so its foTrend code is missing, not neutral.
+ */
+export function foByDate(block: { columns: string[]; rows: unknown[][] } | undefined): FoByDate {
+  if (!block) return {};
+  const ci = block.columns.indexOf('date');
+  const cb = block.columns.indexOf('buildup');
+  const cc = block.columns.indexOf('futOiChgPct');
+  const out: Record<string, { buildup: string | null; futOiChgPct: number | null }> = {};
+  for (const r of block.rows) {
+    out[r[ci] as string] = {
+      buildup: (r[cb] as string | null) ?? null,
+      futOiChgPct: (r[cc] as number | null) ?? null,
+    };
+  }
+  return out;
+}
+
 /** ONE stock's trail at as-of index `a` (default: the latest day). `deals` are the stock's named deal flows by date. */
 export function trailForRows(
   rows: readonly TrailInput[],
@@ -413,9 +458,10 @@ export function trailForRows(
   asOfIndex?: number,
   deals: DealsByDate = {},
   holdings?: HoldingsInput,
+  fo: FoByDate = {},
 ): TrailResult {
   const a = asOfIndex ?? days.length - 1;
-  const { cs, elig } = buildCums(rows, days, deals);
+  const { cs, elig } = buildCums(rows, days, deals, fo);
   const dealFrom = dealFromIndex(days, cfg);
   const hold = holdSeries(holdings, days, cfg);
   const { wk, ends, keys } = weekIndex(days);

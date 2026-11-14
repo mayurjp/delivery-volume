@@ -183,16 +183,34 @@ export const COLUMNS: ColumnSpec[] = [
     width: 260,
     fmt: (r) => String(r.flags),
   },
-  num('futOi', 'Fut OI', 'Futures open interest (Phase 5)', 90, fmtQty),
-  num('futOiChgPct', 'Fut OI chg', 'Futures OI change (Phase 5)', 90, (v) => fmtPctChg(v)),
+  num(
+    'futOi',
+    'Fut OI',
+    'Futures open interest in shares, summed over stock-futures expiries. F&O stocks only; a dash elsewhere',
+    90,
+    fmtQty,
+  ),
+  num(
+    'futOiChgPct',
+    'Fut OI chg',
+    'Futures open interest change, per cent. F&O stocks only; not measured on a roll or a gap',
+    90,
+    (v) => fmtPctChg(v),
+  ),
   {
     key: 'buildup',
     label: 'Build-up',
-    tip: 'F&O build-up (Phase 5)',
+    tip: 'F&O build-up: long build-up, short build-up, short covering or long unwinding (04 4.4). F&O stocks only',
     width: 80,
     fmt: (r) => r.buildup ?? '—',
   },
-  num('pcr', 'PCR', 'Put-call ratio (Phase 5)', 66, (v) => fmtNum(v)),
+  num(
+    'pcr',
+    'PCR',
+    'Put-call ratio: put over call open interest, all stock-option expiries. F&O stocks only',
+    66,
+    (v) => fmtNum(v),
+  ),
   // Ownership (Phase 4B): the latest shareholding filing, joined from holdings/latest.json. Dashes for stocks with none.
   num('promoterPct', 'Promoter %', 'Promoter share of total shares, latest shareholding filing', 88, (v) =>
     fmtPct(v),

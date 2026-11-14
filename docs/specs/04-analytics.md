@@ -196,9 +196,10 @@ Draw dashed axes at 0. Clamp the axes at the 2nd and 98th percentiles so outlier
 
 ### 4.4 F&O build-up (F&O stocks)
 
-- `futOi(t)` = Σ OI over all `STF` expiries for the symbol. Summing all expiries removes most of the rollover noise.
-- `futOiChgPct` = futOi(t) / futOi(t−1) − 1.
-- Price change = spot `ret1`.
+- `futOi(t)` = Σ OI over all `STF` expiries for the symbol, in **shares** (S3 units, SOURCE_STATUS.md). Summing all expiries removes most of the rollover noise.
+- `futOiChgPct` = futOi(t) / futOi(t−1) − 1, in per cent. It is **null** (no change, so no build-up) when t−1 is not the previous trading day in the store, or when a stock-futures expiry falls in [t−1, t] (the roll). DEVIATIONS #119.
+- Price change = spot `ret1`, the published 2-dp value (the same rule as the study, `docs/research/scripts/signal_fwd3.py`).
+- Implemented in `pipeline/fo.py` (`classify_buildup`, `fo_frame`, `attach`); the boundaries are unit-tested in `pipeline/tests/test_fo.py`.
 
 | Code | Price | OI change | Label |
 |------|-------|-----------|-------|
@@ -208,7 +209,7 @@ Draw dashed axes at 0. Clamp the axes at the 2nd and 98th percentiles so outlier
 | `LU` | < 0 | ≤ −2% | Long unwinding |
 | null | otherwise | | Neutral |
 
-`pcr` = Σ PE OI / Σ CE OI across all `STO` expiries.
+`pcr` = Σ PE OI / Σ CE OI across all `STO` expiries (null without call OI; 3 dp).
 
 **Confluence badges:**
 
@@ -216,7 +217,7 @@ Draw dashed axes at 0. Clamp the axes at the 2nd and 98th percentiles so outlier
 - `DIS` + `SB` → "Heavy delivery + short build-up".
 - `ACC` + `SC` → "Heavy delivery + short covering".
 
-Their follow-through is to be measured with the S3 history (study still pending). Until it is, the badges get no "confirmed" wording.
+Their follow-through is measured in `stats/signal_perf.json` (the F&O combinations, Phase 5; DEVIATIONS #122). The badges keep the plain wording, with no "confirmed".
 
 ## 5. Institutional analytics
 
@@ -327,7 +328,7 @@ Exclude stocks with `dilutionFlag` from the pp rankings by default.
   - 52-week-high breakout: all, with low delivery (spike < 1), and with heavy delivery (spike ≥ 2);
   - delivery streak reaching 5 and reaching 10, any price and with the price up over the last 5 days;
   - "Delivery spike 2× or more" (any price move) and "Delivery % z-score 2 or more": the events behind the Delivery spikes and Unusual vs own history lists (not in the research study, so not part of the replication check);
-  - Phase 5 F&O combinations (F&O-stock benchmark): LB, SB, SC and LU alone; ACC+LB; ACC+SC; DIS+SB; DIS+LU. They are tracked live because the 1-year samples are small (see the study);
+  - Phase 5 F&O combinations (F&O-stock benchmark): LB, SB, SC and LU alone; ACC+LB; ACC+SC; DIS+SB; DIS+LU. They are tracked live because the 1-year samples are small (see the study). Built in Phase 5 (DEVIATIONS #122), replicated by `signal_fwd3.py`;
   - Phase 4 deals combinations: FII net buy/sell, DII net buy/sell, ≥ ₹25 Cr variants, FII-sells-DII-buys, and other-only net buy. Measure from close(t+1), because deals are published after the close;
 - **Entry timing:** report every event at close(t+1) entry by default, since delivery and deals data are published after the close. Close(t) entry is available as a toggle. For entry lag L and horizon k the forward return is close(t+L+k) / close(t+L) − 1.
 - **Groups:** `ALL`, `L`, `M`, `S`, `U` and `IDX:NIFTY200`.

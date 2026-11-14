@@ -88,7 +88,7 @@ Rules:
 - gzip with `mtime=0`, so identical content produces identical bytes and makes no git diff.
 - Expected growth is about 200–250 KB per trading day, about 55 MB a year.
 
-**`fo_extract` columns:** `symbol, instType, expiry, optType, oi, chgOi, volume, valueRs, close, settle, underlying`.
+**`fo_extract` columns:** `symbol, instType, expiry, optType, oi, chgOi, volume, valueRs, close, settle, underlying`. The S3 source writes this format daily (`fetch` / `update`); a day with an extract is not fetched again (DEVIATIONS #124).
 
 - Futures (`STF`, `IDF`): one row per symbol and expiry.
 - Options (`STO`, `IDO`): **sum across strikes**, giving one row per symbol × expiry × optType.
@@ -164,7 +164,7 @@ Each file has one row per universe symbol that traded that day, plus t2t-series 
 | `streak` | signed int: +k means k consecutive days above `delivPctAvg20`; −k means below |
 | `signal` | `ACC` `DIS` `ABS` `SPU` `SPD` or null (04 §4). Always null for ETF rows (04 §4.1) |
 | `flags` | bitmask, see the table below |
-| `futOi`, `futOiChgPct`, `buildup`, `pcr` | F&O stocks only, otherwise null |
+| `futOi`, `futOiChgPct`, `buildup`, `pcr` | Not in `daily/` (DEVIATIONS #120). Published for F&O stock-days only: `fo/{date}.json` (full-column window) and the `fo` block of `symbols/{f}.json` |
 
 Flags bitmask:
 

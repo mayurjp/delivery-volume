@@ -49,7 +49,7 @@ def window_codes(rows, w="3M"):
 
 def test_codes_on_a_synthetic_series():
     rec = window_codes(synth(DAYS))
-    assert rec[0] == "NNNN---" and 0.9 < rec[1] < 1.1  # balanced: neutral; no deal history and no holdings: missing
+    assert rec[0] == "NNNN----" and 0.9 < rec[1] < 1.1  # balanced: neutral; no deal history and no holdings: missing
     rec = window_codes(synth(DAYS, up_dv=lambda i: 3.0 if last_window(i) else 1.0))
     assert rec[0][0] == "A" and rec[1] > 1.2
     rec = window_codes(synth(DAYS, dn_dv=lambda i: 3.0 if last_window(i) else 1.0))
@@ -79,7 +79,7 @@ def test_spike_persistence_rules():
 
 def test_not_enough_history_is_missing_not_neutral():
     rec = T.trail_for_rows(synth(DAYS[:150]), DAYS[:150], CFG)["windows"]["3M"]
-    assert rec is not None and rec[0][1:] == "------"  # baseline short of 120 days; no deal history or holdings
+    assert rec is not None and rec[0][1:] == "-------"  # baseline short of 120 days; no deal history or holdings
     assert T.trail_for_rows(synth(DAYS[:40]), DAYS[:40], CFG)["windows"]["3M"] is None
 
 
@@ -269,14 +269,23 @@ def build_trail_vectors() -> dict:
             _hf("2024-12-31", "2025-01-25", 60.0, 10.0, 20.0), _hf("2025-03-31", "2025-04-25", 60.0, 10.0, 20.0),
             _hf("2025-06-30", "2025-07-25", 58.0, 11.0, 21.0)]},
     }
+    # F&O (Phase 5): AAA has long build-up on every day of the last 6 months, BBB short build-up over the last 3 months;
+    # BBB alternates long and short build-up over 3 months (equal counts: neither dominates, so foTrend is N and the
+    # 3M flip is unchanged); CCC has short build-up for 3 months (D); DDD is not an F&O stock (no block: missing)
+    fo = {
+        "AAA": {d: {"buildup": "LB", "futOiChgPct": 3.0} for d in days[-126:]},
+        "BBB": {d: {"buildup": "LB" if i % 2 else "SB", "futOiChgPct": -2.5} for i, d in enumerate(days[-62:])},
+        "CCC": {d: {"buildup": "SB", "futOiChgPct": -3.0} for d in days[-63:]},
+    }
     expected = {}
     for sym, rows in stocks.items():
         dl = {d: (v[0], v[1]) for d, v in deals[sym].items()}
         h = holdings.get(sym)
-        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg, deals=dl, holdings=h),
-                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61, deals=dl, holdings=h)}
+        f = fo.get(sym)
+        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg, deals=dl, holdings=h, fo=f),
+                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61, deals=dl, holdings=h, fo=f)}
     return {"cfg": cfg, "tradingDays": days, "asOfIndex": n - 61, "stocks": stocks, "deals": deals,
-            "holdings": holdings, "expected": json.loads(json.dumps(expected))}
+            "holdings": holdings, "fo": fo, "expected": json.loads(json.dumps(expected))}
 
 
 HOLD_Q = ["2024-12-31", "2025-03-31", "2025-06-30", "2025-09-30"]
@@ -291,14 +300,18 @@ def test_trail_vectors_cover_the_cases_and_file_is_current():
     vec = build_trail_vectors()
     e = vec["expected"]
     assert e["AAA"]["latest"]["windows"]["6M"][0][0] == "A" and e["BBB"]["latest"]["windows"]["3M"][12] == "A→D"
-    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---N--"
+    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---N---"
     assert e["AAA"]["latest"]["windows"]["3M"][0][4] == "A" and e["BBB"]["latest"]["windows"]["3M"][0][4] == "D"
     assert e["AAA"]["asOf"]["windows"]["1Y"][0][4] == "-"  # the as-of 1Y window starts before the deal history
     assert e["AAA"]["asOf"]["asOf"] == vec["tradingDays"][vec["asOfIndex"]]
     # holdings: 7 codes; latest holdInst A (+2 pp) for AAA; as-of missing (filing broadcast after the as-of day)
     assert e["AAA"]["latest"]["windows"]["6M"][0][5] == "A" and e["AAA"]["asOf"]["windows"]["6M"][0][5] == "-"
     assert e["BBB"]["latest"]["windows"]["6M"][0][6] == "D" and e["BBB"]["latest"]["windows"]["6M"][0][5] == "A"
-    assert e["CCC"]["latest"]["windows"]["6M"][0][5:] == "--"
+    assert e["CCC"]["latest"]["windows"]["6M"][0][5:] == "--D"  # holdings missing (no block); F&O short build-up leans D
+    # foTrend (the 8th code): AAA leans long build-up, BBB short build-up, the non-F&O stocks are missing (not neutral)
+    assert e["AAA"]["latest"]["windows"]["6M"][0][7] == "A" and e["BBB"]["latest"]["windows"]["3M"][0][7] == "N"
+    assert e["CCC"]["latest"]["windows"]["3M"][0][7] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][7] == "-"
+    assert all(len(w[0]) == 8 for sym in e for k in ("latest", "asOf") for w in e[sym][k]["windows"].values() if w)
     text = json.dumps(vec, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
     if not TRAIL_VECTORS.exists() or TRAIL_VECTORS.read_text(encoding="utf-8") != text:
         TRAIL_VECTORS.write_text(text, encoding="utf-8", newline="\n")  # regenerate; commit the new file

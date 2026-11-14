@@ -16,7 +16,7 @@ from .http import Client, Response
 from .sources import REGISTRY
 from .sources import s11_constituents as s11
 
-DAILY_ORDER = ["s1", "s2", "s4", "s5", "s6", "s7", "s12", "s13", "s14"]
+DAILY_ORDER = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s12", "s13", "s14"]
 SNAPSHOT_ORDER = ["s11", "s15", "s17"]
 FETCHABLE = DAILY_ORDER + SNAPSHOT_ORDER
 SNAPSHOT_RECHECK_DAYS = 6
@@ -113,6 +113,25 @@ def fetch_s4(client: Client, d: date, force: bool) -> str:
     return STORED
 
 
+def fetch_s3(client: Client, d: date, force: bool) -> str:
+    """S3 F&O bhavcopy: the raw zip is reduced to the fo_extract CSV (03 section 3) and the zip is not stored. A day that
+    already has an extract (the 2024-07-08 .. 2026-11-13 history loaded by docs/research/scripts/load_fo_extract.py) is
+    skipped without a request, unless --force."""
+    if store.exists("fo_extract", d) and not force:
+        return SKIPPED
+    r = _get(client, "S3", REGISTRY["S3"].urls(d)[0][1], d)
+    code = _classify(r)
+    if code:
+        return code
+    parsed, err = _validate("s3", r, d)
+    if err:
+        _warn(f"S3 {d} schema_mismatch: {err}")
+        client.log("S3", d.isoformat(), r, status="schema_mismatch")
+        return INVALID
+    store.write_atomic(store.path_for("fo_extract", d), csv_gz(parsed.data), force=True)
+    return STORED
+
+
 def _raw_source(sid: str, kind: str, ext: str, gz: bool):
     def run(client: Client, d: date, force: bool) -> str:
         if store.exists(kind, d, ext) and not force:
@@ -177,6 +196,7 @@ def fetch_s7(client: Client, d: date, force: bool) -> str:
 FETCHERS = {
     "s1": fetch_s1,
     "s2": fetch_s2,
+    "s3": fetch_s3,
     "s4": fetch_s4,
     "s5": _raw_source("s5", "participant_oi", "csv", False),
     "s6": _raw_source("s6", "participant_vol", "csv", False),

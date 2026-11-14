@@ -165,6 +165,8 @@ def schemas() -> dict[str, dict]:
     out["holdings_holders"] = _table(C.HOLD_NAMED, title="holdings/holders/{quarter}.json")
     out["holdings_latest"] = _table([("quarter", "s", None)] + C.HOLD_STOCK, title="holdings/latest.json")
     out["holdings_aggregates"] = _table(C.HOLD_AGG, title="holdings/aggregates.json")
+    # F&O (DEVIATIONS #119): per-day F&O stock rows, and the optional `fo` block of an F&O stock's symbol file
+    out["fo_day"] = _table(C.FO_DAY, {"date": iso}, ["date"], "fo/{date}.json")
     sym = _table(C.SYMBOL_HIST, {
         "sym": {"type": "string"}, "name": {"type": "string"}, "sector": {"type": "string"},
         "idx": {"type": "integer"}, "bucket": {"type": ["string", "null"]}, "etf": {"type": "boolean"},
@@ -176,6 +178,8 @@ def schemas() -> dict[str, dict]:
                          "properties": {"columns": {"const": C.NAMED_HOLDER_COLS}, "rows": {"type": "array"}}},
         "dealFlows": {"type": "object", "required": ["columns", "rows"],
                       "properties": {"columns": {"const": C.DEAL_FLOW_COLS}, "rows": {"type": "array"}}},
+        "fo": {"type": "object", "required": ["columns", "rows"],
+               "properties": {"columns": {"const": C.names(C.FO_HIST)}, "rows": {"type": "array"}}},
     }, ["sym", "name", "sector", "idx", "bucket", "etf", "deals", "corpActions", "holdings", "namedHolders", "dealFlows"],
         "symbols/{f}.json")
     out["symbol"] = sym

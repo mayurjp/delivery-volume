@@ -91,6 +91,18 @@ export const PRESETS: Preset[] = [
     dir: 'desc',
     test: (r, u) => u?.bucket === 'L' && r.signal === 'DIS',
   },
+  // F&O build-up (04 section 4.4, Phase 5): F&O stock-days only, so rows without a build-up code never match
+  {
+    id: 'accLB',
+    label: 'Delivery ↑ + Long build-up',
+    sort: 'spike',
+    dir: 'desc',
+    test: (r) => r.signal === 'ACC' && r.buildup === 'LB',
+  },
+  { id: 'buLB', label: 'Long build-up', sort: 'futOiChgPct', dir: 'desc', test: (r) => r.buildup === 'LB' },
+  { id: 'buSB', label: 'Short build-up', sort: 'futOiChgPct', dir: 'desc', test: (r) => r.buildup === 'SB' },
+  { id: 'buSC', label: 'Short covering', sort: 'futOiChgPct', dir: 'asc', test: (r) => r.buildup === 'SC' },
+  { id: 'buLU', label: 'Long unwinding', sort: 'futOiChgPct', dir: 'asc', test: (r) => r.buildup === 'LU' },
 ];
 
 export const PRESET_BY_ID = new Map(PRESETS.map((p) => [p.id, p]));
@@ -105,8 +117,9 @@ export interface PresetGroup {
 
 export const PRESET_GROUPS: PresetGroup[] = [
   { id: 'start', label: 'Start here', ids: ['spikes', 'unusual', 'value'] },
-  { id: 'direction', label: 'Direction', ids: ['acc', 'dis'] },
+  { id: 'direction', label: 'Direction', ids: ['acc', 'dis', 'accLB'] },
   { id: 'patterns', label: 'Patterns', ids: ['high52low', 'high52heavy'] },
+  { id: 'fo', label: 'F&O build-up', ids: ['buLB', 'buSB', 'buSC', 'buLU'] },
   {
     id: 'more',
     label: 'More',
@@ -124,6 +137,11 @@ export const PRESET_EVENT: Record<string, { event: string; group?: string }> = {
   high52low: { event: 'BO_LOW' },
   high52heavy: { event: 'BO_HEAVY' },
   largedis: { event: 'DIS', group: 'L' },
+  accLB: { event: 'ACC_LB' },
+  buLB: { event: 'BU_LB' },
+  buSB: { event: 'BU_SB' },
+  buSC: { event: 'BU_SC' },
+  buLU: { event: 'BU_LU' },
 };
 
 /** The one-tap "Daily delivery watch" (Screener): liquid Nifty 500 stocks, no ETFs or event-driven rows, spikes list. */

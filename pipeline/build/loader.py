@@ -302,3 +302,28 @@ def load_isin_latest(alias: dict[str, str], root: Path | None = None) -> dict[st
     df = df[df["series"].isin(KEEP_SERIES)]
     sym = resolve_alias(df["symbol"], alias) if alias else df["symbol"]
     return dict(zip(sym, df["isin"]))
+
+
+def load_fo(days: list[date], alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
+    """Every stored S3 extract row (store/fo_extract, 03 section 3): sym (alias-resolved, dated), date, instType, expiry,
+    optType, oi. Days without an extract simply have no rows (the F&O analytics start on 2024-07-08)."""
+    frames = []
+    for d in days:
+        p = store.path_for("fo_extract", d, root=root)
+        if not p.exists():
+            continue
+        x = pd.read_csv(io.BytesIO(store.read_bytes(p)), dtype={"symbol": str, "instType": str, "expiry": str,
+                                                                 "optType": str}, keep_default_na=False)
+        x = x[["symbol", "instType", "expiry", "optType", "oi"]].copy()
+        x["date"] = d.isoformat()
+        frames.append(x)
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(
+        columns=["symbol", "instType", "expiry", "optType", "oi", "date"])
+    out = out.rename(columns={"symbol": "sym"})
+    if alias and len(out):
+        # only rows whose symbol can be renamed need the dated rule (it is a per-symbol pass over the rows)
+        old = set(alias.keys()) | (set(alias.changes["old"]) if isinstance(alias, AliasMap) else set())
+        hit = out["sym"].isin(old).to_numpy()
+        if hit.any():
+            out.loc[hit, "sym"] = resolve_alias(out.loc[hit, "sym"], alias, out.loc[hit, "date"]).to_numpy()
+    return out

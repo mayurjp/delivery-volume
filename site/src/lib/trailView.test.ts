@@ -205,11 +205,11 @@ describe('named deals in the trail views', () => {
     expect(ins!.numbers.dii).toBe(want.diiDeals);
   });
 
-  it('the list insights count indicators out of the seven the trail computes', () => {
+  it('the list insights count indicators out of the eight the trail computes', () => {
     const texts = buildInsights(entries, bySym, ctx)
       .map((i) => i.text)
       .join(' ');
-    expect(texts).toContain('of 7');
+    expect(texts).toContain('of 8');
     expect(texts).not.toContain('of 5 ');
     expect(texts).not.toContain('Phase 4B');
   });

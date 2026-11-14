@@ -1,7 +1,14 @@
-"""S3: UDiFF F&O bhavcopy. Phase 0: header + units check only (the extract is Phase 5)."""
+"""S3: UDiFF F&O bhavcopy -> store/fo_extract/YYYY/YYYY-MM-DD.csv.gz (03 section 3, the reduced extract).
+
+The raw zip (about 1.4 MB) is never stored. The extract keeps, per symbol and expiry, the futures (STF, IDF: one row
+per symbol x expiry) and the options (STO, IDO: summed across strikes per symbol x expiry x optType). The conversion is
+the one the standalone loader (docs/research/scripts/load_fo_extract.py) used for the 585 stored days, so a day fetched
+by the pipeline is byte-for-byte the same format.
+"""
 
 from __future__ import annotations
 
+import io
 import zipfile
 from datetime import date
 
@@ -10,9 +17,37 @@ import pandas as pd
 from .base import Parsed, SourceSpec, read_csv_text, strip_df, tokens
 from .s2_cm_udiff import UDIFF_HEADER, read_zip_csv
 
+NEED = ["TradDt", "FinInstrmTp", "TckrSymb", "XpryDt", "OptnTp", "ClsPric", "SttlmPric", "UndrlygPric",
+        "OpnIntrst", "ChngInOpnIntrst", "TtlTradgVol", "TtlTrfVal"]
+RENAME = {"TckrSymb": "symbol", "FinInstrmTp": "instType", "XpryDt": "expiry", "OptnTp": "optType",
+          "OpnIntrst": "oi", "ChngInOpnIntrst": "chgOi", "TtlTradgVol": "volume", "TtlTrfVal": "valueRs",
+          "ClsPric": "close", "SttlmPric": "settle", "UndrlygPric": "underlying"}
+EXTRACT_COLS = ["symbol", "instType", "expiry", "optType", "oi", "chgOi", "volume", "valueRs", "close", "settle",
+                "underlying"]
+
 
 def url(d: date) -> str:
     return f"https://nsearchives.nseindia.com/content/fo/BhavCopy_NSE_FO_0_0_0_{tokens(d)['YYYYMMDD']}_F_0000.csv.zip"
+
+
+def extract(text: str, d: date) -> pd.DataFrame:
+    """The reduced extract of one day from the raw CSV text. Raises ValueError when the day fails the basic checks."""
+    df = pd.read_csv(io.StringIO(text), usecols=NEED, dtype={"OptnTp": str}, low_memory=False)
+    if (df["TradDt"].astype(str) != d.isoformat()).any():
+        raise ValueError(f"TradDt mismatch: {df['TradDt'].astype(str).unique()[:3]}")
+    if (df["FinInstrmTp"] == "STF").sum() < 100:
+        raise ValueError("too few STF rows")
+    df = df.rename(columns=RENAME)
+    df["optType"] = df["optType"].fillna("")
+    fut = df[df["instType"].isin(["STF", "IDF"])][EXTRACT_COLS]
+    opt = (df[df["instType"].isin(["STO", "IDO"])]
+           .groupby(["symbol", "instType", "expiry", "optType"], as_index=False)
+           .agg(oi=("oi", "sum"), chgOi=("chgOi", "sum"), volume=("volume", "sum"), valueRs=("valueRs", "sum"),
+                underlying=("underlying", "first")))
+    opt["close"] = pd.NA
+    opt["settle"] = pd.NA
+    return pd.concat([fut, opt[EXTRACT_COLS]], ignore_index=True).sort_values(
+        ["instType", "symbol", "expiry", "optType"])
 
 
 def parse(body: bytes, d: date, label: str = "") -> Parsed:
@@ -28,27 +63,14 @@ def parse(body: bytes, d: date, label: str = "") -> Parsed:
         p.errors.append(f"schema_mismatch: header {p.header}")
         return p
     p.rows = len(df)
-    if set(df["TradDt"]) != {d.isoformat()}:
-        p.errors.append("TradDt mismatch")
     if p.rows < 1000:
         p.errors.append(f"row count {p.rows} < 1000")
-    p.notes.append("FinInstrmTp counts: " + ", ".join(f"{k} {v}" for k, v in df["FinInstrmTp"].value_counts().items()))
-    # Units analysis for OpnIntrst (contracts vs shares): see SOURCE_STATUS.md
-    f = df[df["FinInstrmTp"] == "STF"].copy()
-    for c in ("OpnIntrst", "NewBrdLotQty", "TtlTradgVol", "TtlTrfVal", "ClsPric"):
-        f[c] = pd.to_numeric(f[c], errors="coerce")
-    f = f[(f["OpnIntrst"] > 0) & (f["NewBrdLotQty"] > 0)]
-    if len(f):
-        oi_mult = float(((f["OpnIntrst"] % f["NewBrdLotQty"]) == 0).mean())
-        vol_mult = float(((f["TtlTradgVol"] % f["NewBrdLotQty"]) == 0).mean())
-        tr = f[f["TtlTradgVol"] > 0]
-        ratio = float((tr["TtlTrfVal"] / (tr["TtlTradgVol"] * tr["ClsPric"])).median()) if len(tr) else float("nan")
-        lot = float(f["NewBrdLotQty"].median())
-        p.notes.append(
-            f"OI units: {oi_mult:.0%} of STF OI values are exact multiples of lot size, vs {vol_mult:.0%} for volume; "
-            f"median TtlTrfVal/(vol*close)={ratio:.0f} (median lot {lot:.0f}) => OpnIntrst is in SHARES (quantity), "
-            "volume is in CONTRACTS")
+        return p
+    try:
+        p.data = extract(text, d)
+    except ValueError as e:
+        p.errors.append(str(e))
     return p
 
 
-SPEC = SourceSpec("S3", "fo_udiff", "UDiFF F&O bhavcopy", "zip", lambda d: [("", url(d))], parse)
+SPEC = SourceSpec("S3", "fo_udiff", "UDiFF F&O bhavcopy", "zip", lambda d: [("", url(d))], parse, fetchable=True)

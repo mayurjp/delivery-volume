@@ -162,6 +162,17 @@ export interface SymbolFile {
   holdings: { columns: string[]; rows: unknown[][]; quarters?: string[] };
   /** Named holders above 1% in the latest quarter, with NEW / UP / DOWN / SAME / EXITED status. */
   namedHolders: { columns: string[]; rows: unknown[][] };
+  /** F&O history (Phase 5): one row per day the stock had stock futures. Absent for stocks outside the F&O list. */
+  fo?: { columns: string[]; rows: unknown[][] };
+}
+
+/** One F&O stock-day of fo/{date}.json (Phase 5; futOi in shares, futOiChgPct in per cent). */
+export interface FoDayRow {
+  sym: string;
+  futOi: number | null;
+  futOiChgPct: number | null;
+  buildup: string | null;
+  pcr: number | null;
 }
 
 /** One timeframe block of market.json (weekly / monthly / quarterly): the same groups and fields as the daily block, per period. */

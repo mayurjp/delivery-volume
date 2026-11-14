@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import vectors from './trailVectors.json';
 import {
+  foByDate,
   holdSeries,
   trailForRows,
   windowView,
@@ -9,7 +10,7 @@ import {
   type TrailInput,
   type TrailResult,
 } from './trail';
-import type { DealsByDate } from './trail';
+import type { DealsByDate, FoByDate } from './trail';
 
 const V = vectors as unknown as {
   cfg: TrailCfg;
@@ -18,6 +19,7 @@ const V = vectors as unknown as {
   stocks: Record<string, TrailInput[]>;
   deals: Record<string, Record<string, [number, number]>>;
   holdings: Record<string, HoldingsInput>;
+  fo: Record<string, FoByDate>;
   expected: Record<string, { latest: TrailResult; asOf: TrailResult }>;
 };
 
@@ -66,17 +68,35 @@ function expectSame(got: TrailResult, want: TrailResult, label: string) {
 /** The vector deals of one stock, as the browser reads them from dealFlows (FII and DII net, Rs Cr). */
 const dealsOf = (sym: string): DealsByDate =>
   Object.fromEntries(Object.entries(V.deals[sym] ?? {}).map(([d, [fii, dii]]) => [d, { fii, dii }]));
+/** The vector F&O days of one stock (the symbol file's fo block, read as the browser reads it). */
+const foOf = (sym: string): FoByDate => (V.fo as Record<string, FoByDate>)[sym] ?? {};
 
 describe('trailForRows matches the Python twin on the shared vectors', () => {
   for (const sym of Object.keys(V.stocks)) {
     it(`${sym}: latest and an earlier as-of date`, () => {
       expectSame(
-        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg, undefined, dealsOf(sym), V.holdings[sym]),
+        trailForRows(
+          V.stocks[sym]!,
+          V.tradingDays,
+          V.cfg,
+          undefined,
+          dealsOf(sym),
+          V.holdings[sym],
+          foOf(sym),
+        ),
         V.expected[sym]!.latest,
         `${sym} latest`,
       );
       expectSame(
-        trailForRows(V.stocks[sym]!, V.tradingDays, V.cfg, V.asOfIndex, dealsOf(sym), V.holdings[sym]),
+        trailForRows(
+          V.stocks[sym]!,
+          V.tradingDays,
+          V.cfg,
+          V.asOfIndex,
+          dealsOf(sym),
+          V.holdings[sym],
+          foOf(sym),
+        ),
         V.expected[sym]!.asOf,
         `${sym} as-of`,
       );
@@ -92,7 +112,7 @@ describe('trailForRows matches the Python twin on the shared vectors', () => {
     expect(windowView(e.BBB!.latest.windows['3M']!).codes[4]).toBe('D'); // FII sold 25 Cr
     expect(windowView(e.AAA!.asOf.windows['1Y']!).codes[4]).toBe('-'); // the as-of 1Y window starts before the history
     expect(windowView(e.AAA!.latest.windows['3M']!).dealsDii).toBeCloseTo(63, 1);
-    expect(windowView(e.DDD!.latest.windows['1Y']!).missing).toBe(5); // two trend codes, spike and the two holdings codes
+    expect(windowView(e.DDD!.latest.windows['1Y']!).missing).toBe(6); // two trend codes, spike, two holdings codes and F&O
   });
 
   it('codes the holdings indicators: latest A for FII + DII (+2 pp), D for promoter selling, missing before the base', () => {
@@ -103,7 +123,30 @@ describe('trailForRows matches the Python twin on the shared vectors', () => {
     expect(windowView(V.expected.AAA!.asOf.windows['6M']!).codes[5]).toBe('-');
     expect(windowView(V.expected.BBB!.latest.windows['6M']!).codes[6]).toBe('D');
     expect(windowView(V.expected.BBB!.latest.windows['6M']!).holdPromoterPp).toBeCloseTo(-2, 6);
-    expect(windowView(V.expected.CCC!.latest.windows['6M']!).codes.slice(5)).toBe('--');
+    expect(windowView(V.expected.CCC!.latest.windows['6M']!).codes.slice(5)).toBe('--D');
+  });
+
+  it('codes foTrend (the 8th code): long build-up leans A, short build-up leans D, no F&O block is missing', () => {
+    expect(windowView(V.expected.AAA!.latest.windows['6M']!).codes[7]).toBe('A');
+    expect(windowView(V.expected.BBB!.latest.windows['3M']!).codes[7]).toBe('N');
+    expect(windowView(V.expected.CCC!.latest.windows['3M']!).codes[7]).toBe('D');
+    expect(windowView(V.expected.DDD!.latest.windows['1Y']!).codes[7]).toBe('-');
+    expect(V.expected.AAA!.latest.windows['6M']![0]!.length).toBe(8);
+  });
+
+  it('reads the F&O block of a symbol file as the trail input', () => {
+    const block = {
+      columns: ['date', 'futOi', 'futOiChgPct', 'buildup', 'pcr'],
+      rows: [
+        ['2026-01-02', 100, 1.5, 'LB', 0.9],
+        ['2026-01-05', 90, null, null, null],
+      ],
+    };
+    expect(foByDate(block)).toEqual({
+      '2026-01-02': { buildup: 'LB', futOiChgPct: 1.5 },
+      '2026-01-05': { buildup: null, futOiChgPct: null },
+    });
+    expect(foByDate(undefined)).toEqual({});
   });
 
   it('holds no holdings change before the base quarter is filed and on the broadcast day only', () => {
@@ -120,7 +163,7 @@ describe('trailForRows matches the Python twin on the shared vectors', () => {
     const days = V.tradingDays.filter((d) => d <= cut);
     const rows = V.stocks.AAA!.filter((r) => r.date <= cut);
     expectSame(
-      trailForRows(rows, days, V.cfg, undefined, dealsOf('AAA')),
+      trailForRows(rows, days, V.cfg, undefined, dealsOf('AAA'), undefined, foOf('AAA')),
       V.expected.AAA!.asOf,
       'AAA truncated',
     );

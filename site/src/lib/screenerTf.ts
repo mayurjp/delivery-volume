@@ -23,7 +23,18 @@ export function screenerView(tf: TfKind, rng: boolean, watchlist: boolean): Scre
 // ---- slim days (07 section 8) ---------------------------------------------------------------------------------------
 
 /** Columns that come from the universe or are derived from slim columns, never from the daily file itself. */
-const NOT_FROM_FILE = new Set(['name', 'sector', 'mcapCr', 'bucket', 'chg']);
+// columns not in the daily file: joined from universe.json, holdings/latest.json or fo/{date}.json (Phase 5)
+const NOT_FROM_FILE = new Set([
+  'name',
+  'sector',
+  'mcapCr',
+  'bucket',
+  'chg',
+  'futOi',
+  'futOiChgPct',
+  'buildup',
+  'pcr',
+]);
 
 type Publish = Meta['publish'];
 
@@ -71,6 +82,11 @@ export const PRESET_NEEDS: Record<string, (keyof DailyRow)[]> = {
   high52low: ['flags', 'spike'],
   high52heavy: ['flags', 'spike'],
   largedis: ['signal'],
+  accLB: ['signal', 'buildup'],
+  buLB: ['buildup', 'futOiChgPct'],
+  buSB: ['buildup', 'futOiChgPct'],
+  buSC: ['buildup', 'futOiChgPct'],
+  buLU: ['buildup', 'futOiChgPct'],
 };
 
 /** Column keys a preset needs but the data does not carry. */

@@ -43,6 +43,7 @@ import {
   type WatchTf,
 } from '../lib/screenerTf';
 import { dataClient } from '../lib/dataClient';
+import { FO_KEYS } from '../lib/fo';
 import { fmtDate } from '../lib/format';
 import {
   saveLastFilters,
@@ -190,6 +191,13 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
   const daily = useDaily(view === 'day' ? date : null, meta.latestDate);
   // Ownership (Phase 4B): the latest shareholding filing per stock, joined onto the day rows
   const holdings = useHoldingsLatest(view === 'day');
+  // F&O (Phase 5): the day's F&O stock-days from fo/{date}.json, joined onto the day rows. fo/ is published for the
+  // full-column window only; an older day has no file, and its F&O columns and presets say why.
+  const foKey = view === 'day' ? date || meta.latestDate : null;
+  const fo = useAsync(foKey, () => dataClient.foDay(foKey!));
+  const foMap = useMemo(() => (fo.data ? new Map(fo.data.map((f) => [f.sym, f])) : null), [fo.data]);
+  const foGone = view === 'day' && fo.data !== null && fo.data.length === 0;
+  const foWhy = `F&O columns are published only from ${fmtDate(meta.publish.dailyFullFrom)}, the full-column window`;
   const ownMap = useMemo(() => (holdings.data ? ownershipBySym(holdings.data) : null), [holdings.data]);
 
   const legacyRange = useRangeState();
@@ -237,10 +245,13 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     () =>
       view === 'period' && periodTf
         ? periodColumnList(periodTf, periodWindows)
-        : slim
-          ? dayColumnList(slimMissing, slimWhy)
+        : slim || foGone
+          ? dayColumnList(
+              new Set<string>([...(slim ? slimMissing : []), ...(foGone ? FO_KEYS : [])]),
+              foGone && !slim ? foWhy : slimWhy,
+            )
           : COLUMNS,
-    [view, periodTf, periodWindows, slim, slimMissing, slimWhy],
+    [view, periodTf, periodWindows, slim, slimMissing, slimWhy, foGone, foWhy],
   );
   const dayRegistry = useMemo(() => registryOf(columnList), [columnList]);
   const chooserList = (rangeish ? RANGE_COLUMNS : columnList) as readonly {
@@ -255,18 +266,20 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
       : DEFAULT_COLUMNS;
 
   // presets that need columns the data does not carry are disabled with a reason
-  const presetMissing = useMemo<ReadonlySet<string>>(
-    () =>
-      view === 'period'
-        ? new Set<string>(PERIOD_MISSING as readonly string[])
-        : slim
-          ? slimMissing
-          : new Set<string>(),
-    [view, slim, slimMissing],
-  );
+  const presetMissing = useMemo<ReadonlySet<string>>(() => {
+    if (view === 'period') return new Set<string>(PERIOD_MISSING as readonly string[]);
+    const out = new Set<string>(slim ? slimMissing : []);
+    if (foGone) for (const k of FO_KEYS) out.add(k);
+    return out;
+  }, [view, slim, slimMissing, foGone]);
   const labelOf = useMemo(() => labelIn(COLUMNS), []);
   const reasonOf = (id: string) =>
-    presetReason(id, presetMissing, labelOf, view === 'period' ? PERIOD_MISSING_REASON : slimWhy);
+    presetReason(
+      id,
+      presetMissing,
+      labelOf,
+      view === 'period' ? PERIOD_MISSING_REASON : foGone && !slim ? foWhy : slimWhy,
+    );
 
   const presetId = params.get('p');
   const presetAny =
@@ -301,7 +314,14 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
   const needle = q.trim().toLowerCase();
   const ctx = useMemo(() => ({ indices: meta.indices, watchlist: new Set(watch) }), [meta.indices, watch]);
   const periodRows = useMemo(() => snap.data?.rows.map(periodRowToDaily) ?? null, [snap.data]);
-  const source: DailyRow[] | null = view === 'day' ? daily.data : view === 'period' ? periodRows : null;
+  const dayRows = useMemo<DailyRow[] | null>(() => {
+    if (!daily.data || !foMap) return daily.data;
+    return daily.data.map((r) => {
+      const f = foMap.get(r.sym);
+      return f ? { ...r, futOi: f.futOi, futOiChgPct: f.futOiChgPct, buildup: f.buildup, pcr: f.pcr } : r;
+    });
+  }, [daily.data, foMap]);
+  const source: DailyRow[] | null = view === 'day' ? dayRows : view === 'period' ? periodRows : null;
   const rows: ScreenRow[] = useMemo(() => {
     if (!source) return [];
     const eff = watchlistMode ? { ...filters, u: 'WATCHLIST' } : filters;

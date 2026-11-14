@@ -132,3 +132,46 @@ def test_signal_perf_replicates_research_scripts(shipped):
 
 def test_flag_bit_used_for_breakouts():
     assert C.FLAG["high52"] == 64
+
+
+# ---- Phase 5: the F&O study (signal_fwd3.py) and the deals study (signal_fwd4.py) replicate in the shipped file ----------
+
+FWD3 = {  # printed name -> (F&O event, horizons it prints): entry close(t), horizons 5 and 20, F&O-stock benchmark
+    "Long build-up (LB)": "BU_LB", "Short build-up (SB)": "BU_SB", "Short covering (SC)": "BU_SC",
+    "Long unwinding (LU)": "BU_LU", "ACC + long build-up": "ACC_LB", "ACC + short covering": "ACC_SC",
+    "DIS + short build-up": "DIS_SB", "DIS + long unwinding": "DIS_LU",
+}
+FWD4 = {  # printed name -> deals event; cells printed for (entry t0, 20d), (entry t1, 5d), (entry t1, 20d)
+    "FII net BUY via deals": "DL_FII_BUY", "FII net SELL via deals": "DL_FII_SELL",
+    "DII net BUY via deals": "DL_DII_BUY", "DII net SELL via deals": "DL_DII_SELL",
+    "FII buy >= Rs 25 Cr": "DL_FII_BUY25", "DII buy >= Rs 25 Cr": "DL_DII_BUY25",
+    "FII sell <= -Rs 25 Cr": "DL_FII_SELL25", "DII sell <= -Rs 25 Cr": "DL_DII_SELL25",
+    "FII + DII both net buy": "DL_BOTH_BUY", "FII sell, DII buy (handover to DII)": "DL_HANDOVER",
+    "FII buy, DII sell": "DL_FII_BUY_DII_SELL", "Institutional (FII+DII) net buy + delivery >= 2x": "DL_INST_HEAVY",
+    "Institutional net buy + price up (ACC)": "DL_INST_ACC", "Other/unclassified net buy only": "DL_OTHER_BUY",
+}
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not (DATA / "stats/signal_perf.json").exists(), reason="needs generated data")
+def test_fo_and_deals_events_replicate_the_research_scripts(shipped):
+    checked = 0
+    out = _run(SCRIPTS / "signal_fwd3.py", ROOT)
+    seen = 0
+    for name, n, cells in _lines(out):
+        if name not in FWD3:
+            continue
+        seen += 1
+        for horizon, cell in zip((5, 20), cells):
+            checked += _compare(shipped, FWD3[name], "ALL", "t0", horizon, n, _cell(cell), "signal_fwd3.py")
+    assert seen == len(FWD3), f"signal_fwd3.py: parsed {seen} of {len(FWD3)} rows"
+    out = _run(SCRIPTS / "signal_fwd4.py", ROOT)
+    seen = 0
+    for name, n, cells in _lines(out):
+        if name not in FWD4:
+            continue
+        seen += 1
+        for (entry, horizon), cell in zip((("t0", 20), ("t1", 5), ("t1", 20)), cells):
+            checked += _compare(shipped, FWD4[name], "ALL", entry, horizon, n, _cell(cell), "signal_fwd4.py")
+    assert seen == len(FWD4), f"signal_fwd4.py: parsed {seen} of {len(FWD4)} rows"
+    assert checked >= 46, f"only {checked} F&O and deals cells compared"  # 16 F&O and 30 deals cells with n >= 30

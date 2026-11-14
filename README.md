@@ -54,6 +54,10 @@ node scripts/smoke.mjs                                     # Playwright smoke te
 
 `PIPELINE_ENV=actions|local` chooses which sources run (`config/settings.json` -> `runIn`). Notes:
 
+- F&O (S3, Phase 5): `update` and `backfill` fetch the UDiFF F&O bhavcopy and reduce it to `store/fo_extract/` (a day
+  that is already stored is not fetched again). The history from 2024-07-08 was loaded before the S3 source existed and is
+  in the same format. Only F&O stocks carry F&O data: `fo/{date}.json` for the last 260 trading days and an `fo` block in
+  each F&O stock's symbol file. Open interest is in shares; volume is in contracts.
 - Bulk/block deals and FII/DII cash can only be fetched for the latest day, so every missed day is lost. Keep the
   schedule running. `backfill-deals` uses NSE's historical endpoint, which returns at most 70 records per request, so
   busy bulk-deal days are truncated; the days are listed in `store/deals/_backfill.json`.

@@ -29,6 +29,7 @@ import type {
   HoldingsFiling,
   HoldingsQuarterRow,
   HolderRow,
+  FoDayRow,
 } from '../types/data';
 
 /**
@@ -289,6 +290,20 @@ export class DataClient {
   /** deals/entities.json: one row per entity, with its aliases. */
   entities(): Promise<EntityRow[]> {
     return this.table<EntityRow>('deals/entities.json');
+  }
+
+  /**
+   * fo/{date}.json: the F&O stock-days of one date (Phase 5, futOi and pcr in shares and ratio). Empty when the date is
+   * outside the full-column window, which the Screener reports as "not published" rather than failing.
+   */
+  foDay(date: string): Promise<FoDayRow[]> {
+    return this.cached(`fo/${date}`, async () => {
+      try {
+        return rowsToObjects<FoDayRow>(await this.fetchData<Table>(`fo/${date}.json`));
+      } catch {
+        return [];
+      }
+    });
   }
 
   /** holdings/quarters.json: the stored quarters, with how many companies filed (S16, Phase 4B). */

@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 
 from .. import config, metrics
+from .. import fo as fo_mod
 from . import columns as C
 from . import deals as deals_build
 from . import holdings as holdings_build
@@ -48,9 +49,15 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     corp = loader.load_corp_actions(alias, root)
     df = outputs.add_flags(df, days, corp, loader.load_band_hits(alias, root), loader.load_ban(alias, root),
                            loader.load_hl52(alias, root), etf, loader.first_date("corp_actions", root=root))
+    # F&O (04 section 4.4, DEVIATIONS #119): futOi, futOiChgPct, buildup and pcr, on F&O stock-days only (null elsewhere)
+    fo_rows = loader.load_fo(days, alias, root)
+    iso_days = [d.isoformat() for d in days]
+    df = outputs.add_fo(df, fo_mod.fo_frame(fo_rows, iso_days), iso_days, signals)
+    lap(f"F&O: {len(fo_rows):,} extract rows; {int(df['futOi'].notna().sum()):,} F&O stock-days")
 
     if out.exists():
-        for sub in ("daily", "cum", "symbols", "stats", "weekly", "monthly", "trail", "deals", "institutional", "holdings"):
+        for sub in ("daily", "cum", "symbols", "stats", "weekly", "monthly", "trail", "deals", "institutional", "holdings",
+                    "fo"):
             shutil.rmtree(out / sub, ignore_errors=True)
     out.mkdir(parents=True, exist_ok=True)
     outputs._DIRS.clear()
@@ -88,8 +95,9 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     lap(f"cum written ({sizes['cum'] / 1e6:.1f} MB)")
     sizes["symbols"] = outputs.write_symbols(df, uni, corp, out, pub_first, dealb.by_sym, dealb.flow_rows,
                                              holdings_by_sym=hold.by_sym)
+    sizes["fo"] = outputs.write_fo(df, pub_days, uni, out, settings.get("publish", {}).get("dailyFullTradingDays"))
     outputs.flush()
-    lap(f"symbols written ({sizes['symbols'] / 1e6:.1f} MB)")
+    lap(f"symbols written ({sizes['symbols'] / 1e6:.1f} MB); F&O files {sizes['fo'] / 1e6:.2f} MB")
     iso_days = [d.isoformat() for d in days]
     idx_close = loader.load_indices_close(days, root)
     frames = period_build.compute_period_frames(df, iso_days, settings, signals, etf)
@@ -109,7 +117,7 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     split_doc = outputs.build_split_bonus(corp, adj)
     validate("split_bonus", split_doc)
     outputs.dump(out / "stats" / "split_bonus.json", split_doc)
-    perf = signal_perf.compute(df, iso_days, uni, C.INDICES.index("NIFTY200"))
+    perf = signal_perf.compute(df, iso_days, uni, C.INDICES.index("NIFTY200"), dealb.flows)
     validate("signal_perf", perf)
     outputs.dump(out / "stats" / "signal_perf.json", perf)
     pperf = period_build.signal_perf_periods(df, frames, iso_days, uni, C.INDICES.index("NIFTY200"))
