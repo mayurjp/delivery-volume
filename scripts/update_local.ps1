@@ -19,8 +19,9 @@ $env:PIPELINE_ENV = 'local'
 python -m pipeline update --no-build
 if ($LASTEXITCODE -ne 0) { throw "pipeline update failed (exit $LASTEXITCODE)" }
 
-# 4. commit only if the store changed (request logs are not data and are left out)
-git add store ':(exclude)store/logs'
+# 4. commit only if the store changed (request logs are not data: store/logs/ is in .gitignore, so
+#    `git add store` skips it; naming the ignored path, even as an exclude, makes git exit 1)
+git add store
 git diff --cached --quiet
 if ($LASTEXITCODE -eq 0) {
     Write-Host 'No store changes; nothing to commit.'

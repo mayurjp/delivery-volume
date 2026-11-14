@@ -70,8 +70,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # request logs change every run; they are not data, so they never trigger or join a data commit
-          git add store ':(exclude)store/logs'
+          # request logs change every run; they are not data: store/logs/ is in .gitignore, so `git add store`
+          # skips it. Never name it in a pathspec (even as an exclude): git exits 1 on an ignored path and the
+          # data commit is lost (that is what failed the first shareholding backfill run, 2026-11-14).
+          git add store
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No store changes."
