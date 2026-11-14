@@ -75,7 +75,7 @@ export default function DateControl() {
           </div>
           <div className="grid grid-cols-7 gap-0.5 text-center text-xs">
             {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-              <div key={i} className="py-1 text-slate-500">
+              <div key={i} className="py-1 text-slate-500 dark:text-slate-400">
                 {d}
               </div>
             ))}

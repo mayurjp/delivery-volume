@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, type LinkProps } from 'react-router-dom';
 import { carryParams } from '../lib/urlState';
+import { errorSummary, missingMessage } from '../lib/errors';
+import { TF_KEYS } from '../lib/timeframe';
 import { DELIVERY_TRUTH, flagsOf, SIGNAL_LABEL, SIGNAL_MEANING } from '../lib/signals';
 import { useSignalPerf } from '../lib/hooks';
 import { signalHistory } from '../lib/signalPerf';
@@ -50,16 +52,49 @@ export function Skeleton({ className = '', height }: { className?: string; heigh
   return <div className={`skeleton ${className}`} style={height ? { height } : undefined} aria-hidden />;
 }
 
+/**
+ * A failed load. A 404 (no file for this date or stock) reads as a plain note, not an error (lib/errors.ts).
+ * A network or parse failure shows the error box with "Try again", which reloads the page: the state is in the URL,
+ * and the data client never caches a failed request, so the reload fetches again.
+ */
 export function ErrorBox({ message }: { message: string }) {
+  const missing = missingMessage(message);
+  if (missing) return <Empty>{missing}</Empty>;
   return (
-    <div role="alert" className="card p-4 text-sm text-dec dark:text-dec-dark">
-      Could not load data: {message}
+    <div role="alert" className="card flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
+      <p>
+        <strong className="text-dec dark:text-dec-dark">Could not load this data.</strong>{' '}
+        <span className="text-slate-500 dark:text-slate-400">{errorSummary(message)}</span>
+      </p>
+      <button type="button" className="btn" onClick={() => window.location.reload()}>
+        Try again
+      </button>
     </div>
   );
 }
 
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="card p-6 text-center text-sm text-slate-500 dark:text-slate-400">{children}</div>;
+}
+
+/** Empty filter result: keeps the date and timeframe, drops every filter. */
+export function ResetFiltersLink() {
+  const { pathname, search } = useLocation();
+  const p = new URLSearchParams(search);
+  const q = new URLSearchParams();
+  for (const k of ['d', ...TF_KEYS]) {
+    const v = p.get(k);
+    if (v !== null) q.set(k, v);
+  }
+  const s = q.toString();
+  return (
+    <Link
+      to={`${pathname}${s ? `?${s}` : ''}`}
+      className="font-medium text-blue-700 underline dark:text-blue-300"
+    >
+      Reset the filters
+    </Link>
+  );
 }
 
 /** Tap/hover/focus tooltip: a button that toggles a bubble (works by touch, unlike the `title` attribute). */
@@ -327,5 +362,22 @@ export function Popover({
         </div>
       )}
     </div>
+  );
+}
+
+/** "Download CSV" button (05 section 4, Phase 5). The page passes the rows the user currently sees. */
+export function CsvButton({
+  onClick,
+  disabled = false,
+  label = 'Download CSV',
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label?: string;
+}) {
+  return (
+    <button type="button" className="btn gap-1 text-xs" onClick={onClick} disabled={disabled} title={label}>
+      <span aria-hidden>⇩</span> Download CSV
+    </button>
   );
 }

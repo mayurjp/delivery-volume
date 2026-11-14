@@ -10,7 +10,8 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { COLUMN_BY_KEY, type ColumnSpec, type RowLike, type ScreenRow } from '../lib/columns';
-import { EtfBadge, FlagIcons, AppLink, SignalBadge } from './ui';
+import { csvFileName, csvText, downloadCsv, type CsvCell } from '../lib/csv';
+import { CsvButton, EtfBadge, FlagIcons, AppLink, SignalBadge } from './ui';
 import { FLAG, type Bucket, type SignalCode } from '../types/data';
 
 const ROW_H = 36;
@@ -37,6 +38,16 @@ interface Props<R extends RowLike> {
   height?: number;
   /** Replaces the daily "Historically" line of the signal badge tooltip (weekly and monthly views). */
   signalHistory?: (signal: SignalCode, bucket: Bucket | null) => string | undefined;
+  /** CSV file name parts: the view (for example `screener`) and the date (`2026-11-13`). */
+  csvView: string;
+  csvDate: string;
+}
+
+/** The CSV value of a cell: the raw field, or the spec's plain `csv` value. Warning markers become yes or blank. */
+function csvValue<R extends RowLike>(spec: ColumnSpec<R>, r: R): CsvCell {
+  if (spec.csv) return spec.csv(r);
+  if (spec.kind === 'warn') return spec.fmt(r) ? 'yes' : '';
+  return (r[spec.key] ?? null) as CsvCell;
 }
 
 function cell<R extends RowLike>(
@@ -95,6 +106,8 @@ export default function DataTable<R extends RowLike>({
   extra = [],
   height = 560,
   signalHistory,
+  csvView,
+  csvDate,
 }: Props<R>) {
   const reg = (registry ?? COLUMN_BY_KEY) as ReadonlyMap<string, ColumnSpec<R>>;
   const helper = useMemo(() => createColumnHelper<R>(), []);
@@ -148,70 +161,92 @@ export default function DataTable<R extends RowLike>({
   });
   const total = table.getVisibleLeafColumns().reduce((s, c) => s + c.getSize(), 0);
 
+  /** Exports the rows as sorted and filtered right now (the table's own sorted model), with the spec columns only. */
+  const exportCsv = () => {
+    const headers = specs.map((s) => s.label);
+    const body = table.getRowModel().rows.map((row) => specs.map((s) => csvValue(s, row.original)));
+    downloadCsv(csvFileName(csvView, csvDate), csvText(headers, body));
+  };
+
   return (
-    <div
-      ref={parent}
-      className="card relative overflow-auto"
-      style={{ height }}
-      role="region"
-      aria-label={ariaLabel}
-      tabIndex={0}
-    >
-      <div style={{ width: total, minWidth: '100%' }}>
-        <div className="sticky top-0 z-20 flex border-b border-slate-200 bg-slate-100 text-xs font-semibold dark:border-slate-700 dark:bg-slate-800">
-          {table.getHeaderGroups()[0]!.headers.map((h, i) => {
-            const meta = h.column.columnDef.meta as
-              { spec?: ColumnSpec<R>; extra?: ExtraColumn<R> } | undefined;
-            const sorted = h.column.getIsSorted();
-            const right = meta?.spec?.align === 'right';
-            return (
-              <div
-                key={h.id}
-                style={{ width: h.getSize() }}
-                className={`shrink-0 ${i === 0 ? 'sticky left-0 z-30 bg-slate-100 dark:bg-slate-800' : ''}`}
-                aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none'}
-              >
-                <button
-                  type="button"
-                  disabled={!h.column.getCanSort()}
-                  onClick={h.column.getToggleSortingHandler()}
-                  title={meta?.spec?.tip ?? meta?.extra?.tip}
-                  className={`flex h-9 w-full items-center gap-1 px-2 ${right ? 'justify-end' : ''}`}
+    <div className="space-y-1">
+      <div className="flex justify-end">
+        <CsvButton
+          onClick={exportCsv}
+          disabled={model.length === 0}
+          label={`Download the ${ariaLabel.toLowerCase()} rows shown as CSV`}
+        />
+      </div>
+      <div
+        ref={parent}
+        className="card relative overflow-auto"
+        style={{ height }}
+        role="region"
+        aria-label={ariaLabel}
+        tabIndex={0}
+      >
+        <div style={{ width: total, minWidth: '100%' }}>
+          <div className="sticky top-0 z-20 flex border-b border-slate-200 bg-slate-100 text-xs font-semibold dark:border-slate-700 dark:bg-slate-800">
+            {table.getHeaderGroups()[0]!.headers.map((h, i) => {
+              const meta = h.column.columnDef.meta as
+                { spec?: ColumnSpec<R>; extra?: ExtraColumn<R> } | undefined;
+              const sorted = h.column.getIsSorted();
+              const right = meta?.spec?.align === 'right';
+              return (
+                <div
+                  key={h.id}
+                  style={{ width: h.getSize() }}
+                  className={`shrink-0 ${i === 0 ? 'sticky left-0 z-30 bg-slate-100 dark:bg-slate-800' : ''}`}
                 >
-                  {flexRender(h.column.columnDef.header, h.getContext())}
-                  <span aria-hidden>{sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : ''}</span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{ height: virt.getTotalSize(), position: 'relative' }}>
-          {virt.getVirtualItems().map((v) => {
-            const row = model[v.index]!;
-            return (
-              <div
-                key={row.id}
-                className={`absolute left-0 flex w-full items-center border-b border-slate-100 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60 ${dim?.(row.original) ? 'opacity-50' : ''}`}
-                style={{ height: ROW_H, transform: `translateY(${v.start}px)` }}
-              >
-                {row.getVisibleCells().map((c, i) => {
-                  const meta = c.column.columnDef.meta as { spec?: ColumnSpec<R>; extra?: ExtraColumn<R> };
-                  const spec = meta.spec;
-                  const r = row.original;
-                  return (
-                    <div
-                      key={c.id}
-                      style={{ width: c.column.getSize() }}
-                      title={spec?.cellTip?.(r)}
-                      className={`num shrink-0 truncate px-2 ${spec?.align === 'right' ? 'text-right' : ''} ${spec?.tone?.(r) ?? ''} ${i === 0 ? 'sticky left-0 z-10 bg-white dark:bg-slate-900' : ''}`}
-                    >
-                      {spec ? cell(spec, r, signalHistory) : meta.extra?.render(r)}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+                  <button
+                    type="button"
+                    disabled={!h.column.getCanSort()}
+                    onClick={h.column.getToggleSortingHandler()}
+                    title={meta?.spec?.tip ?? meta?.extra?.tip}
+                    className={`flex h-9 w-full items-center gap-1 px-2 ${right ? 'justify-end' : ''}`}
+                  >
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    <span aria-hidden>{sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : ''}</span>
+                    <span className="sr-only">
+                      {sorted === 'asc'
+                        ? ', sorted ascending'
+                        : sorted === 'desc'
+                          ? ', sorted descending'
+                          : ''}
+                    </span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ height: virt.getTotalSize(), position: 'relative' }}>
+            {virt.getVirtualItems().map((v) => {
+              const row = model[v.index]!;
+              return (
+                <div
+                  key={row.id}
+                  className={`absolute left-0 flex w-full items-center border-b border-slate-100 text-sm hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60 ${dim?.(row.original) ? 'opacity-50' : ''}`}
+                  style={{ height: ROW_H, transform: `translateY(${v.start}px)` }}
+                >
+                  {row.getVisibleCells().map((c, i) => {
+                    const meta = c.column.columnDef.meta as { spec?: ColumnSpec<R>; extra?: ExtraColumn<R> };
+                    const spec = meta.spec;
+                    const r = row.original;
+                    return (
+                      <div
+                        key={c.id}
+                        style={{ width: c.column.getSize() }}
+                        title={spec?.cellTip?.(r)}
+                        className={`num shrink-0 truncate px-2 ${spec?.align === 'right' ? 'text-right' : ''} ${spec?.tone?.(r) ?? ''} ${i === 0 ? 'sticky left-0 z-10 bg-white dark:bg-slate-900' : ''}`}
+                      >
+                        {spec ? cell(spec, r, signalHistory) : meta.extra?.render(r)}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

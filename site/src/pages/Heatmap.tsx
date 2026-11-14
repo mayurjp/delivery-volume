@@ -191,7 +191,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
       )}
       <div className="flex flex-wrap items-end gap-3 text-sm">
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500">Size</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Size</span>
           <select
             aria-label="Size by"
             className="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
@@ -206,7 +206,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
           </select>
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500">Colour</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Colour</span>
           <select
             aria-label="Colour by"
             className="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
@@ -438,7 +438,7 @@ function CalendarTab() {
             <option key={x.sym} value={x.sym} />
           ))}
         </datalist>
-        {u && <span className="text-slate-500">{u.name}</span>}
+        {u && <span className="text-slate-500 dark:text-slate-400">{u.name}</span>}
       </label>
       {!u ? (
         <Empty>Pick a symbol from the list.</Empty>
@@ -447,7 +447,7 @@ function CalendarTab() {
       ) : !option ? (
         <Skeleton height={230} />
       ) : (
-        <div className="card overflow-x-auto p-3">
+        <div className="card overflow-x-auto p-3" tabIndex={0}>
           <div style={{ minWidth: 860 }}>
             <EChart
               option={option}
@@ -485,13 +485,12 @@ export default function Heatmap() {
           {tfs.tf === 'd' ? fmtDate(legacyRange ? meta.latestDate : date) : ''}
         </p>
       </div>
-      <div role="tablist" aria-label="Heatmap type" className="flex flex-wrap gap-1">
+      <div role="group" aria-label="Heatmap type" className="flex flex-wrap gap-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
-            role="tab"
-            aria-selected={tab === t.id}
+            aria-pressed={tab === t.id}
             className={`chip ${tab === t.id ? 'bg-blue-600 text-white' : ''}`}
             onClick={() => set('t', t.id === 'tree' ? null : t.id)}
           >

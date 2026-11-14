@@ -124,3 +124,62 @@ describe('DataClient', () => {
     ).toEqual([{ a: 1, b: null }]);
   });
 });
+
+/** Error paths (05 section 6, Phase 5): a failed load must reject with a readable message and must not poison the cache. */
+describe('DataClient error paths', () => {
+  it('a missing daily file (404) rejects with the path and status, and is not cached', async () => {
+    const { client, calls } = server({});
+    await expect(client.daily('2026-01-01', '2026-11-13')).rejects.toThrow(
+      /daily\/2026-01-01\.json\?v=.*: HTTP 404/,
+    );
+    await expect(client.daily('2026-01-01', '2026-11-13')).rejects.toThrow(/HTTP 404/);
+    // both attempts hit the network: a failure is never remembered
+    expect(calls.filter((c) => c.url.includes('daily/2026-01-01.json')).length).toBe(2);
+  });
+
+  it('a network failure rejects, and the next call retries and succeeds', async () => {
+    let down = true;
+    const fetchFn = vi.fn(async (url: string) => {
+      if (url.startsWith('/data/meta.json'))
+        return { ok: true, status: 200, json: async () => META } as Response;
+      if (down) throw new TypeError('Failed to fetch');
+      return { ok: true, status: 200, json: async () => ({ dates: [] }) } as Response;
+    });
+    const client = new DataClient({ baseUrl: '/data/', fetchFn, lruSize: 3 });
+    await expect(client.market()).rejects.toThrow('Failed to fetch');
+    down = false;
+    await expect(client.market()).resolves.toEqual({ dates: [] });
+  });
+
+  it('a body that is not JSON rejects (parse error)', async () => {
+    const fetchFn = vi.fn(async (url: string) => {
+      if (url.startsWith('/data/meta.json'))
+        return { ok: true, status: 200, json: async () => META } as Response;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token < in JSON');
+        },
+      } as unknown as Response;
+    });
+    const client = new DataClient({ baseUrl: '/data/', fetchFn, lruSize: 3 });
+    await expect(client.market()).rejects.toThrow(/Unexpected token/);
+  });
+
+  it('a failed meta.json is retried on the next call instead of staying rejected', async () => {
+    let attempt = 0;
+    const fetchFn = vi.fn(async (url: string) => {
+      if (url.startsWith('/data/meta.json')) {
+        attempt++;
+        if (attempt === 1) return { ok: false, status: 503, json: async () => ({}) } as Response;
+        return { ok: true, status: 200, json: async () => META } as Response;
+      }
+      return { ok: true, status: 200, json: async () => ({ dates: [] }) } as Response;
+    });
+    const client = new DataClient({ baseUrl: '/data/', fetchFn, lruSize: 3 });
+    await expect(client.getMeta()).rejects.toThrow(/HTTP 503/);
+    await expect(client.getMeta()).resolves.toEqual(META);
+    expect(attempt).toBe(2);
+  });
+});

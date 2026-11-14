@@ -41,6 +41,8 @@ import { useApp, useAsync, useDaily, useGlobalState, useSymbol, useTimeframe } f
 import { stockStats } from '../lib/metrics';
 import { useDark } from '../lib/theme';
 import { toggleWatch, useWatchlist } from '../lib/watchlist';
+import { exportCsv } from '../lib/csv';
+import { CsvButton } from '../components/ui';
 import type { Bucket, SignalCode, UniverseRow } from '../types/data';
 
 const WINDOWS: { label: string; n: number }[] = [
@@ -96,7 +98,8 @@ function NotFound({ sym }: { sym: string }) {
               to={`/stock/${encodeURIComponent(u.sym)}`}
               className="block py-1 text-blue-700 hover:underline dark:text-blue-300"
             >
-              {u.sym} <EtfBadge show={u.etf} /> <span className="text-slate-500">{u.name}</span>
+              {u.sym} <EtfBadge show={u.etf} />{' '}
+              <span className="text-slate-500 dark:text-slate-400">{u.name}</span>
             </AppLink>
           </li>
         ))}
@@ -168,16 +171,18 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <span>
             Delivery <b className="num">{fmtPct(last.delivPct)}</b>{' '}
-            <span className="text-slate-500">(20D avg {fmtPct(last.delivPctAvg20)}, </span>
+            <span className="text-slate-500 dark:text-slate-400">
+              (20D avg {fmtPct(last.delivPctAvg20)},{' '}
+            </span>
             <span className={`num ${deliveryClass(diff)}`}>{fmtPp(diff)}</span>
-            <span className="text-slate-500">)</span>
+            <span className="text-slate-500 dark:text-slate-400">)</span>
           </span>
           <span>
             Spike <b className={`num ${deliveryClass((last.spike ?? 1) - 1)}`}>{fmtRatio(last.spike)}</b>
           </span>
           <SignalBadge signal={last.signal} bucket={u.bucket} />
           <FlagIcons flags={last.flags} />
-          <span className="text-xs text-slate-500">{fmtDate(last.date)}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{fmtDate(last.date)}</span>
         </div>
       )}
     </section>
@@ -497,7 +502,7 @@ export default function Stock() {
       {data.data && <FoSection file={data.data.file} rows={data.data.rows} pal={pal} mobile={mobile} />}
       <section aria-label="Delivery calendar" className="card min-w-0 p-3">
         <h2 className="mb-1 text-sm font-semibold">Delivery % calendar</h2>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <div style={{ minWidth: 860 }}>
             {cal ? (
               <EChart option={cal} height={230} ariaLabel="Calendar heat map of delivery percent" />
@@ -509,8 +514,45 @@ export default function Stock() {
       </section>
 
       <section aria-label="Last 30 days" className="card min-w-0 p-3">
-        <h2 className="mb-2 text-sm font-semibold">Last 30 days</h2>
-        <div className="max-h-[480px] overflow-auto">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Last 30 days</h2>
+          <CsvButton
+            disabled={last30.length === 0}
+            onClick={() =>
+              exportCsv(
+                `stock-${sym}-last-30-days`,
+                last30[0]?.date ?? 'none',
+                [
+                  'Date',
+                  'Close',
+                  'Return %',
+                  'Volume',
+                  'Deliv %',
+                  'Deliv value Cr',
+                  'Spike',
+                  'Signal',
+                  'Flags',
+                ],
+                last30.map((r, i, arr) => {
+                  const prev = arr[i + 1] ?? rows?.[rows.length - 31];
+                  const ret = r.close && prev?.close ? (r.close / prev.close - 1) * 100 : null;
+                  return [
+                    r.date,
+                    r.close,
+                    ret === null ? null : Number(ret.toFixed(2)),
+                    r.vol,
+                    r.delivPct,
+                    r.delivValCr,
+                    r.spike,
+                    r.signal,
+                    r.flags,
+                  ];
+                }),
+              )
+            }
+          />
+        </div>
+        <div className="max-h-[480px] overflow-auto" tabIndex={0}>
           <table className="num w-full min-w-[640px] text-sm">
             <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
               <tr className="text-right">
@@ -570,7 +612,11 @@ export default function Stock() {
                   <li key={i} className="flex flex-wrap items-center gap-1">
                     <span className="num">{fmtDate(d.date)}</span>
                     <span className="chip">{dealChip(d)}</span>
-                    {d.roundTrip && <span className="text-xs text-slate-500">round trip, not counted</span>}
+                    {d.roundTrip && (
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        round trip, not counted
+                      </span>
+                    )}
                     {d.entityId ? (
                       <AppLink to={`/entity/${encodeURIComponent(d.entityId)}`}>
                         {d.entityName ?? d.client}
@@ -582,7 +628,7 @@ export default function Stock() {
                 ))}
             </ul>
           )}
-          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Net via deals by month (Rs Cr)
           </h3>
           {flowMonths.months.length === 0 ? (

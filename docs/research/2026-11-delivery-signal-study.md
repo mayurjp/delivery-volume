@@ -26,7 +26,7 @@ The 1-year tables above are kept unchanged. This section re-runs `signal_fwd.py`
 
 - 1,055,714 liquid EQ stock-days (stocks only, ETFs, T2T and low-liquidity rows out), over 744 days. Today's index, cap and sector membership is applied to all 3 years, so survivorship bias is larger than in the 1-year study.
 - **Splits.** NSE's `PREV_CLOSE` is the raw previous close on an ex-date, so the old "prevClose vs close(t-1) above 3%" rule found only 14 events in 3 years. The scripts and the pipeline now also drop forward windows that cross a one-day close ratio of at most 0.78 or at least 1.8. The 1-year tables above were produced before this fix (the median columns are robust to it; the 1-year hit rates may move by a point).
-- **52-week highs.** S13 exists only from 2025-11-03. Earlier days use our own split-adjusted 250-day high (from the 251st market day), so breakout events cover 492 days, not 744. Streak events use the published `streak` column; deal and F&O studies below cover only the period their data covers (F&O: from 2024-07-08 and 275 stocks; deals: the same 1 year as before, 19,047 rows).
+- **52-week highs.** S13 exists only from 2025-11-03. Earlier days use our own split-adjusted 250-day high (from the 251st market day), so breakout events cover 492 days, not 744. Streak events use the published `streak` column; deal and F&O studies below cover only the period their data covers (F&O: from 2024-07-08 and 276 stocks after aliasing (275 before); deals: the same 1 year as before, 19,047 rows).
 - Run-footprint and bucket numbers use today's market-cap buckets.
 
 ### Signals, all liquid stocks (benchmark = all liquid stocks that day)
@@ -69,7 +69,30 @@ Nifty 200 only: ACC -0.33% (48%), DIS +0.63% (54%), ABS +0.00% (50%), SPU +0.20%
 | Breakout on **low** delivery (spike < 1) | 3,587 | **+2.21% (60%)** | +1.32% (58%) |
 | Breakout on **heavy** delivery (spike >= 2) | 6,396 | +0.87% (53%) | +0.44% (53%) |
 
-### Delivery x F&O build-up (275 F&O stocks, 119,692 stock-days), +20d median (hit)
+### Delivery x F&O build-up (276 F&O stocks, 121,354 stock-days), +20d median (hit)
+
+**Re-run after the S17 aliasing (2026-11-15).** The first version of this table (below, under "before aliasing") read raw symbol names, so six renamed stocks (GMRINFRA, GUJGASLTD, ICICIPRULI, LTIM, TATAMOTORS, ZOMATO; 14,763 F&O rows) split at the rename. `signal_fwd3.py` now reads the F&O extract through the build's loader and alias (DEVIATIONS #128), and this table is its output: 744 days, 276 stocks, 121,354 stock-days, 109,546 with a valid OI change. The counts now match the shipped `stats/signal_perf.json` (DEVIATIONS #128; long build-up 10,643). Median excess over the F&O-stock median, entry at close(t).
+
+| Test | n | days | +5d | +20d |
+|------|---|------|-----|------|
+| Long build-up alone | 10,643 | 525 | −0.01% (50%) | +0.05% (50%) |
+| Short build-up alone | 13,986 | 528 | −0.04% (49%) | +0.00% (50%) |
+| Short covering alone | 9,183 | 524 | −0.03% (49%) | −0.18% (49%) |
+| Long unwinding alone | 6,379 | 512 | +0.03% (50%) | −0.06% (49%) |
+| ACC (up on heavy delivery) | 2,351 | 489 | −0.02% (49%) | −0.25% (48%) |
+| ACC + long build-up | 561 | 279 | −0.05% (49%) | −0.27% (48%) |
+| ACC + short covering | 599 | 286 | −0.06% (48%) | **−0.63% (46%)** |
+| DIS (down on heavy delivery) | 2,501 | 500 | +0.32% (54%) | +0.55% (53%) |
+| DIS + short build-up | 1,082 | 385 | +0.17% (52%) | +0.97% (55%) |
+| DIS + long unwinding | 257 | 143 | −0.32% (47%) | −0.34% (48%) |
+| Delivery ≥ 2× & up ≥ 1% + long build-up | 1,469 | 429 | +0.05% (51%) | +0.04% (51%) |
+| Delivery ≥ 2× & up ≥ 1% + short covering | 1,075 | 401 | +0.09% (51%) | −0.29% (48%) |
+| SPU (up on low delivery) + long build-up | 554 | 317 | −0.00% (50%) | +0.32% (53%) |
+| SPU (up on low delivery) + short covering | 346 | 238 | +0.21% (51%) | +0.19% (51%) |
+
+**What changed with the aliasing.** Every F&O count rises (long build-up +133 stock-days, from the six renamed stocks). The +20d medians move by 0.00 to 0.10 pp, and the hit rates by at most one point. The largest move is ACC + short covering (−0.53% to −0.63%, still the weakest F&O combination) and ACC + long build-up (−0.22% to −0.27%). No conclusion changes.
+
+**Before aliasing (raw symbol names, 275 stocks, 119,692 stock-days; superseded by the table above).** Kept for comparison:
 
 | Test | n | +20d |
 |------|---|------|
@@ -101,14 +124,14 @@ The footprint study already carried a 3-year update (section "Update 2026-11-14:
 2. In large caps the heavy-delivery move reverses: DIS beats the bucket median 55% of the time (+0.73%), ACC trails. With next-day entry the DIS edge halves (+0.34%), as in the 1-year study.
 3. A rise on low delivery fades in small and micro caps (micro SPU -0.91%, 46%) and does not in large caps.
 4. A breakout to a new 52-week high on low delivery beats one on heavy delivery (+2.21% against +0.87%), and it survives next-day entry (+2.22%, 61%).
-5. Delivery streaks have no edge; F&O build-up alone has none; ACC + short covering is the weakest F&O combination (-0.53%, 46%).
+5. Delivery streaks have no edge; F&O build-up alone has none; ACC + short covering is the weakest F&O combination (-0.63%, 46%).
 
 **Changed or weakened**
 
 1. **DIS is positive everywhere, not only in large caps.** Over 3 years DIS beat its bucket in all four buckets (+0.46% to +0.73%). The large-cap-only story was a feature of the first year.
 2. **ACC is not negative outside large caps.** Mid, small and micro ACC are flat to slightly positive over 3 years (it was flat to negative).
 3. **ABS helps in small and micro caps only, but more clearly** (+0.53% and +0.66%), and it is flat in large caps.
-4. **The breakout edge is smaller and ACC + long build-up no longer looks like the textbook trap** (-0.22%, 48%, was -1.03%, 46%): the F&O effects are within noise. DIS + long unwinding was -2.04% (40%) in one year and is -0.43% (48%) in three: it did not hold.
+4. **The breakout edge is smaller and ACC + long build-up no longer looks like the textbook trap** (-0.27%, 48%, was -1.03%, 46% in one year): the F&O effects are within noise. DIS + long unwinding was -2.04% (40%) in one year and is -0.34% (48%) in three: it did not hold.
 5. The all-breakouts edge fell from +1.66% to +1.38%. The heavy-delivery breakout is still weaker (+0.87%).
 6. The deals results use the same single year; the 3-year history does not touch them. They are still the least reliable.
 
@@ -160,6 +183,8 @@ Nifty 200 only (benchmark = the Nifty 200 median): ACC −0.87% (45%), DIS +0.50
 | Breakout on **heavy** delivery (spike ≥ 2) | 4,170 | +0.87% (53%) | +0.06% (50%) |
 
 ### Delivery × F&O build-up (F&O stocks only), +20d
+
+*Before aliasing:* this one-year table was computed on raw symbol names (DEVIATIONS #128) and was not re-run; the 3-year table in the update section is the current F&O result.
 
 - **Universe:** 235 stocks with stock futures, 53,364 stock-days. The benchmark is the F&O-stock median that day.
 - **futOi** = STF OI summed over all expiries. OI change is skipped when an expiry falls in [t−1, t].

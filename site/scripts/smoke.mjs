@@ -6,12 +6,16 @@ import { spawn } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 
 const BASE = process.env.VITE_BASE ?? '/delivery-volume/';
 const PORT = Number(process.env.SMOKE_PORT ?? 4173);
 const OUTDIR = process.env.SMOKE_OUTDIR; // optional: preview a build made with --outDir (default: dist)
 const ORIGIN = `http://localhost:${PORT}`;
 const SHOTS = process.env.SMOKE_SHOTS;
+// SMOKE_THEME=dark runs the whole pass in dark mode (the theme is set before the app loads, 05 section 7 dark audit)
+const THEME = process.env.SMOKE_THEME === 'dark' ? 'dark' : 'light';
+const AXE_TAGS = ['wcag2a', 'wcag2aa'];
 
 const preview = spawn(
   'npx',
@@ -218,11 +222,17 @@ ROUTES.push(
       const named = await p.locator('[data-testid=named-holders] li').count();
       const chips = await p.locator('[data-testid=holdings-chips] .chip').count();
       const foot = await p.locator('section[aria-label="Footprints"]').innerText();
-      return bars >= 1 && named >= 1 && chips >= 1 && foot.includes('FII + DII holdings') && foot.includes('Promoter holdings');
+      return (
+        bars >= 1 &&
+        named >= 1 &&
+        chips >= 1 &&
+        foot.includes('FII + DII holdings') &&
+        foot.includes('Promoter holdings')
+      );
     },
   },
   { path: '#/trail/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },
-// Phase 4: institutions (P6), deals (P7) and the entity page (items of the list above)
+  // Phase 4: institutions (P6), deals (P7) and the entity page (items of the list above)
   {
     path: '#/institutions',
     wait: 'h1:has-text("Institutions")',
@@ -287,8 +297,9 @@ ROUTES.push(
     expect: async (p) => {
       await p.waitForSelector('[data-testid=holdings-trend] tbody tr', { timeout: 25000 });
       return (
-        /Holdings stored for \d+ of \d+ companies/.test(await p.locator('[data-testid=holdings-coverage]').innerText()) &&
-        (await p.locator('section[aria-label="Biggest changes"] li').count()) > 0
+        /Holdings stored for \d+ of \d+ companies/.test(
+          await p.locator('[data-testid=holdings-coverage]').innerText(),
+        ) && (await p.locator('section[aria-label="Biggest changes"] li').count()) > 0
       );
     },
   },
@@ -373,6 +384,13 @@ try {
       deviceScaleFactor: 1,
       hasTouch: vp.w < 500,
     });
+    await ctx.addInitScript((theme) => {
+      try {
+        localStorage.setItem('dv.theme', theme);
+      } catch {
+        /* storage blocked: the system theme applies */
+      }
+    }, THEME);
     for (const route of ROUTES) {
       const page = await ctx.newPage();
       const errors = [];
@@ -402,6 +420,10 @@ try {
         c: document.documentElement.clientWidth,
       }));
       const ok = await route.expect(page).catch(() => false);
+      // accessibility: axe (WCAG 2 A and AA) must find no critical or serious violation
+      const axe = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
+      const axeBad = axe.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+      for (const v of axeBad) fail(`${label}: axe ${v.id} (${v.impact}) on ${v.nodes.length} node(s)`);
       console.log(
         `${ok && sw.s <= sw.c && errors.length === 0 ? 'ok  ' : 'FAIL'} ${label} (scrollWidth ${sw.s} / ${sw.c})`,
       );
@@ -473,6 +495,37 @@ try {
       for (const e of berr) fail(`${vp.w}px ${from} trail button: ${e}`);
       console.log(`${berr.length ? 'FAIL' : 'ok  '} ${vp.w}px "${text}" button on ${from}`);
       await bp.close();
+    }
+
+    // empty and error states (05 section 5): a 404 for a day's file reads as a plain note; a network failure shows the error box
+    if (vp.w === 360) {
+      const sp = await ctx.newPage();
+      const serr = [];
+      sp.on('pageerror', (e) => serr.push(`pageerror: ${e.message}`));
+      await sp.route('**/data/daily/2026-11-12.json*', (r) => r.fulfill({ status: 404, body: 'not found' }));
+      await sp.goto(`${ORIGIN}${BASE}#/screener?d=2026-11-12`);
+      await sp
+        .waitForSelector('text=No data for this date.', { timeout: 20000 })
+        .catch(() => fail('404 date: no plain note'));
+      if ((await sp.locator('[role=alert]').count()) !== 0) fail('404 date: shown as an error box');
+      await sp.route('**/data/daily/2026-11-11.json*', (r) => r.abort('failed'));
+      await sp.goto(`${ORIGIN}${BASE}#/screener?d=2026-11-11`);
+      await sp
+        .waitForSelector('[role=alert]', { timeout: 20000 })
+        .catch(() => fail('network failure: no error box'));
+      if ((await sp.locator('[role=alert] button:has-text("Try again")').count()) !== 1)
+        fail('error box: no Try again');
+      for (const e of serr) fail(`404/error states: ${e}`);
+      console.log(
+        `${serr.length ? 'FAIL' : 'ok  '} 360px empty and error states (404 date note, network error box)`,
+      );
+      await sp.close();
+      // an unknown symbol gets a message and a way back to search
+      const up = await ctx.newPage();
+      await up.goto(`${ORIGIN}${BASE}#/stock/NOSUCHSYM`);
+      await up.waitForSelector('h1:has-text("No stock found")', { timeout: 20000 });
+      if ((await up.locator('input').count()) < 1) fail('unknown symbol: no search box to get back');
+      await up.close();
     }
 
     // interactions: filter drawer, theme toggle, star + watchlist, date control

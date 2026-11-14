@@ -80,7 +80,7 @@ function TopCard({ spec, bySym }: { spec: CardSpec; bySym: ReturnType<typeof use
       </div>
       {spec.note && <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{spec.note}</p>}
       {spec.rows.length === 0 ? (
-        <p className="py-4 text-center text-xs text-slate-500">Nothing matches today.</p>
+        <p className="py-4 text-center text-xs text-slate-500 dark:text-slate-400">Nothing matches today.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {spec.rows.map((r) => {

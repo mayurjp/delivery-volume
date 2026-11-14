@@ -4,7 +4,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import EChart from '../charts/EChart';
 import { entityTimelineOption } from '../charts/deals';
 import { palette } from '../charts/theme';
-import { AppLink, Empty, ErrorBox, Skeleton, Tip } from '../components/ui';
+import { AppLink, CsvButton, Empty, ErrorBox, Skeleton, Tip } from '../components/ui';
+import { exportCsv } from '../lib/csv';
 import {
   CATEGORIES,
   DEALS_CAVEAT,
@@ -89,7 +90,7 @@ export default function Deals() {
 
       <section aria-label="Deal filters" className="card grid grid-cols-2 gap-2 p-3 text-sm md:grid-cols-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">From</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">From</span>
           <input
             type="date"
             className="rounded border px-2 py-1"
@@ -98,7 +99,7 @@ export default function Deals() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">To</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">To</span>
           <input
             type="date"
             className="rounded border px-2 py-1"
@@ -107,7 +108,7 @@ export default function Deals() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">Deal type</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Deal type</span>
           <select
             className="rounded border px-2 py-1"
             value={filter.type}
@@ -119,7 +120,7 @@ export default function Deals() {
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">Side</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Side</span>
           <select
             className="rounded border px-2 py-1"
             value={filter.side}
@@ -133,7 +134,7 @@ export default function Deals() {
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">Category</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Category</span>
           <select
             className="rounded border px-2 py-1"
             value={filter.category}
@@ -148,7 +149,7 @@ export default function Deals() {
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">Minimum value, Rs Cr</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Minimum value, Rs Cr</span>
           <input
             type="number"
             min={0}
@@ -159,7 +160,7 @@ export default function Deals() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-500">Symbol</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Symbol</span>
           <input
             className="rounded border px-2 py-1 uppercase"
             value={filter.sym ?? ''}
@@ -186,9 +187,9 @@ export default function Deals() {
         <div className="num grid grid-cols-3 gap-2 text-sm">
           {CATEGORIES.map((c) => (
             <div key={c}>
-              <div className="text-xs text-slate-500">{c}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{c}</div>
               <div className="font-semibold">{fmtSigned(totals[c].netValueCr, 2)}</div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 bought {fmtNum(totals[c].buyValueCr, 2)}, sold {fmtNum(totals[c].sellValueCr, 2)}
               </div>
             </div>
@@ -244,14 +245,51 @@ export default function Deals() {
       </section>
 
       <section aria-label="Deal list" className="card overflow-x-auto p-3">
-        <h2 className="mb-1 text-sm font-semibold">
-          Deals ({rows.length}){rows.length > ROW_CAP ? `, first ${ROW_CAP} shown` : ''}
-        </h2>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">
+            Deals ({rows.length}){rows.length > ROW_CAP ? `, first ${ROW_CAP} shown` : ''}
+          </h2>
+          <CsvButton
+            disabled={shown.length === 0}
+            onClick={() =>
+              exportCsv(
+                'deals',
+                `${filter.from || 'start'}_${filter.to || 'end'}`,
+                [
+                  'Date',
+                  'Stock',
+                  'Entity',
+                  'Entity category',
+                  'Entity type',
+                  'Type',
+                  'Side',
+                  'Qty',
+                  'Price',
+                  'Value Cr',
+                  'Round trip',
+                ],
+                shown.map((r) => [
+                  r.date,
+                  r.sym,
+                  r.entityName,
+                  r.entityCategory,
+                  r.entityType,
+                  r.type,
+                  r.side,
+                  r.qty,
+                  r.price,
+                  r.valueCr,
+                  r.roundTrip ? 'yes' : 'no',
+                ]),
+              )
+            }
+          />
+        </div>
         {rows.length === 0 ? (
           <Empty>No deals match these filters.</Empty>
         ) : (
           <table className="num w-full min-w-[720px] text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr className="text-left">
                 <th className="py-1 font-medium">Date</th>
                 <th className="font-medium">Stock</th>
@@ -286,8 +324,12 @@ export default function Deals() {
                     </Link>{' '}
                     <span className="chip">{r.entityCategory}</span>
                     {r.entityType === 'Promoter' && <span className="chip">Promoter</span>}
-                    {r.entityTypeInferred && <span className="text-xs text-slate-500"> (inferred)</span>}
-                    {r.roundTrip && <span className="text-xs text-slate-500"> round trip</span>}
+                    {r.entityTypeInferred && (
+                      <span className="text-xs text-slate-500 dark:text-slate-400"> (inferred)</span>
+                    )}
+                    {r.roundTrip && (
+                      <span className="text-xs text-slate-500 dark:text-slate-400"> round trip</span>
+                    )}
                   </td>
                   <td>
                     <span className="chip">{dealChip(r)}</span>
@@ -321,9 +363,11 @@ function EntityList({
 }) {
   return (
     <div>
-      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {title}
+      </h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">No entity {side} net in this range.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No entity {side} net in this range.</p>
       ) : (
         <ol className="space-y-0.5 text-sm">
           {rows.map((r) => (
@@ -355,12 +399,28 @@ function StockFlowTable({
 }) {
   return (
     <div className="min-w-0">
-      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {title}
+        </h3>
+        {rows.length > 0 && (
+          <CsvButton
+            onClick={() =>
+              exportCsv(
+                title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                'range',
+                ['Stock', 'FII net Cr', 'DII net Cr'],
+                rows.map((r) => [r.sym, r.fiiNetCr, r.diiNetCr]),
+              )
+            }
+          />
+        )}
+      </div>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">None in this range.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">None in this range.</p>
       ) : (
         <table className="num w-full text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-500 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Stock</th>
               <th className="font-medium">FII net</th>
@@ -423,7 +483,7 @@ export function EntityPage() {
   return (
     <div className="space-y-3">
       <header>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           <Link to="/deals" className="underline">
             Deals
           </Link>{' '}
@@ -434,7 +494,7 @@ export function EntityPage() {
           <span className="chip">{ent.entityCategory}</span>
           <span className="chip">{ent.entityType}</span>
           {mine.some((d) => d.entityTypeInferred) && (
-            <span className="text-xs text-slate-500">type inferred from the name</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">type inferred from the name</span>
           )}
         </h1>
       </header>
@@ -446,19 +506,19 @@ export function EntityPage() {
         className="card num grid grid-cols-2 gap-2 p-3 text-sm md:grid-cols-4"
       >
         <div>
-          <div className="text-xs text-slate-500">Bought via deals</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Bought via deals</div>
           <div className="font-semibold">{fmtCr(ent.buyValueCr)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">Sold via deals</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Sold via deals</div>
           <div className="font-semibold">{fmtCr(ent.sellValueCr)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">Net</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Net</div>
           <div className="font-semibold">{fmtSigned(ent.netValueCr, 2)} Cr</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">Deals, first and last</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Deals, first and last</div>
           <div>
             {ent.dealCount} ({fmtDate(ent.firstDate)} to {fmtDate(ent.lastDate)})
           </div>
@@ -466,12 +526,25 @@ export function EntityPage() {
       </section>
       <DisclosedHoldings entityId={entityId} />
       <section aria-label="Per-stock net" className="card overflow-x-auto p-3">
-        <h2 className="mb-1 text-sm font-semibold">Net via deals, by stock (round trips excluded)</h2>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Net via deals, by stock (round trips excluded)</h2>
+          <CsvButton
+            disabled={perStock.length === 0}
+            onClick={() =>
+              exportCsv(
+                `entity-${entityId}-by-stock`,
+                ent.lastDate,
+                ['Stock', 'Deals', 'Net Cr'],
+                perStock.map((r) => [r.sym, r.n, r.net]),
+              )
+            }
+          />
+        </div>
         {perStock.length === 0 ? (
           <Empty>No non-round-trip deals for this entity.</Empty>
         ) : (
           <table className="num w-full min-w-[320px] text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Stock</th>
                 <th className="font-medium">Deals</th>

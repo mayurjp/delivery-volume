@@ -1,4 +1,5 @@
 import { deliveryClass, priceClass } from '../charts/theme';
+import { csvText } from './csv';
 import type { Bucket, DailyRow, SignalCode } from '../types/data';
 import {
   fmtCr,
@@ -327,16 +328,9 @@ export function migrateColumns(saved: readonly string[]): string[] {
   return ['sym', ...PRICE_BLOCK, ...rest];
 }
 
-export function csvEscape(v: string | number | null): string {
-  if (v === null) return '';
-  const s = String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
 export function toCsv<R>(rows: readonly R[], cols: readonly ColumnSpec<R>[]): string {
-  const head = cols.map((c) => csvEscape(c.label)).join(',');
-  const body = rows.map((r) =>
-    cols.map((c) => csvEscape(c.csv ? c.csv(r) : (r[c.key] as string | number | null))).join(','),
+  return csvText(
+    cols.map((c) => c.label),
+    rows.map((r) => cols.map((c) => (c.csv ? c.csv(r) : (r[c.key] as string | number | null)))),
   );
-  return [head, ...body].join('\n');
 }

@@ -211,9 +211,9 @@ export default function Learn() {
           weekday evening (about 19:00 and 22:00 IST, with a morning catch-up), so the site normally shows the
           previous trading day by evening. SME stocks are excluded.
         </p>
-        <div className="card overflow-x-auto">
+        <div className="card overflow-x-auto" tabIndex={0}>
           <table className="num w-full min-w-[420px] text-sm">
-            <thead className="text-left text-xs text-slate-500">
+            <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="p-2 font-medium">Source</th>
                 <th className="p-2 font-medium">Latest</th>

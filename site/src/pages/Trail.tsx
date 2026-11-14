@@ -3,7 +3,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import EChart from '../charts/EChart';
 import { palette } from '../charts/theme';
 import { sectorBarOption, sectorGridOption, stockTrailOption } from '../charts/trail';
-import { AppLink, Empty, ErrorBox, Skeleton } from '../components/ui';
+import { AppLink, CsvButton, Empty, ErrorBox, Skeleton } from '../components/ui';
+import { exportCsv } from '../lib/csv';
 import { corpActionSyms } from '../lib/range';
 import { dataClient } from '../lib/dataClient';
 import { DEALS_CAVEAT, dealChip, dealsByDate, round2, signedValue } from '../lib/deals';
@@ -209,12 +210,14 @@ function HoldingsCard({ file }: { file: SymbolFile }) {
               {c.label} {fmtPp(c.v, 1)}
             </span>
           ))}
-          <span className="self-center text-slate-500">change in {fmtDate(lastQ)} filing</span>
+          <span className="self-center text-slate-500 dark:text-slate-400">
+            change in {fmtDate(lastQ)} filing
+          </span>
         </div>
       )}
       <h3 className="mt-3 text-xs font-semibold">Named holders above 1%, {fmtDate(lastQ)}</h3>
       {named.length === 0 ? (
-        <p className="text-xs text-slate-500">No named holder above 1% in this filing.</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">No named holder above 1% in this filing.</p>
       ) : (
         <ul
           className="mt-1 divide-y divide-slate-100 text-xs dark:divide-slate-800"
@@ -223,7 +226,7 @@ function HoldingsCard({ file }: { file: SymbolFile }) {
           {named.map((n) => (
             <li key={n.holder} className="flex items-center justify-between gap-2 py-1">
               <span className="min-w-0 truncate">
-                {n.holder} <span className="text-slate-500">({n.category})</span>
+                {n.holder} <span className="text-slate-500 dark:text-slate-400">({n.category})</span>
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <span className="num">{fmtNum(n.pct, 2)}%</span>
@@ -320,12 +323,54 @@ function ListTable({
       <p className="mb-2 text-xs text-slate-600 dark:text-slate-300" data-testid={`history-${id}`}>
         {history}
       </p>
+      <div className="mb-1 flex justify-end">
+        <CsvButton
+          disabled={entries.length === 0}
+          onClick={() =>
+            exportCsv(
+              `trail-${id}`,
+              `window-${win}`,
+              [
+                'Stock',
+                'A',
+                'D',
+                'N',
+                'Codes',
+                'Lean weeks',
+                'Balance',
+                'Deliv % trend pp',
+                'Trade size trend',
+                'Flip',
+                'Flip since',
+                'Since %',
+              ],
+              entries.map((e) => {
+                const v = e.w[win]!;
+                return [
+                  e.sym,
+                  v.A,
+                  v.D,
+                  v.N,
+                  v.codes,
+                  lean === 'D' ? v.consD : v.consA,
+                  v.delivBal,
+                  v.delivPctTrend,
+                  v.tradeSizeTrend,
+                  lean === 'flip' ? v.flip : null,
+                  lean === 'flip' ? v.flipSince : null,
+                  since ? (since.get(e.sym) ?? null) : null,
+                ];
+              }),
+            )
+          }
+        />
+      </div>
       {entries.length === 0 ? (
-        <p className="py-3 text-center text-sm text-slate-500">
+        <p className="py-3 text-center text-sm text-slate-500 dark:text-slate-400">
           No stock matches in this universe and window.
         </p>
       ) : (
-        <div className="max-h-[520px] overflow-auto">
+        <div className="max-h-[520px] overflow-auto" tabIndex={0}>
           <table className="num w-full min-w-[640px] text-sm">
             <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
               <tr className="text-right">
@@ -409,14 +454,14 @@ function TrackRecord({
       return (
         <td key={h} colSpan={1} className="text-right">
           {thin || !r || r.medianExcess === null ? (
-            <span className="text-slate-400" title={thin ?? undefined}>
+            <span className="text-slate-600 dark:text-slate-400" title={thin ?? undefined}>
               n {r?.n ?? 0}
               {r && r.dates < MIN_PERF_DATES ? `, ${r.dates} dates` : ''}
             </span>
           ) : (
             <>
               {fmtPctChg(r.medianExcess, 1)}{' '}
-              <span className="text-slate-500">
+              <span className="text-slate-500 dark:text-slate-400">
                 ({fmtPct(r.hitRate, 0)}, n {fmtInt(r.n)})
               </span>
             </>
@@ -440,9 +485,9 @@ function TrackRecord({
         {fmtDate(asOfDates[0])} to {fmtDate(asOfDates[asOfDates.length - 1])}; today&apos;s index membership,
         before costs. {HISTORICAL_LABEL}
       </p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="num w-full min-w-[520px] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-500 dark:text-slate-400">
             <tr>
               <th className="py-1 text-left font-medium">List or indicator reading</th>
               <th className="text-right font-medium">60 days</th>
@@ -548,10 +593,10 @@ function TrailMarket() {
 
       <section aria-label="Trail controls" className="card flex flex-wrap items-end gap-3 p-3">
         <div>
-          <div className="mb-0.5 text-xs text-slate-500">Window</div>
+          <div className="mb-0.5 text-xs text-slate-500 dark:text-slate-400">Window</div>
           <WindowChips win={win} onChange={(w) => set('tw', w === '6M' ? null : w)} />
         </div>
-        <label className="text-xs text-slate-500">
+        <label className="text-xs text-slate-500 dark:text-slate-400">
           <span className="mb-0.5 block">Universe</span>
           <select
             className="btn py-1 text-sm"
@@ -566,7 +611,7 @@ function TrailMarket() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-500">
+        <label className="text-xs text-slate-500 dark:text-slate-400">
           <span className="mb-0.5 block">Sector</span>
           <select
             className="btn max-w-[12rem] py-1 text-sm"
@@ -582,7 +627,7 @@ function TrailMarket() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-500">
+        <label className="text-xs text-slate-500 dark:text-slate-400">
           <span className="mb-0.5 block">As of</span>
           <select
             className="btn py-1 text-sm"
@@ -737,7 +782,7 @@ function TrailMarket() {
                   height={Math.max(180, rot.length * 22 + 40)}
                   ariaLabel="Sector rotation bar chart"
                 />
-                <div className="mt-2 overflow-x-auto">
+                <div className="mt-2 overflow-x-auto" tabIndex={0}>
                   <div style={{ minWidth: 520 }}>
                     <EChart
                       option={sectorGridOption(grid, data.stripWeeks.slice(-weeks), pal, mobile)}
@@ -746,9 +791,9 @@ function TrailMarket() {
                     />
                   </div>
                 </div>
-                <div className="mt-2 overflow-x-auto">
+                <div className="mt-2 overflow-x-auto" tabIndex={0}>
                   <table className="num w-full min-w-[480px] text-sm">
-                    <thead className="text-xs text-slate-500">
+                    <thead className="text-xs text-slate-500 dark:text-slate-400">
                       <tr className="text-right">
                         <th className="py-1 text-left font-medium">Sector</th>
                         <th className="font-medium">Stocks</th>
@@ -921,7 +966,8 @@ function TrailStock({ sym }: { sym: string }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">
-          {sym} <span className="text-base font-normal text-slate-500">Smart Money Trail</span>
+          {sym}{' '}
+          <span className="text-base font-normal text-slate-500 dark:text-slate-400">Smart Money Trail</span>
         </h1>
         <AppLink
           to={`/stock/${encodeURIComponent(sym)}`}
@@ -967,7 +1013,9 @@ function TrailStock({ sym }: { sym: string }) {
           <section aria-label="Footprints" className="card min-w-0 p-3" data-testid="stock-indicators">
             <h2 className="text-sm font-semibold">The footprints</h2>
             {!view ? (
-              <p className="py-3 text-sm text-slate-500">Not enough history for this window yet.</p>
+              <p className="py-3 text-sm text-slate-500 dark:text-slate-400">
+                Not enough history for this window yet.
+              </p>
             ) : (
               <ul className="mt-1 divide-y divide-slate-100 dark:divide-slate-800">
                 {INDICATORS.map((id, j) => {
@@ -1000,7 +1048,10 @@ function TrailStock({ sym }: { sym: string }) {
                           <span className="font-semibold">{IND_SHORT[id]}</span>
                         </span>
                         <span className="num">
-                          {value} {secV && <span className="text-xs text-slate-500">({secV})</span>}
+                          {value}{' '}
+                          {secV && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400">({secV})</span>
+                          )}
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 dark:text-slate-300">
@@ -1046,7 +1097,7 @@ function TrailStock({ sym }: { sym: string }) {
               Compared with the {u.sector} median, {WINDOW_LABEL[win]}
             </h2>
             {!sector || !view ? (
-              <p className="text-sm text-slate-500">No sector comparison available.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No sector comparison available.</p>
             ) : (
               <p className="text-sm">
                 {sym}: {view.A} A and {view.D} D footprints. Sector median across {sector.n} stocks:{' '}
@@ -1059,8 +1110,27 @@ function TrailStock({ sym }: { sym: string }) {
 
           {data.data && <HoldingsCard file={data.data.file} />}
           <section aria-label="Weekly timeline" className="card min-w-0 p-3" data-testid="timeline">
-            <h2 className="mb-1 text-sm font-semibold">Weekly timeline</h2>
-            <div className="max-h-[480px] overflow-auto">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Weekly timeline</h2>
+              <CsvButton
+                disabled={result.timeline.length === 0}
+                onClick={() =>
+                  exportCsv(
+                    `trail-timeline-${sym}`,
+                    result.timeline[result.timeline.length - 1]?.end ?? 'none',
+                    ['Week ending', 'Close', ...INDICATORS.map((i) => `${i} code`)],
+                    [...result.timeline]
+                      .reverse()
+                      .map((t, k) => [
+                        t.end,
+                        closes[result.timeline.length - 1 - k] ?? null,
+                        ...INDICATORS.map((_, j) => t.codes[j] ?? '-'),
+                      ]),
+                  )
+                }
+              />
+            </div>
+            <div className="max-h-[480px] overflow-auto" tabIndex={0}>
               <table className="num w-full min-w-[760px] text-sm">
                 <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
                   <tr className="text-right">
@@ -1083,7 +1153,7 @@ function TrailStock({ sym }: { sym: string }) {
                         <td key={id}>
                           <span className="inline-flex items-center gap-1">
                             <CodeChip code={t.codes[j] ?? '-'} />
-                            <span className="hidden text-xs text-slate-500 sm:inline">
+                            <span className="hidden text-xs text-slate-500 dark:text-slate-400 sm:inline">
                               {id === 'delivBal'
                                 ? fmtNum(t.delivBal, 2)
                                 : id === 'delivPctTrend'

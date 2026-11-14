@@ -3,7 +3,15 @@ import type { DailyRow } from '../types/data';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DataTable, { type ExtraColumn } from '../components/DataTable';
-import { Empty, ErrorBox, PRIMARY_BTN, Skeleton, Sparkline, TrailButton } from '../components/ui';
+import {
+  Empty,
+  ErrorBox,
+  PRIMARY_BTN,
+  ResetFiltersLink,
+  Skeleton,
+  Sparkline,
+  TrailButton,
+} from '../components/ui';
 import RangeControls from '../components/RangeControls';
 import {
   COLS_KEY,
@@ -13,8 +21,6 @@ import {
   PERIOD_ONLY_COLUMNS,
   OLD_COLS_KEY,
   migrateColumns,
-  toCsv,
-  type ColumnSpec,
   type ScreenRow,
 } from '../lib/columns';
 import { DEFAULT_RANGE_COLUMNS, RANGE_COLUMNS, RANGE_COLUMN_BY_KEY } from '../lib/rangeColumns';
@@ -379,36 +385,6 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
   );
 
   const range = resolved?.range;
-  const download = () => {
-    const registry = (rangeish ? RANGE_COLUMN_BY_KEY : dayRegistry) as unknown as ReadonlyMap<
-      string,
-      ColumnSpec<Record<string, unknown>>
-    >;
-    const specs = cols.map((c) => registry.get(c)!).filter(Boolean);
-    const sorted = [...(rangeish ? rRows : rows)] as unknown as Record<string, unknown>[];
-    const [s0] = sorting;
-    if (s0) {
-      sorted.sort((a, b) => {
-        const x = a[s0.id] as number | string | null | undefined;
-        const y = b[s0.id] as number | string | null | undefined;
-        if (x === null || x === undefined) return 1;
-        if (y === null || y === undefined) return -1;
-        const c = x < y ? -1 : x > y ? 1 : 0;
-        return s0.desc ? -c : c;
-      });
-    }
-    const blob = new Blob([toCsv(sorted, specs)], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = rangeish
-      ? `delivery-range-${range?.a ?? 'x'}_${range?.b ?? 'x'}.csv`
-      : view === 'period'
-        ? `delivery-${periodTf === 'w' ? 'weekly' : 'monthly'}-${info?.key ?? date}.csv`
-        : `delivery-${watchlistMode ? 'watchlist' : 'screener'}-${date}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-
   const applyWatch = (tf: WatchTf) => {
     const next = watchParams(params, defaults.minTurn, tf);
     saveLastFilters(parseFilters(next, defaults.minTurn, meta.indices), defaults.minTurn);
@@ -708,9 +684,6 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
             </div>
           )}
         </div>
-        <button type="button" className="btn" onClick={download} disabled={count === 0}>
-          Export CSV
-        </button>
       </div>
 
       {active.error ? (
@@ -723,7 +696,13 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
         <Empty>
           {watchlistMode && watch.length === 0
             ? 'Your watchlist is empty. Open a stock and tap the star to add it.'
-            : 'No stocks match the current filters.'}
+            : 'No stocks match these filters.'}
+          {watchlistMode && watch.length === 0 ? null : (
+            <>
+              {' '}
+              <ResetFiltersLink />
+            </>
+          )}
         </Empty>
       ) : rangeish ? (
         <DataTable<RangeScreenRow>
@@ -733,6 +712,16 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           dim={(r) => r.excluded}
           sorting={sorting}
           onSortingChange={onSort}
+          csvView={
+            rangeish
+              ? 'screener-range'
+              : view === 'period'
+                ? `screener-${periodTf === 'w' ? 'weekly' : 'monthly'}`
+                : watchlistMode
+                  ? 'watchlist'
+                  : 'screener'
+          }
+          csvDate={rangeish ? (range?.b ?? date) : (info?.key ?? date)}
         />
       ) : (
         <DataTable
@@ -742,6 +731,14 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           sorting={sorting}
           onSortingChange={onSort}
           extra={extra}
+          csvView={
+            view === 'period'
+              ? `screener-${periodTf === 'w' ? 'weekly' : 'monthly'}`
+              : watchlistMode
+                ? 'watchlist'
+                : 'screener'
+          }
+          csvDate={info?.key ?? date}
           signalHistory={
             periodTf
               ? (signal, bucket) =>

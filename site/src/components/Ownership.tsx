@@ -17,7 +17,8 @@ import {
   type Segment,
 } from '../lib/ownership';
 import { useHolders, useHoldingsQuarters } from '../lib/hooks';
-import { AppLink, Empty, ErrorBox, Skeleton } from './ui';
+import { AppLink, CsvButton, Empty, ErrorBox, Skeleton } from './ui';
+import { exportCsv } from '../lib/csv';
 
 const SEG_CLASS: Record<Segment['key'], string> = {
   promoter: 'bg-slate-700 dark:bg-slate-300',
@@ -64,7 +65,10 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
                   <div className="mb-0.5 font-semibold">
                     Quarter {fmtDate(f.quarter)}
                     {f.filedOn && (
-                      <span className="font-normal text-slate-500"> · filed {fmtDate(f.filedOn)}</span>
+                      <span className="font-normal text-slate-500 dark:text-slate-400">
+                        {' '}
+                        · filed {fmtDate(f.filedOn)}
+                      </span>
                     )}
                   </div>
                   {segs ? (
@@ -82,7 +86,9 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-slate-500">Group split not available for this filing.</p>
+                    <p className="text-slate-500 dark:text-slate-400">
+                      Group split not available for this filing.
+                    </p>
                   )}
                 </li>
               );
@@ -97,9 +103,30 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
             ))}
           </ul>
 
-          <div className="mt-3 overflow-x-auto" data-testid="ownership-table-wrap">
+          <div className="mt-3 flex justify-end">
+            <CsvButton
+              onClick={() =>
+                exportCsv(
+                  `ownership-${file.sym}-by-quarter`,
+                  latest?.quarter ?? 'none',
+                  ['Quarter', 'Promoter %', 'FII %', 'DII %', 'MF %', 'Insurance %', 'Retail %', 'Holders'],
+                  lastFour.map((f) => [
+                    f.quarter,
+                    f.promoterPct,
+                    f.fiiPct,
+                    f.diiPct,
+                    f.mfPct,
+                    f.insurancePct,
+                    f.retailPct,
+                    f.holderCount,
+                  ]),
+                )
+              }
+            />
+          </div>
+          <div className="mt-3 overflow-x-auto" data-testid="ownership-table-wrap" tabIndex={0}>
             <table className="num w-full min-w-[520px] text-xs" aria-label="Shares by group per quarter">
-              <thead className="text-slate-500">
+              <thead className="text-slate-500 dark:text-slate-400">
                 <tr className="text-right">
                   <th className="py-1 text-left font-medium">Quarter</th>
                   <th className="font-medium">Promoter</th>
@@ -165,26 +192,42 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
             </p>
           )}
           {named.length === 0 ? (
-            <p className="mt-1 text-xs text-slate-500">No named holder above 1% in this filing.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              No named holder above 1% in this filing.
+            </p>
           ) : (
-            <div className="mt-1 overflow-x-auto" data-testid="named-holders-wrap">
-              <table className="num w-full min-w-[480px] text-xs" aria-label="Named holders above 1%">
-                <thead className="text-slate-500">
-                  <tr className="text-right">
-                    <th className="py-1 text-left font-medium">Holder</th>
-                    <th className="text-left font-medium">Category</th>
-                    <th className="font-medium">%</th>
-                    <th className="font-medium">Change</th>
-                    <th className="font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {named.map((n) => (
-                    <NamedRow key={`${n.entityId}-${n.holder}-${n.category}`} n={n} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="mt-1 flex justify-end">
+                <CsvButton
+                  onClick={() =>
+                    exportCsv(
+                      `ownership-${file.sym}-named-holders`,
+                      latest?.quarter ?? 'none',
+                      ['Holder', 'Category', 'Entity id', 'Pct', 'Previous pct', 'Status'],
+                      named.map((n) => [n.holder, n.category, n.entityId, n.pct, n.prevPct, n.chg]),
+                    )
+                  }
+                />
+              </div>
+              <div className="mt-1 overflow-x-auto" data-testid="named-holders-wrap" tabIndex={0}>
+                <table className="num w-full min-w-[480px] text-xs" aria-label="Named holders above 1%">
+                  <thead className="text-slate-500 dark:text-slate-400">
+                    <tr className="text-right">
+                      <th className="py-1 text-left font-medium">Holder</th>
+                      <th className="text-left font-medium">Category</th>
+                      <th className="font-medium">%</th>
+                      <th className="font-medium">Change</th>
+                      <th className="font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {named.map((n) => (
+                      <NamedRow key={`${n.entityId}-${n.holder}-${n.category}`} n={n} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </>
       )}
@@ -259,7 +302,7 @@ export function DisclosedHoldings({ entityId }: { entityId: string }) {
         first.
       </p>
       {inProgress.length > 0 && (
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Quarter {inProgress.map((q) => fmtDate(q)).join(', ')} is still in progress, so its list may be
           incomplete.
         </p>
@@ -281,40 +324,54 @@ export function DisclosedHoldings({ entityId }: { entityId: string }) {
 function DisclosedTable({ rows, empty }: { rows: DisclosedRow[]; empty: string }) {
   if (rows.length === 0) return <Empty>{empty}</Empty>;
   return (
-    <div className="mt-2 overflow-x-auto" data-testid="disclosed-holdings">
-      <table className="num w-full min-w-[480px] text-xs" aria-label="Disclosed holdings by stock">
-        <thead className="text-slate-500">
-          <tr className="text-right">
-            <th className="py-1 text-left font-medium">Quarter</th>
-            <th className="text-left font-medium">Stock</th>
-            <th className="font-medium">%</th>
-            <th className="font-medium">Previous %</th>
-            <th className="font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr
-              key={`${r.quarter}-${r.sym}`}
-              className="border-t border-slate-100 text-right dark:border-slate-800"
-            >
-              <td className="py-1 text-left">{fmtDate(r.quarter)}</td>
-              <td className="text-left">
-                <AppLink to={`/stock/${encodeURIComponent(r.sym)}`}>{r.sym}</AppLink>
-              </td>
-              <td>{fmtNum(r.pct, 2)}%</td>
-              <td>{r.prevPct === null ? '—' : `${fmtNum(r.prevPct, 2)}%`}</td>
-              <td className="text-left">
-                {r.chg && (
-                  <span className={`rounded px-1.5 py-0.5 font-semibold ${STATUS_CLASS[r.chg] ?? ''}`}>
-                    {STATUS_LABEL[r.chg] ?? r.chg}
-                  </span>
-                )}
-              </td>
+    <div className="mt-2">
+      <div className="flex justify-end">
+        <CsvButton
+          onClick={() =>
+            exportCsv(
+              'entity-disclosed-holdings',
+              rows[0]?.quarter ?? 'none',
+              ['Quarter', 'Stock', 'Category', 'Holder', 'Pct', 'Previous pct', 'Status'],
+              rows.map((r) => [r.quarter, r.sym, r.category, r.holder, r.pct, r.prevPct, r.chg]),
+            )
+          }
+        />
+      </div>
+      <div className="mt-2 overflow-x-auto" data-testid="disclosed-holdings" tabIndex={0}>
+        <table className="num w-full min-w-[480px] text-xs" aria-label="Disclosed holdings by stock">
+          <thead className="text-slate-500 dark:text-slate-400">
+            <tr className="text-right">
+              <th className="py-1 text-left font-medium">Quarter</th>
+              <th className="text-left font-medium">Stock</th>
+              <th className="font-medium">%</th>
+              <th className="font-medium">Previous %</th>
+              <th className="font-medium">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr
+                key={`${r.quarter}-${r.sym}`}
+                className="border-t border-slate-100 text-right dark:border-slate-800"
+              >
+                <td className="py-1 text-left">{fmtDate(r.quarter)}</td>
+                <td className="text-left">
+                  <AppLink to={`/stock/${encodeURIComponent(r.sym)}`}>{r.sym}</AppLink>
+                </td>
+                <td>{fmtNum(r.pct, 2)}%</td>
+                <td>{r.prevPct === null ? '—' : `${fmtNum(r.prevPct, 2)}%`}</td>
+                <td className="text-left">
+                  {r.chg && (
+                    <span className={`rounded px-1.5 py-0.5 font-semibold ${STATUS_CLASS[r.chg] ?? ''}`}>
+                      {STATUS_LABEL[r.chg] ?? r.chg}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

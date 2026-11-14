@@ -180,7 +180,16 @@ export function treemapOption(tree: readonly TreeNode[], p: Palette): EChartsOpt
           itemStyle: { color: p.grid, textStyle: { color: p.text } },
         },
         visibleMin: 40,
-        label: { show: true, formatter: '{b}', color: '#0f172a', fontSize: 11, overflow: 'truncate' },
+        label: {
+          show: true,
+          formatter: '{b}',
+          color: p.text,
+          // a halo in the page colour keeps the label readable on any tile colour, in both themes
+          textBorderColor: p.bg,
+          textBorderWidth: 2,
+          fontSize: 11,
+          overflow: 'truncate',
+        },
         upperLabel: { show: true, height: 18, color: p.text, fontSize: 11 },
         levels: [
           {

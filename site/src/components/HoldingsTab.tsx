@@ -3,7 +3,8 @@ import type { HoldingsAggregateRow, HoldingsFiling } from '../types/data';
 import { fmtDate, fmtPct } from '../lib/format';
 import { useHoldingsAggregates, useHoldingsLatest, useHoldingsQuarters } from '../lib/hooks';
 import { aggregateTrend, coverageLine, fmtChangePp, movers, type MoverKey } from '../lib/ownership';
-import { AppLink, Empty, ErrorBox, Skeleton } from './ui';
+import { AppLink, CsvButton, Empty, ErrorBox, Skeleton } from './ui';
+import { exportCsv } from '../lib/csv';
 
 /** The group switch: all stocks, then the market-cap buckets (03 5.10). */
 const GROUPS = [
@@ -114,29 +115,43 @@ export default function HoldingsTab() {
 function TrendTable({ rows }: { rows: HoldingsAggregateRow[] }) {
   if (rows.length === 0) return <Empty>No stocks in this group have a shareholding filing stored yet.</Empty>;
   return (
-    <div className="mt-2 overflow-x-auto" data-testid="holdings-trend">
-      <table className="num w-full min-w-[420px] text-xs" aria-label="Group holdings by quarter">
-        <thead className="text-slate-500">
-          <tr className="text-right">
-            <th className="py-1 text-left font-medium">Group</th>
-            {rows.map((r) => (
-              <th key={r.quarter} className="font-medium">
-                {fmtDate(r.quarter)} <span className="font-normal">({r.n})</span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {TREND_ROWS.map((t) => (
-            <tr key={t.key} className="border-t border-slate-100 text-right dark:border-slate-800">
-              <td className="py-1 text-left">{t.label}</td>
+    <div className="mt-2">
+      <div className="flex justify-end">
+        <CsvButton
+          onClick={() =>
+            exportCsv(
+              'holdings-trend',
+              rows[rows.length - 1]?.quarter ?? 'none',
+              ['Group', ...rows.map((r) => r.quarter)],
+              TREND_ROWS.map((t) => [t.label, ...rows.map((r) => r[t.key])]),
+            )
+          }
+        />
+      </div>
+      <div className="mt-2 overflow-x-auto" data-testid="holdings-trend" tabIndex={0}>
+        <table className="num w-full min-w-[420px] text-xs" aria-label="Group holdings by quarter">
+          <thead className="text-slate-500 dark:text-slate-400">
+            <tr className="text-right">
+              <th className="py-1 text-left font-medium">Group</th>
               {rows.map((r) => (
-                <td key={r.quarter}>{fmtPct(r[t.key])}</td>
+                <th key={r.quarter} className="font-medium">
+                  {fmtDate(r.quarter)} <span className="font-normal">({r.n})</span>
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {TREND_ROWS.map((t) => (
+              <tr key={t.key} className="border-t border-slate-100 text-right dark:border-slate-800">
+                <td className="py-1 text-left">{t.label}</td>
+                {rows.map((r) => (
+                  <td key={r.quarter}>{fmtPct(r[t.key])}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

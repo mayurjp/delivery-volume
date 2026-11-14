@@ -125,7 +125,7 @@ function FreshnessChip() {
         <div className="mb-1 font-semibold">Source freshness</div>
         <table className="w-full">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-slate-500 dark:text-slate-400">
               <th className="font-normal">Source</th>
               <th className="font-normal">Latest</th>
               <th className="text-right font-normal">Gaps</th>
@@ -146,7 +146,7 @@ function FreshnessChip() {
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-slate-500">Generated {meta.generatedAt}</p>
+        <p className="mt-2 text-slate-500 dark:text-slate-400">Generated {meta.generatedAt}</p>
       </div>
     </Popover>
   );

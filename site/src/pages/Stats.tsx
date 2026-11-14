@@ -10,7 +10,8 @@ import {
   trendOption,
 } from '../charts/phase3';
 import { palette } from '../charts/theme';
-import { Empty, ErrorBox, Skeleton } from '../components/ui';
+import { CsvButton, Empty, ErrorBox, Skeleton } from '../components/ui';
+import { exportCsv } from '../lib/csv';
 import { applyFilters, applyRangeFilters } from '../lib/filters';
 import { fmtCr, fmtDate, fmtInt, fmtPct, fmtPctChg, fmtPp } from '../lib/format';
 import { median } from '../lib/heat';
@@ -437,9 +438,9 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
         </p>
       </Section>
       <Section title="Cap buckets" label="Cap-bucket comparison">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="num w-full min-w-[520px] text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Bucket</th>
                 <th className="font-medium">Delivery %</th>
@@ -494,7 +495,7 @@ function PerfCell({
   const r = perfCell(idx, event, group, entry, horizon);
   if (!usable(r))
     return (
-      <td className="px-2 text-right text-slate-400" title="Fewer than 30 observations">
+      <td className="px-2 text-right text-slate-600 dark:text-slate-400" title="Fewer than 30 observations">
         —
       </td>
     );
@@ -559,9 +560,33 @@ export function SignalPerfTable() {
       ) : !perf.data || !doc.data ? (
         <Skeleton height={300} />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
+          <div className="mb-1 flex justify-end">
+            <CsvButton
+              onClick={() => {
+                const d = doc.data!;
+                const cells = (ev: string) =>
+                  d.groups.flatMap((g) => {
+                    const r = perfCell(perf.data!, ev, g, entry, horizon);
+                    return usable(r) ? [r.medianExcess, r.hitRate, r.n] : [null, null, null];
+                  });
+                exportCsv(
+                  `signal-performance-${entry}-${horizon}d`,
+                  'table',
+                  [
+                    'Event',
+                    ...d.groups.flatMap((g) => {
+                      const name = GROUP_LABEL[g] ?? g;
+                      return [`${name} median excess %`, `${name} hit rate %`, `${name} n`];
+                    }),
+                  ],
+                  d.events.map((ev) => [ev.label, ...cells(ev.id)]),
+                );
+              }}
+            />
+          </div>
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="py-1 text-left font-medium">Event</th>
                 {doc.data.groups.map((g) => (
@@ -658,9 +683,9 @@ function PeriodSignalPerf({ tf }: { tf: 'w' | 'm' }) {
       ) : !table || !doc.data ? (
         <Skeleton height={260} />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="py-1 text-left font-medium">Event</th>
                 {doc.data.groups.map((g) => (
@@ -691,7 +716,7 @@ function PeriodSignalPerf({ tf }: { tf: 'w' | 'm' }) {
                     ) : (
                       <td
                         key={c.group}
-                        className="px-2 text-right text-xs text-slate-400"
+                        className="px-2 text-right text-xs text-slate-600 dark:text-slate-400"
                         title={`Fewer than ${doc.data!.minN} events (n=${c.n})`}
                       >
                         too few events

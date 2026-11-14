@@ -15,7 +15,8 @@ import { fmtCr, fmtDate, fmtInt, fmtNum, fmtPct, fmtSigned } from '../lib/format
 import { useFiiDeriv, useInstitutionalCash, useMeta, useParticipants } from '../lib/hooks';
 import { cashSum, monthlyCash, participantLongPct } from '../lib/institutional';
 import { useDark } from '../lib/theme';
-import { AppLink, Empty, ErrorBox, Skeleton, Tip } from '../components/ui';
+import { AppLink, CsvButton, Empty, ErrorBox, Skeleton, Tip } from '../components/ui';
+import { exportCsv } from '../lib/csv';
 import HoldingsTab from '../components/HoldingsTab';
 import type { FiiDerivRow, ParticipantRow } from '../types/data';
 
@@ -108,25 +109,27 @@ function CashTab({ range, onRange }: { range: string; onRange: (r: string) => vo
     <div className="space-y-3">
       <section aria-label="Cash summary" className="card grid grid-cols-2 gap-2 p-3 text-sm md:grid-cols-4">
         <div>
-          <div className="text-xs text-slate-500">Latest FII net ({latest ? fmtDate(latest.date) : '—'})</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Latest FII net ({latest ? fmtDate(latest.date) : '—'})
+          </div>
           <div className="num font-semibold">{fmtCr(latest?.fiiNet)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">Latest DII net</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Latest DII net</div>
           <div className="num font-semibold">{fmtCr(latest?.diiNet)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">5 and 20 days, FII</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">5 and 20 days, FII</div>
           <div className="num">
             {fmtSigned(s5f.sum, 0)} / {fmtSigned(s20f.sum, 0)} Cr{' '}
-            <span className="text-xs text-slate-500">({s20f.n} days)</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">({s20f.n} days)</span>
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">5 and 20 days, DII</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">5 and 20 days, DII</div>
           <div className="num">
             {fmtSigned(s5d.sum, 0)} / {fmtSigned(s20d.sum, 0)} Cr{' '}
-            <span className="text-xs text-slate-500">({s20d.n} days)</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">({s20d.n} days)</span>
           </div>
         </div>
         <div className="col-span-2 md:col-span-4 text-xs text-slate-600 dark:text-slate-300">
@@ -156,10 +159,23 @@ function CashTab({ range, onRange }: { range: string; onRange: (r: string) => vo
         </p>
       </section>
       <section aria-label="Monthly cash totals" className="card p-3">
-        <h2 className="mb-1 text-sm font-semibold">Monthly net (Rs Cr)</h2>
-        <div className="max-h-72 overflow-auto">
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Monthly net (Rs Cr)</h2>
+          <CsvButton
+            disabled={monthly.length === 0}
+            onClick={() =>
+              exportCsv(
+                'institutions-cash-monthly',
+                monthly[monthly.length - 1]?.month ?? 'none',
+                ['Month', 'FII net Cr', 'DII net Cr', 'Days'],
+                monthly.map((m) => [m.month, m.fiiNet, m.diiNet, m.days]),
+              )
+            }
+          />
+        </div>
+        <div className="max-h-72 overflow-auto" tabIndex={0}>
           <table className="num w-full text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-500 dark:text-slate-400">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Month</th>
                 <th className="font-medium">FII net</th>
@@ -203,13 +219,43 @@ function DerivTab() {
   return (
     <div className="space-y-3">
       <section aria-label="Latest positioning" className="card overflow-x-auto p-3">
-        <h2 className="mb-1 text-sm font-semibold">Latest day, {latest ? fmtDate(latest) : '—'}</h2>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Latest day, {latest ? fmtDate(latest) : '—'}</h2>
+          <CsvButton
+            onClick={() =>
+              exportCsv(
+                'institutions-positioning',
+                latest ?? 'none',
+                [
+                  'Participant',
+                  'Index futures net',
+                  'Change vs previous day',
+                  'Index calls net',
+                  'Index puts net',
+                ],
+                (['FII', 'DII', 'Pro', 'Client'] as const).map((w) => {
+                  const r = at(latest, w);
+                  const q = at(prev, w);
+                  const net = r ? r.futIdxLong - r.futIdxShort : null;
+                  const chg = r && q ? net! - (q.futIdxLong - q.futIdxShort) : null;
+                  return [
+                    w,
+                    net,
+                    chg,
+                    r ? r.optIdxCallLong - r.optIdxCallShort : null,
+                    r ? r.optIdxPutLong - r.optIdxPutShort : null,
+                  ];
+                }),
+              )
+            }
+          />
+        </div>
         <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
           Contracts. Rough: contract counts, not delta-adjusted. FII index futures long share is{' '}
           {fmtPct(fiiPct, 1)}, higher than on {lower} of {within.length} days in the stored history.
         </p>
         <table className="num w-full min-w-[480px] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-500 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Participant</th>
               <th className="font-medium">Index futures net</th>
@@ -291,8 +337,21 @@ function S7Tab() {
           height={280}
           ariaLabel="FII derivatives net bought value"
         />
+        <div className="mt-2 flex justify-end">
+          <CsvButton
+            disabled={day.length === 0}
+            onClick={() =>
+              exportCsv(
+                'institutions-fii-derivatives',
+                date,
+                ['Category', 'Bought contracts', 'Bought Cr', 'Sold Cr', 'OI Cr'],
+                day.map((r) => [r.category, r.buyContracts, r.buyAmtCr, r.sellAmtCr, r.oiAmtCr]),
+              )
+            }
+          />
+        </div>
         <table className="num mt-2 w-full min-w-[480px] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-500 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Category</th>
               <th className="font-medium">Bought contracts</th>

@@ -44,7 +44,8 @@ function PeriodPicker({ tf }: { tf: 'w' | 'm' | 'q' }) {
   const { date, setDate } = useGlobalState();
   const periods = usePeriods();
   const list = useMemo(() => (periods.data ? periodsOf(periods.data, tf) : []), [periods.data, tf]);
-  if (list.length === 0) return <span className="text-sm text-slate-500">Loading periods…</span>;
+  if (list.length === 0)
+    return <span className="text-sm text-slate-500 dark:text-slate-400">Loading periods…</span>;
   const cur = periodFor(list, date)!;
   const i = list.indexOf(cur);
   const word = tf === 'w' ? 'week' : tf === 'm' ? 'month' : 'quarter';

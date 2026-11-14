@@ -4,7 +4,8 @@ import EChart from '../charts/EChart';
 import { quadrantOption, type QuadPoint } from '../charts/phase3';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import RangeControls from '../components/RangeControls';
-import { AppLink, Empty, ErrorBox, EtfBadge, Skeleton } from '../components/ui';
+import { AppLink, CsvButton, Empty, ErrorBox, EtfBadge, Skeleton } from '../components/ui';
+import { exportCsv } from '../lib/csv';
 import { applyRangeFilters } from '../lib/filters';
 import { fmtDate, fmtNum, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
 import { useApp, useGlobalState } from '../lib/hooks';
@@ -34,7 +35,7 @@ const HEAD: Record<Metric, string> = {
 function fmtMetric(v: number | null, m: Metric): string {
   if (m === 'val') return fmtPctChg(v, 0);
   if (m === 'pct') return fmtPp(v);
-  if (m === 'bal') return v === null ? '�' : `${v > 0 ? '+' : ''}${fmtNum(v, 2)}`;
+  if (m === 'bal') return v === null ? '—' : `${v > 0 ? '+' : ''}${fmtNum(v, 2)}`;
   return fmtRatio(v, 2);
 }
 
@@ -49,10 +50,30 @@ function RankTable({
 }) {
   return (
     <section aria-label={title} className="card min-w-0 p-3">
-      <h2 className="mb-1 text-sm font-semibold">{title}</h2>
-      <div className="overflow-x-auto">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <CsvButton
+          disabled={rows.length === 0}
+          onClick={() =>
+            exportCsv(
+              `compare-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${metric}`,
+              'range',
+              ['Symbol', HEAD[metric], 'Return %', 'Balance', 'Size vs base', 'Signal'],
+              rows.map((r) => [
+                r.sym,
+                metricValue(r, metric),
+                r.ret,
+                r.delivBalanceR,
+                r.tradeSizeRatio,
+                r.signal,
+              ]),
+            )
+          }
+        />
+      </div>
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="num w-full min-w-[420px] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-500 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Symbol</th>
               <th className="font-medium">{HEAD[metric]}</th>
@@ -288,7 +309,7 @@ export default function Compare() {
             <section aria-label="Excluded rows" className="card p-3">
               <h2 className="mb-1 text-sm font-semibold">Excluded from the rankings</h2>
               {excluded.length === 0 ? (
-                <p className="text-sm text-slate-500">None.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">None.</p>
               ) : (
                 <ul className="max-h-72 space-y-0.5 overflow-auto text-sm text-slate-500 dark:text-slate-400">
                   {excluded.slice(0, 300).map((r) => (
