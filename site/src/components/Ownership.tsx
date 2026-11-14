@@ -65,7 +65,7 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
                   <div className="mb-0.5 font-semibold">
                     Quarter {fmtDate(f.quarter)}
                     {f.filedOn && (
-                      <span className="font-normal text-slate-500 dark:text-slate-400">
+                      <span className="font-normal text-slate-600 dark:text-slate-400">
                         {' '}
                         · filed {fmtDate(f.filedOn)}
                       </span>
@@ -86,7 +86,7 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-slate-600 dark:text-slate-400">
                       Group split not available for this filing.
                     </p>
                   )}
@@ -126,7 +126,7 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
           </div>
           <div className="mt-3 overflow-x-auto" data-testid="ownership-table-wrap" tabIndex={0}>
             <table className="num w-full min-w-[520px] text-xs" aria-label="Shares by group per quarter">
-              <thead className="text-slate-500 dark:text-slate-400">
+              <thead className="text-slate-600 dark:text-slate-400">
                 <tr className="text-right">
                   <th className="py-1 text-left font-medium">Quarter</th>
                   <th className="font-medium">Promoter</th>
@@ -192,7 +192,7 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
             </p>
           )}
           {named.length === 0 ? (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               No named holder above 1% in this filing.
             </p>
           ) : (
@@ -211,7 +211,7 @@ export function OwnershipSection({ file }: { file: SymbolFile }) {
               </div>
               <div className="mt-1 overflow-x-auto" data-testid="named-holders-wrap" tabIndex={0}>
                 <table className="num w-full min-w-[480px] text-xs" aria-label="Named holders above 1%">
-                  <thead className="text-slate-500 dark:text-slate-400">
+                  <thead className="text-slate-600 dark:text-slate-400">
                     <tr className="text-right">
                       <th className="py-1 text-left font-medium">Holder</th>
                       <th className="text-left font-medium">Category</th>
@@ -302,7 +302,7 @@ export function DisclosedHoldings({ entityId }: { entityId: string }) {
         first.
       </p>
       {inProgress.length > 0 && (
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Quarter {inProgress.map((q) => fmtDate(q)).join(', ')} is still in progress, so its list may be
           incomplete.
         </p>
@@ -339,7 +339,7 @@ function DisclosedTable({ rows, empty }: { rows: DisclosedRow[]; empty: string }
       </div>
       <div className="mt-2 overflow-x-auto" data-testid="disclosed-holdings" tabIndex={0}>
         <table className="num w-full min-w-[480px] text-xs" aria-label="Disclosed holdings by stock">
-          <thead className="text-slate-500 dark:text-slate-400">
+          <thead className="text-slate-600 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Quarter</th>
               <th className="text-left font-medium">Stock</th>

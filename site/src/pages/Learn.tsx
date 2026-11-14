@@ -213,7 +213,7 @@ export default function Learn() {
         </p>
         <div className="card overflow-x-auto" tabIndex={0}>
           <table className="num w-full min-w-[420px] text-sm">
-            <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
+            <thead className="text-left text-xs text-slate-600 dark:text-slate-400">
               <tr>
                 <th className="p-2 font-medium">Source</th>
                 <th className="p-2 font-medium">Latest</th>
@@ -237,7 +237,7 @@ export default function Learn() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           Index constituents as of {fmtDate(meta.constituentsAsOf)}. Generated {meta.generatedAt}.
         </p>
       </section>

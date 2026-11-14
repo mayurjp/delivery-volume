@@ -263,3 +263,11 @@ Static content written from 04 §0, §4 and §8:
 - **P7 Entity page, disclosed holdings** (`components/Ownership.tsx`): stocks where the entity is a named holder above 1%, latest quarter first, with % and status (DEVIATIONS #115).
 - **P2 Screener**: ownership columns (Promoter %, FII %, DII %, MF %, the three pp changes, Filed) and an "Ownership (quarterly filings)" preset group in the day view, with one explanation per preset (DEVIATIONS #114, #117).
 - Local data: 19 stocks have holdings; every view shows its empty state for the rest. The Micro group has no stocks yet.
+
+## Phase 5 polish as built (2026-11-15)
+
+- **CSV export** (`lib/csv.ts`): RFC 4180 escaping, raw numbers, file names `view-YYYY-MM-DD.csv`. "Download CSV" exports the rows shown (after filters and sort) in `DataTable` and on the plain tables of Stock, Deals, Entity, Institutions, Stats, Ownership, Holdings, Compare and Trail (DEVIATIONS #129–#137 list the tables not exported).
+- **Empty and error states** (`lib/errors.ts`): a 404 shows "No data for this date." (holdings: "Not available for this stock."; F&O: "No F&O data for this date."); other failures show an error box with "Try again"; the Screener's empty result has "Reset the filters".
+- **Colour tokens**: the light `up` / `dec` text colours are `#0a7c42` / `#b45309` (WCAG AA on white and slate-50/100). Chart series keep their brighter colours (DEVIATIONS #138).
+- **Checks** (`scripts/smoke.mjs`): `SMOKE_THEME=light|dark`, axe WCAG 2 A/AA on every route, 404-date and network-error cases. On 2026-11-15 axe reported 0 violations on 13 routes × light/dark × 360/1280 px.
+- **Lighthouse** (manual, not a dependency): mobile Dashboard on a local `vite preview` of the production build, 2026-11-15: **Performance 92, Accessibility 100** (LCP 0.8 s, TBT 340 ms, CLS 0.014). Command in README.

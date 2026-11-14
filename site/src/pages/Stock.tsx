@@ -78,7 +78,7 @@ function NotFound({ sym }: { sym: string }) {
   return (
     <div className="card mx-auto max-w-md space-y-3 p-4">
       <h1 className="text-lg font-semibold">No stock found for &ldquo;{sym}&rdquo;</h1>
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-slate-600 dark:text-slate-400">
         It may be delisted, an SME stock (not covered), or a different symbol. Search by symbol or name.
       </p>
       <input
@@ -99,7 +99,7 @@ function NotFound({ sym }: { sym: string }) {
               className="block py-1 text-blue-700 hover:underline dark:text-blue-300"
             >
               {u.sym} <EtfBadge show={u.etf} />{' '}
-              <span className="text-slate-500 dark:text-slate-400">{u.name}</span>
+              <span className="text-slate-600 dark:text-slate-400">{u.name}</span>
             </AppLink>
           </li>
         ))}
@@ -136,7 +136,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
               aria-pressed={starred}
               aria-label={starred ? `Remove ${u.sym} from watchlist` : `Add ${u.sym} to watchlist`}
               onClick={() => toggleWatch(u.sym)}
-              className="text-xl leading-none text-amber-500"
+              className="text-xl leading-none text-amber-700 dark:text-amber-400"
             >
               {starred ? '★' : '☆'}
             </button>
@@ -149,7 +149,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
           <div className={`text-sm ${priceClass(ret)}`}>
             {fmtSigned(chg)} ({fmtPctChg(ret, 2)})
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">Prev close {fmtPrice(prevClose)}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400">Prev close {fmtPrice(prevClose)}</div>
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs">
@@ -171,18 +171,18 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <span>
             Delivery <b className="num">{fmtPct(last.delivPct)}</b>{' '}
-            <span className="text-slate-500 dark:text-slate-400">
+            <span className="text-slate-600 dark:text-slate-400">
               (20D avg {fmtPct(last.delivPctAvg20)},{' '}
             </span>
             <span className={`num ${deliveryClass(diff)}`}>{fmtPp(diff)}</span>
-            <span className="text-slate-500 dark:text-slate-400">)</span>
+            <span className="text-slate-600 dark:text-slate-400">)</span>
           </span>
           <span>
             Spike <b className={`num ${deliveryClass((last.spike ?? 1) - 1)}`}>{fmtRatio(last.spike)}</b>
           </span>
           <SignalBadge signal={last.signal} bucket={u.bucket} />
           <FlagIcons flags={last.flags} />
-          <span className="text-xs text-slate-500 dark:text-slate-400">{fmtDate(last.date)}</span>
+          <span className="text-xs text-slate-600 dark:text-slate-400">{fmtDate(last.date)}</span>
         </div>
       )}
     </section>
@@ -192,7 +192,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="min-w-0 rounded-md bg-slate-50 p-2 dark:bg-slate-800/60" title={hint}>
-      <div className="truncate text-xs text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="truncate text-xs text-slate-600 dark:text-slate-400">{label}</div>
       <div className="num truncate text-sm font-semibold">{value}</div>
     </div>
   );
@@ -366,7 +366,7 @@ export default function Stock() {
               ) : (
                 <Skeleton height={mobile ? 540 : 620} />
               )}
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
                 Each bar is one period; a faded bar is still in progress. Prices are in the basis of the
                 period end, so a split does not break the candles (a warning marker sits on those bars);
                 volume and delivered quantity are plain sums. Bottom pane: spike (delivery value vs the
@@ -432,7 +432,7 @@ export default function Stock() {
           ) : (
             <Skeleton height={mobile ? 460 : 540} />
           )}
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {mobile
               ? 'Drag the slider to zoom; tap the chart for values.'
               : 'Ctrl + scroll to zoom, drag to pan; hover for values.'}{' '}
@@ -493,7 +493,7 @@ export default function Stock() {
             />
           </div>
         )}
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
           Historical and descriptive. Over {stats?.n ?? 0} valid delivery days in the window.
         </p>
       </section>
@@ -554,7 +554,7 @@ export default function Stock() {
         </div>
         <div className="max-h-[480px] overflow-auto" tabIndex={0}>
           <table className="num w-full min-w-[640px] text-sm">
-            <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
+            <thead className="sticky top-0 bg-white text-xs text-slate-600 dark:text-slate-400 dark:bg-slate-900">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Date</th>
                 <th className="font-medium">Close</th>
@@ -599,9 +599,9 @@ export default function Stock() {
             Bulk and block deals
             <Tip label={<span className="chip">?</span>}>{DEALS_CAVEAT}</Tip>
           </h2>
-          <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{HISTORY_GAP_NOTE}</p>
+          <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{HISTORY_GAP_NOTE}</p>
           {deals.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               No bulk or block deals stored for this stock.
             </p>
           ) : (
@@ -613,7 +613,7 @@ export default function Stock() {
                     <span className="num">{fmtDate(d.date)}</span>
                     <span className="chip">{dealChip(d)}</span>
                     {d.roundTrip && (
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                      <span className="text-xs text-slate-600 dark:text-slate-400">
                         round trip, not counted
                       </span>
                     )}
@@ -628,11 +628,11 @@ export default function Stock() {
                 ))}
             </ul>
           )}
-          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
             Net via deals by month (Rs Cr)
           </h3>
           {flowMonths.months.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">No deal flows for this stock.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">No deal flows for this stock.</p>
           ) : (
             <EChart
               option={dealFlowBarsOption(flowMonths, pal)}
@@ -650,7 +650,7 @@ export default function Stock() {
             </Tip>
           </h2>
           {corp.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               No corporate actions recorded in the stored history.
             </p>
           ) : (

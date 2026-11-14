@@ -84,7 +84,7 @@ function cell<R extends RowLike>(
         <span
           role="img"
           aria-label={spec.cellTip?.(r) ?? 'Corporate action in range: price return not adjusted'}
-          className="text-amber-600 dark:text-amber-400"
+          className="text-amber-700 dark:text-amber-400"
         >
           ⚠
         </span>

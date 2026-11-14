@@ -127,7 +127,7 @@ export function FoSection({
     <section aria-label="F&O positioning" className="card min-w-0 p-3" data-testid="fo-pane">
       <h2 className="text-sm font-semibold">F&O positioning (stock futures)</h2>
       {hist.length === 0 ? (
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Not an F&O stock: no stock futures in the NSE F&O bhavcopy, so there is no open-interest history.
         </p>
       ) : (
@@ -157,7 +157,7 @@ export function FoSection({
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
             Open interest is in shares, summed over all stock-futures expiries. Build-up describes price and
             open interest on the day; it is not a prediction. Build-up days are shaded in the chart. Put-call
             ratio: put open interest over call open interest, all stock-option expiries.

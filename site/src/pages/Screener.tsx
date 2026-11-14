@@ -169,7 +169,7 @@ function useSparks(syms: readonly string[], enabled: boolean): Map<string, (numb
 
 function PresetHistory({ id, line }: { id: string; line: string }) {
   return (
-    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" data-testid={`history-${id}`}>
+    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400" data-testid={`history-${id}`}>
       {line}
     </p>
   );
@@ -444,7 +444,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
             Not available here. {why}
           </p>
         ) : (
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" data-testid={`history-${p.id}`}>
+          <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400" data-testid={`history-${p.id}`}>
             {p.explain}
           </p>
         )}
@@ -506,7 +506,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">{watchlistMode ? 'Watchlist' : 'Screener'}</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="screener-heading">
+        <p className="text-sm text-slate-600 dark:text-slate-400" data-testid="screener-heading">
           {rangeish
             ? range
               ? `${fmtDate(range.a)} to ${fmtDate(range.b)}`
@@ -592,7 +592,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
               <div className="grid gap-3 md:grid-cols-3">
                 {PRESET_GROUPS.filter((g) => !g.collapsed).map((g) => (
                   <div key={g.id} role="group" aria-label={g.label} className="min-w-0 space-y-1.5">
-                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                       {g.label}
                     </h2>
                     {g.ids.map(presetBlock)}
@@ -605,7 +605,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
                   <div key={g.id} role="group" aria-label={g.label}>
                     <button
                       type="button"
-                      className="text-xs font-semibold uppercase tracking-wide text-slate-500 underline dark:text-slate-400"
+                      className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 underline dark:text-slate-400"
                       aria-expanded={open}
                       onClick={() => setMoreOpen((o) => !o)}
                     >
@@ -618,14 +618,14 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
                 );
               })}
               <div role="group" aria-label="Ownership (quarterly filings)" className="min-w-0 space-y-1.5">
-                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                   Ownership (quarterly filings)
                 </h2>
                 <div className="grid gap-3 md:grid-cols-3">{OWNERSHIP_PRESETS.map(ownershipBlock)}</div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{PERF_DISCLAIMER}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">{PERF_DISCLAIMER}</p>
               {view === 'period' && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   Weekly and monthly history cells with fewer than 30 events are hidden; monthly cells are
                   often thin.
                 </p>
@@ -747,7 +747,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           }
         />
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         Click a column header to sort; shift-click adds a second sort. Signals describe what happened over the
         period and do not predict anything.
         {rangeish

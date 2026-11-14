@@ -50,6 +50,9 @@ npm run dev                                                # dev server
 npm run lint ; npx tsc --noEmit ; npm test                 # eslint + prettier, types, Vitest
 $env:VITE_BASE = '/delivery-volume/' ; npm run build       # production build into site/dist
 node scripts/smoke.mjs                                     # Playwright smoke test (needs: npx playwright install chromium-headless-shell)
+$env:SMOKE_THEME='dark'; node scripts/smoke.mjs            # same in dark mode (axe WCAG 2 A/AA runs on every route)
+# Lighthouse (manual; not a dependency), against `npx vite preview --base /delivery-volume/` of the production build:
+#   $env:CHROME_PATH='<playwright chromium>\chrome.exe'; npx -y lighthouse@13.6.0 http://localhost:<port>/delivery-volume/ --only-categories=performance,accessibility --form-factor=mobile --chrome-flags="--headless=new"
 ```
 
 `PIPELINE_ENV=actions|local` chooses which sources run (`config/settings.json` -> `runIn`). Notes:

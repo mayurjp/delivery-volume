@@ -73,7 +73,7 @@ function RankTable({
       </div>
       <div className="overflow-x-auto" tabIndex={0}>
         <table className="num w-full min-w-[420px] text-sm">
-          <thead className="text-xs text-slate-500 dark:text-slate-400">
+          <thead className="text-xs text-slate-600 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Symbol</th>
               <th className="font-medium">{HEAD[metric]}</th>
@@ -111,7 +111,7 @@ function RankTable({
                         role="img"
                         aria-label="Corporate action in range"
                         title="Corporate action in range: price return not adjusted"
-                        className="text-amber-600 dark:text-amber-400"
+                        className="text-amber-700 dark:text-amber-400"
                       >
                         ⚠
                       </span>
@@ -298,7 +298,7 @@ export default function Compare() {
                 }}
               />
             )}
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               Dot size is turnover, colour is sector. Diamonds sit beyond the plotted range and are pinned to
               the edge. Stocks with a split or bonus in the range are left out because their price return is
               not adjusted.
@@ -309,9 +309,9 @@ export default function Compare() {
             <section aria-label="Excluded rows" className="card p-3">
               <h2 className="mb-1 text-sm font-semibold">Excluded from the rankings</h2>
               {excluded.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">None.</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">None.</p>
               ) : (
-                <ul className="max-h-72 space-y-0.5 overflow-auto text-sm text-slate-500 dark:text-slate-400">
+                <ul className="max-h-72 space-y-0.5 overflow-auto text-sm text-slate-600 dark:text-slate-400">
                   {excluded.slice(0, 300).map((r) => (
                     <li key={r.sym}>
                       <b>{r.sym}</b>: {r.excludedReasons.join('; ')}
@@ -321,7 +321,7 @@ export default function Compare() {
               )}
             </section>
           )}
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Excluded: fewer than 60% of range or baseline days traded, a baseline delivery value or turnover
             below the floor. Range signals describe what happened and do not predict anything.
           </p>

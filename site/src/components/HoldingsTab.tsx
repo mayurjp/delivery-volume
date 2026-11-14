@@ -58,7 +58,7 @@ export default function HoldingsTab() {
               {coverageLine(lastQ.filedCount, lastQ.universeCount, lastQ.quarter)}
             </p>
             {!lastQ.complete && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 This quarter is still in progress, so the count will rise as more companies file.
               </p>
             )}
@@ -66,7 +66,7 @@ export default function HoldingsTab() {
         ) : (
           <Empty>No shareholding quarter is stored yet.</Empty>
         )}
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Named holders are only disclosed above 1%. Shareholding patterns are filed quarterly, so these
           figures lag the quarter they describe.
         </p>
@@ -90,7 +90,7 @@ export default function HoldingsTab() {
           </div>
         </div>
         <TrendTable rows={aggregateTrend(aggs.data, group.key)} />
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
           Weighted by market capitalisation on the last trading day of each quarter, across the stocks with a
           filing in that quarter. Large, Mid, Small and Micro are the cap buckets of the Screener.
         </p>
@@ -98,7 +98,7 @@ export default function HoldingsTab() {
 
       <section aria-label="Biggest changes" className="card min-w-0 p-3">
         <h2 className="text-sm font-semibold">Biggest changes against the previous quarter</h2>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Percentage points of total shares, across stocks. Stocks whose share count changed by more than 2%
           are left out, because their changes are not pure buying or selling.
         </p>
@@ -130,7 +130,7 @@ function TrendTable({ rows }: { rows: HoldingsAggregateRow[] }) {
       </div>
       <div className="mt-2 overflow-x-auto" data-testid="holdings-trend" tabIndex={0}>
         <table className="num w-full min-w-[420px] text-xs" aria-label="Group holdings by quarter">
-          <thead className="text-slate-500 dark:text-slate-400">
+          <thead className="text-slate-600 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Group</th>
               {rows.map((r) => (
@@ -160,12 +160,12 @@ function MoverCard({ label, mKey, rows }: { label: string; mKey: MoverKey; rows:
   const result = movers(rows, mKey);
   return (
     <div className="min-w-0">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
         {label}
       </h3>
       <MoverList title="Largest increases" rows={result.up} mKey={mKey} tone="up" />
       <MoverList title="Largest decreases" rows={result.down} mKey={mKey} tone="down" />
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         {result.eligible === 0
           ? 'No stocks with a filing yet.'
           : `${result.eligible - result.excludedDilution} of ${result.eligible} stocks with a change; ${result.excludedDilution} left out for a share-count change above 2%.`}
@@ -189,7 +189,7 @@ function MoverList({
     <div className="mt-1">
       <p className="text-xs font-semibold">{title}</p>
       {rows.length === 0 ? (
-        <p className="text-xs text-slate-500 dark:text-slate-400">None.</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">None.</p>
       ) : (
         <ul className="divide-y divide-slate-100 text-xs dark:divide-slate-800">
           {rows.map((r) => (

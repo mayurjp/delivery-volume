@@ -160,7 +160,7 @@ function Trend({ market, tfs }: { market: Market; tfs: TimeframeState }) {
         </select>
       </div>
       <EChart option={option} height={340} ariaLabel="Delivery percent over time for the chosen groups" />
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
         Value-weighted delivery %
         {daily ? ', thin line = daily, thick line = 20-day average' : ` per ${POINT_WORD[tfs.tf]}`}. Every
         group except &ldquo;ETFs&rdquo; counts stocks only. Up to 6 lines.
@@ -214,7 +214,7 @@ function Flows({ market, tfs }: { market: Market; tfs: TimeframeState }) {
       <Section title={`Turnover and delivery value per ${word}`} label="Turnover and delivery value">
         {idxNames.length > 0 && (
           <label className="mb-2 flex items-center gap-1.5 text-sm">
-            <span className="text-slate-500 dark:text-slate-400">Index overlay</span>
+            <span className="text-slate-600 dark:text-slate-400">Index overlay</span>
             <select
               aria-label="Index overlay"
               className="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
@@ -235,7 +235,7 @@ function Flows({ market, tfs }: { market: Market; tfs: TimeframeState }) {
           </label>
         )}
         <EChart option={flows} height={300} ariaLabel="Turnover and delivery value with an index overlay" />
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Stocks only.{' '}
           {sums
             ? `Each bar is the sum over the ${word}; the index line is its close at the end of the ${word}.`
@@ -249,7 +249,7 @@ function Flows({ market, tfs }: { market: Market; tfs: TimeframeState }) {
           height={300}
           ariaLabel="Advancing and declining stocks and delivery spike counts"
         />
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           {sums ? `Counts are stock-days summed over the ${word}.` : 'Daily counts.'} Spikes are stocks whose
           delivery value was at least twice its average.
           {s.partial.some(Boolean) && ' Light dashed bars are still in progress.'}
@@ -393,7 +393,7 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
           ) : (
             <EChart option={hist} height={280} ariaLabel="Histogram of delivery percent across stocks" />
           )}
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {fmtInt(rows.length)} stocks in 5-point bins; dashed line is the median ({fmtPct(med)}). Follows
             the global filters; ETFs excluded.
             {rangeMode &&
@@ -414,7 +414,7 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
               }}
             />
           )}
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             Price change is the return over the {tfs.tf === 'd' ? 'day' : tfs.tf === 'r' ? 'range' : word}.
             {rangeMode && ' Stocks with a split or bonus in the range are left out of this chart.'}
           </p>
@@ -430,7 +430,7 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
             ariaLabel="Delivery value by sector"
           />
         )}
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Bars: delivery value{tfs.tf === 'd' ? '' : ` summed over the ${tfs.tf === 'r' ? 'range' : word}`}.
           Dots: the sector&rsquo;s value-weighted delivery % minus its mean over the previous {normal}{' '}
           {tfs.tf === 'd' || tfs.tf === 'r' ? 'days' : `${word}s`}, in percentage points
@@ -440,7 +440,7 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
       <Section title="Cap buckets" label="Cap-bucket comparison">
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="num w-full min-w-[520px] text-sm">
-            <thead className="text-xs text-slate-500 dark:text-slate-400">
+            <thead className="text-xs text-slate-600 dark:text-slate-400">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Bucket</th>
                 <th className="font-medium">Delivery %</th>
@@ -468,7 +468,7 @@ function Distribution({ market, tfs }: { market: Market; tfs: TimeframeState }) 
             </tbody>
           </table>
         </div>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           {tfs.tf === 'd'
             ? 'The day picked at the top, against its prior 20 days.'
             : `The ${tfs.tf === 'r' ? 'whole custom range (one bar; no earlier bars to compare with)' : word + ' holding the date picked at the top'}, against its previous ${normal} ${word}s. Turnover, advances, declines and spikes are sums over the ${word}.`}
@@ -505,7 +505,7 @@ function PerfCell({
       title={`n=${r.n.toLocaleString('en-IN')} on ${r.days} days. Mean excess ${fmtPctChg(r.meanExcess, 2)}.`}
     >
       <span className="font-medium">{fmtPctChg(r.medianExcess, 2)}</span>{' '}
-      <span className="text-xs text-slate-500 dark:text-slate-400">({Math.round(r.hitRate)}%)</span>
+      <span className="text-xs text-slate-600 dark:text-slate-400">({Math.round(r.hitRate)}%)</span>
     </td>
   );
 }
@@ -586,7 +586,7 @@ export function SignalPerfTable() {
             />
           </div>
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="text-xs text-slate-500 dark:text-slate-400">
+            <thead className="text-xs text-slate-600 dark:text-slate-400">
               <tr>
                 <th className="py-1 text-left font-medium">Event</th>
                 {doc.data.groups.map((g) => (
@@ -616,7 +616,7 @@ export function SignalPerfTable() {
           </table>
         </div>
       )}
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
         Each cell: median return minus the same group&rsquo;s median that day (hit rate: share beating it).
         Entry at the {ENTRY_LABEL[entry]}. Hover a cell for n and the mean; cells with fewer than 30 cases are
         hidden. Sample {doc.data ? `${fmtDate(doc.data.window.from)} to ${fmtDate(doc.data.window.to)}` : ''}.
@@ -685,7 +685,7 @@ function PeriodSignalPerf({ tf }: { tf: 'w' | 'm' }) {
       ) : (
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="text-xs text-slate-500 dark:text-slate-400">
+            <thead className="text-xs text-slate-600 dark:text-slate-400">
               <tr>
                 <th className="py-1 text-left font-medium">Event</th>
                 {doc.data.groups.map((g) => (
@@ -709,7 +709,7 @@ function PeriodSignalPerf({ tf }: { tf: 'w' | 'm' }) {
                         title={`n=${c.n.toLocaleString('en-IN')} events in ${c.periods} periods`}
                       >
                         <span className="font-medium">{fmtPctChg(c.medianExcess, 2)}</span>{' '}
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                        <span className="text-xs text-slate-600 dark:text-slate-400">
                           ({Math.round(c.hitRate as number)}%)
                         </span>
                       </td>
@@ -729,7 +729,7 @@ function PeriodSignalPerf({ tf }: { tf: 'w' | 'm' }) {
           </table>
         </div>
       )}
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
         Each cell: median return minus the same group&rsquo;s median over the same horizon (hit rate: share
         beating it), {horizon > 0 && info ? `${info.horizonLabels[hi] ?? ''} after` : 'after'} the period
         ends. Hover a cell for n and the number of periods; cells with fewer than {doc.data?.minN ?? 30}{' '}
@@ -767,17 +767,17 @@ function Scope({ tfs }: { tfs: TimeframeState }) {
   const periods = usePeriods();
   const tf = tfs.tf;
   if (tf === 'd')
-    return <p className="text-sm text-slate-500 dark:text-slate-400">Daily, {fmtDate(date)}.</p>;
+    return <p className="text-sm text-slate-600 dark:text-slate-400">Daily, {fmtDate(date)}.</p>;
   if (tf === 'c')
     return (
-      <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="stats-scope">
+      <p className="text-sm text-slate-600 dark:text-slate-400" data-testid="stats-scope">
         Bars of {tfs.n} trading days, ending on the latest date. The first bar may be shorter and is marked in
         progress. {MEDIAN_NOTE}
       </p>
     );
   if (tf === 'r')
     return (
-      <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="stats-scope">
+      <p className="text-sm text-slate-600 dark:text-slate-400" data-testid="stats-scope">
         Daily points inside the custom range {tfs.from ? fmtDate(tfs.from) : '…'} to{' '}
         {tfs.to ? fmtDate(tfs.to) : '…'}. Set the range with the timeframe control.
       </p>
@@ -785,7 +785,7 @@ function Scope({ tfs }: { tfs: TimeframeState }) {
   const info = periods.data ? periodFor(periodsOf(periods.data, tf), date) : null;
   const partial = info ? partialText(info) : null;
   return (
-    <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="stats-scope">
+    <p className="text-sm text-slate-600 dark:text-slate-400" data-testid="stats-scope">
       {tf === 'w' ? 'Weekly' : tf === 'm' ? 'Monthly' : 'Quarterly'}
       {info ? `, ${periodLabel(tf, info)}` : ''}
       {partial ? <span className="ml-1 text-amber-700 dark:text-amber-400">{partial}</span> : null}. Flows are

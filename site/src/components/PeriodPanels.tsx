@@ -12,7 +12,7 @@ const SIGNAL_CODES = new Set<string>(['ACC', 'DIS', 'ABS', 'SPU', 'SPD']);
 function Item({ label, value, tone, hint }: { label: string; value: string; tone?: string; hint?: string }) {
   return (
     <div className="min-w-0 rounded-md bg-slate-50 p-2 dark:bg-slate-800/60" title={hint}>
-      <div className="truncate text-xs text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="truncate text-xs text-slate-600 dark:text-slate-400">{label}</div>
       <div className={`num truncate text-sm font-semibold ${tone ?? ''}`}>{value}</div>
     </div>
   );
@@ -41,7 +41,7 @@ export function PeriodSummary({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">
           {title}
-          {part ? <span className="ml-2 font-normal text-slate-500 dark:text-slate-400">{part}</span> : null}
+          {part ? <span className="ml-2 font-normal text-slate-600 dark:text-slate-400">{part}</span> : null}
         </h2>
         {signal ? <SignalBadge signal={signal} bucket={bucket} history={history} /> : null}
       </div>
@@ -82,7 +82,7 @@ export function PeriodSummary({
           <b>{SIGNAL_LABEL[signal]}.</b> {SIGNAL_MEANING[signal]} {DELIVERY_TRUTH}
         </p>
       ) : (
-        <p className="text-xs text-slate-500 dark:text-slate-400">No signal for this bar.</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">No signal for this bar.</p>
       )}
       {row.adjusted === 1 && (
         <p className="text-xs text-amber-700 dark:text-amber-400">
@@ -108,7 +108,7 @@ export function FootprintCard({
     <section aria-label="Range footprint" className="card min-w-0 space-y-2 p-3" data-testid="footprint">
       <h2 className="text-sm font-semibold">Range footprint</h2>
       <table className="num w-full text-xs sm:text-sm">
-        <thead className="text-slate-500 dark:text-slate-400">
+        <thead className="text-slate-600 dark:text-slate-400">
           <tr className="text-right">
             <th className="py-1 text-left font-medium">&nbsp;</th>
             <th className="font-medium">Range</th>
@@ -130,7 +130,7 @@ export function FootprintCard({
                     role="img"
                     aria-label="Prices are split-adjusted in this range"
                     title="A split or bonus fell in this range: prices are split-adjusted"
-                    className="ml-1 text-amber-600 dark:text-amber-400"
+                    className="ml-1 text-amber-700 dark:text-amber-400"
                   >
                     ⚠
                   </span>
@@ -143,7 +143,7 @@ export function FootprintCard({
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         Range: {rangeText}. Before: {prevText ?? 'not enough earlier history for a window of the same length'}
         . Changes are signed: a percentage for sums and prices, percentage points for delivery % and return.
       </p>

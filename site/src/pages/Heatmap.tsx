@@ -183,7 +183,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
         <p className="text-sm" data-testid="period-label">
           <span className="font-medium">{periodLabel(periodTf, info)}</span>
           {partial && <span className="ml-2 text-amber-700 dark:text-amber-400">{partial}</span>}
-          <span className="text-slate-500 dark:text-slate-400">
+          <span className="text-slate-600 dark:text-slate-400">
             . Colour and size use the {periodTf === 'w' ? 'week' : 'month'}'s own figures; the period holds
             the date picked at the top.
           </span>
@@ -191,7 +191,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
       )}
       <div className="flex flex-wrap items-end gap-3 text-sm">
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Size</span>
+          <span className="text-xs text-slate-600 dark:text-slate-400">Size</span>
           <select
             aria-label="Size by"
             className="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
@@ -206,7 +206,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
           </select>
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Colour</span>
+          <span className="text-xs text-slate-600 dark:text-slate-400">Colour</span>
           <select
             aria-label="Colour by"
             className="rounded-md border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-900"
@@ -239,7 +239,7 @@ function Treemap({ legacyRange }: { legacyRange: boolean }) {
           }}
         />
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="tree-ms">
+      <p className="text-xs text-slate-600 dark:text-slate-400" data-testid="tree-ms">
         {items.length.toLocaleString('en-IN')} stocks{ms !== null ? `, drawn in ${ms} ms` : ''}. Tap a sector
         to zoom in, tap a stock to open it. ETFs are not shown.{' '}
         {range ? 'Range mode: colour compares the range with its baseline.' : ''}
@@ -362,7 +362,7 @@ function GridTab() {
           ))}
         </div>
         {!dailyCols && (
-          <span className="text-slate-500 dark:text-slate-400" data-testid="grid-window">
+          <span className="text-slate-600 dark:text-slate-400" data-testid="grid-window">
             Last {gridColumnCount(tfs.tf)} {GRID_UNIT[tfs.tf]}
           </span>
         )}
@@ -389,7 +389,7 @@ function GridTab() {
       ) : (
         <EChart option={option} height={h} ariaLabel="Heat grid of groups by period" />
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         {pp
           ? `Colour is the group's value-weighted delivery % minus its own mean over the previous ${dailyCols ? '60 days' : 'periods'}, in percentage points (blue above, orange below). Groups are stocks only; ETFs are excluded.${dailyCols ? '' : ' Columns marked * are still in progress.'}`
           : 'Colour is each stock’s delivery spike (delivery value vs its prior 20-day average, log scale).'}{' '}
@@ -438,7 +438,7 @@ function CalendarTab() {
             <option key={x.sym} value={x.sym} />
           ))}
         </datalist>
-        {u && <span className="text-slate-500 dark:text-slate-400">{u.name}</span>}
+        {u && <span className="text-slate-600 dark:text-slate-400">{u.name}</span>}
       </label>
       {!u ? (
         <Empty>Pick a symbol from the list.</Empty>
@@ -457,7 +457,7 @@ function CalendarTab() {
           </div>
         </div>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         Delivery % per trading day over the stored year.
       </p>
     </div>
@@ -481,7 +481,7 @@ export default function Heatmap() {
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">Heatmaps</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           {tfs.tf === 'd' ? fmtDate(legacyRange ? meta.latestDate : date) : ''}
         </p>
       </div>

@@ -109,27 +109,27 @@ function CashTab({ range, onRange }: { range: string; onRange: (r: string) => vo
     <div className="space-y-3">
       <section aria-label="Cash summary" className="card grid grid-cols-2 gap-2 p-3 text-sm md:grid-cols-4">
         <div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-slate-600 dark:text-slate-400">
             Latest FII net ({latest ? fmtDate(latest.date) : '—'})
           </div>
           <div className="num font-semibold">{fmtCr(latest?.fiiNet)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">Latest DII net</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400">Latest DII net</div>
           <div className="num font-semibold">{fmtCr(latest?.diiNet)}</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">5 and 20 days, FII</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400">5 and 20 days, FII</div>
           <div className="num">
             {fmtSigned(s5f.sum, 0)} / {fmtSigned(s20f.sum, 0)} Cr{' '}
-            <span className="text-xs text-slate-500 dark:text-slate-400">({s20f.n} days)</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400">({s20f.n} days)</span>
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">5 and 20 days, DII</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400">5 and 20 days, DII</div>
           <div className="num">
             {fmtSigned(s5d.sum, 0)} / {fmtSigned(s20d.sum, 0)} Cr{' '}
-            <span className="text-xs text-slate-500 dark:text-slate-400">({s20d.n} days)</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400">({s20d.n} days)</span>
           </div>
         </div>
         <div className="col-span-2 md:col-span-4 text-xs text-slate-600 dark:text-slate-300">
@@ -153,7 +153,7 @@ function CashTab({ range, onRange }: { range: string; onRange: (r: string) => vo
           ))}
         </div>
         <EChart option={cashOption(rows, p, false)} height={320} ariaLabel="FII and DII cash chart" />
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Cumulative lines run from the first collected day. A day with no record is left empty, never
           interpolated.
         </p>
@@ -175,7 +175,7 @@ function CashTab({ range, onRange }: { range: string; onRange: (r: string) => vo
         </div>
         <div className="max-h-72 overflow-auto" tabIndex={0}>
           <table className="num w-full text-sm">
-            <thead className="text-xs text-slate-500 dark:text-slate-400">
+            <thead className="text-xs text-slate-600 dark:text-slate-400">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Month</th>
                 <th className="font-medium">FII net</th>
@@ -250,12 +250,12 @@ function DerivTab() {
             }
           />
         </div>
-        <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-2 text-xs text-slate-600 dark:text-slate-400">
           Contracts. Rough: contract counts, not delta-adjusted. FII index futures long share is{' '}
           {fmtPct(fiiPct, 1)}, higher than on {lower} of {within.length} days in the stored history.
         </p>
         <table className="num w-full min-w-[480px] text-sm">
-          <thead className="text-xs text-slate-500 dark:text-slate-400">
+          <thead className="text-xs text-slate-600 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Participant</th>
               <th className="font-medium">Index futures net</th>
@@ -351,7 +351,7 @@ function S7Tab() {
           />
         </div>
         <table className="num mt-2 w-full min-w-[480px] text-sm">
-          <thead className="text-xs text-slate-500 dark:text-slate-400">
+          <thead className="text-xs text-slate-600 dark:text-slate-400">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Category</th>
               <th className="font-medium">Bought contracts</th>
@@ -380,7 +380,7 @@ function S7Tab() {
           height={280}
           ariaLabel="FII derivatives open interest value"
         />
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           Statistics as NSE publishes them for each trading day (totals across the market, not per stock).
           Named deals per stock are on the <AppLink to="/deals">Deals page</AppLink>.
         </p>

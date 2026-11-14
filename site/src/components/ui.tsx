@@ -64,7 +64,7 @@ export function ErrorBox({ message }: { message: string }) {
     <div role="alert" className="card flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
       <p>
         <strong className="text-dec dark:text-dec-dark">Could not load this data.</strong>{' '}
-        <span className="text-slate-500 dark:text-slate-400">{errorSummary(message)}</span>
+        <span className="text-slate-600 dark:text-slate-400">{errorSummary(message)}</span>
       </p>
       <button type="button" className="btn" onClick={() => window.location.reload()}>
         Try again
@@ -74,7 +74,7 @@ export function ErrorBox({ message }: { message: string }) {
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="card p-6 text-center text-sm text-slate-500 dark:text-slate-400">{children}</div>;
+  return <div className="card p-6 text-center text-sm text-slate-600 dark:text-slate-400">{children}</div>;
 }
 
 /** Empty filter result: keeps the date and timeframe, drops every filter. */
@@ -189,7 +189,7 @@ export function SignalBadge({
     >
       <strong className="block">{SIGNAL_LABEL[signal]}</strong>
       <span className="block">{SIGNAL_MEANING[signal]}</span>
-      <span className="mt-1 block text-slate-500 dark:text-slate-400">{DELIVERY_TRUTH}</span>
+      <span className="mt-1 block text-slate-600 dark:text-slate-400">{DELIVERY_TRUTH}</span>
       {history ? (
         <span data-slot="signal-history" className="mt-1 block">
           {history}

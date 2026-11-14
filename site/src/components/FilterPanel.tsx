@@ -91,7 +91,7 @@ export default function FilterPanel({ onClose }: { onClose: () => void }) {
           />
         </div>
       </fieldset>
-      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mb-3 text-xs text-slate-600 dark:text-slate-400">
         Uses current index constituents and today&apos;s market-cap ranks. Large = rank 1&ndash;100 and Mid =
         101&ndash;250 (SEBI method); the Small/Micro split at 500 is this site&apos;s own.
       </p>
@@ -146,7 +146,7 @@ export default function FilterPanel({ onClose }: { onClose: () => void }) {
         />
         Hide event-driven rows
       </label>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
         Hides rows with a corporate action, bulk/block deal or price-band hit. Flag icons stay visible when
         off.
       </p>
@@ -159,7 +159,7 @@ export default function FilterPanel({ onClose }: { onClose: () => void }) {
         />
         Hide ETFs
       </label>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
         ETFs and index funds are shown with an ETF badge by default. They have no signal and no market-cap
         rank.
       </p>

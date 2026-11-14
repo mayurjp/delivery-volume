@@ -80,7 +80,7 @@ export default function RangeControls({
       )}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <label className="flex items-center gap-1.5">
-          <span className="text-slate-500 dark:text-slate-400">Baseline</span>
+          <span className="text-slate-600 dark:text-slate-400">Baseline</span>
           <select
             aria-label="Baseline"
             className={input}
@@ -127,7 +127,7 @@ export default function RangeControls({
       </div>
       <p className="text-sm" data-testid="range-text">
         {resolved.text}
-        <span className="text-slate-500 dark:text-slate-400">
+        <span className="text-slate-600 dark:text-slate-400">
           . The range ends on the date picked at the top.
         </span>
       </p>

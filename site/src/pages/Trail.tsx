@@ -47,7 +47,7 @@ const CODE_CLASS: Record<string, string> = {
   A: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900',
   D: 'bg-orange-600 text-white dark:bg-orange-400 dark:text-slate-900',
   N: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
-  '-': 'border border-dashed border-slate-300 text-slate-400 dark:border-slate-600',
+  '-': 'border border-dashed border-slate-300 text-slate-600 dark:text-slate-400 dark:border-slate-600',
 };
 const CODE_WORD: Record<string, string> = {
   A: 'leans accumulation',
@@ -210,14 +210,14 @@ function HoldingsCard({ file }: { file: SymbolFile }) {
               {c.label} {fmtPp(c.v, 1)}
             </span>
           ))}
-          <span className="self-center text-slate-500 dark:text-slate-400">
+          <span className="self-center text-slate-600 dark:text-slate-400">
             change in {fmtDate(lastQ)} filing
           </span>
         </div>
       )}
       <h3 className="mt-3 text-xs font-semibold">Named holders above 1%, {fmtDate(lastQ)}</h3>
       {named.length === 0 ? (
-        <p className="text-xs text-slate-500 dark:text-slate-400">No named holder above 1% in this filing.</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">No named holder above 1% in this filing.</p>
       ) : (
         <ul
           className="mt-1 divide-y divide-slate-100 text-xs dark:divide-slate-800"
@@ -226,7 +226,7 @@ function HoldingsCard({ file }: { file: SymbolFile }) {
           {named.map((n) => (
             <li key={n.holder} className="flex items-center justify-between gap-2 py-1">
               <span className="min-w-0 truncate">
-                {n.holder} <span className="text-slate-500 dark:text-slate-400">({n.category})</span>
+                {n.holder} <span className="text-slate-600 dark:text-slate-400">({n.category})</span>
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <span className="num">{fmtNum(n.pct, 2)}%</span>
@@ -318,7 +318,7 @@ function ListTable({
   return (
     <section aria-label={title} className="card min-w-0 p-3" data-testid={`list-${id}`}>
       <h2 className="text-sm font-semibold">
-        {title} <span className="font-normal text-slate-500 dark:text-slate-400">({entries.length})</span>
+        {title} <span className="font-normal text-slate-600 dark:text-slate-400">({entries.length})</span>
       </h2>
       <p className="mb-2 text-xs text-slate-600 dark:text-slate-300" data-testid={`history-${id}`}>
         {history}
@@ -366,13 +366,13 @@ function ListTable({
         />
       </div>
       {entries.length === 0 ? (
-        <p className="py-3 text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="py-3 text-center text-sm text-slate-600 dark:text-slate-400">
           No stock matches in this universe and window.
         </p>
       ) : (
         <div className="max-h-[520px] overflow-auto" tabIndex={0}>
           <table className="num w-full min-w-[640px] text-sm">
-            <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
+            <thead className="sticky top-0 bg-white text-xs text-slate-600 dark:text-slate-400 dark:bg-slate-900">
               <tr className="text-right">
                 <th className="py-1 text-left font-medium">Stock</th>
                 <th className="text-left font-medium">Trail, 52 weeks</th>
@@ -461,7 +461,7 @@ function TrackRecord({
           ) : (
             <>
               {fmtPctChg(r.medianExcess, 1)}{' '}
-              <span className="text-slate-500 dark:text-slate-400">
+              <span className="text-slate-600 dark:text-slate-400">
                 ({fmtPct(r.hitRate, 0)}, n {fmtInt(r.n)})
               </span>
             </>
@@ -487,7 +487,7 @@ function TrackRecord({
       </p>
       <div className="overflow-x-auto" tabIndex={0}>
         <table className="num w-full min-w-[520px] text-sm">
-          <thead className="text-xs text-slate-500 dark:text-slate-400">
+          <thead className="text-xs text-slate-600 dark:text-slate-400">
             <tr>
               <th className="py-1 text-left font-medium">List or indicator reading</th>
               <th className="text-right font-medium">60 days</th>
@@ -585,7 +585,7 @@ function TrailMarket() {
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">Smart Money Trail</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="trail-asof">
+        <p className="text-sm text-slate-600 dark:text-slate-400" data-testid="trail-asof">
           {asOf ? `As of ${fmtDate(asOf)}` : data ? `As of ${fmtDate(data.asOf)}` : ''}
         </p>
       </div>
@@ -593,10 +593,10 @@ function TrailMarket() {
 
       <section aria-label="Trail controls" className="card flex flex-wrap items-end gap-3 p-3">
         <div>
-          <div className="mb-0.5 text-xs text-slate-500 dark:text-slate-400">Window</div>
+          <div className="mb-0.5 text-xs text-slate-600 dark:text-slate-400">Window</div>
           <WindowChips win={win} onChange={(w) => set('tw', w === '6M' ? null : w)} />
         </div>
-        <label className="text-xs text-slate-500 dark:text-slate-400">
+        <label className="text-xs text-slate-600 dark:text-slate-400">
           <span className="mb-0.5 block">Universe</span>
           <select
             className="btn py-1 text-sm"
@@ -611,7 +611,7 @@ function TrailMarket() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-500 dark:text-slate-400">
+        <label className="text-xs text-slate-600 dark:text-slate-400">
           <span className="mb-0.5 block">Sector</span>
           <select
             className="btn max-w-[12rem] py-1 text-sm"
@@ -627,7 +627,7 @@ function TrailMarket() {
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-500 dark:text-slate-400">
+        <label className="text-xs text-slate-600 dark:text-slate-400">
           <span className="mb-0.5 block">As of</span>
           <select
             className="btn py-1 text-sm"
@@ -643,7 +643,7 @@ function TrailMarket() {
             ))}
           </select>
         </label>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           {filtered.length} stocks in this universe with a computable trail. Low-liquidity, new and ETF rows
           are left out.
         </p>
@@ -754,7 +754,7 @@ function TrailMarket() {
                         {counts.A} A, {counts.D} D, {counts.N} N
                       </span>
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{ind.rule}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400">{ind.rule}</div>
                     <div className="text-xs text-slate-600 dark:text-slate-300">
                       A: {hist('indicator', `${ind.id}:A`).replace('Historically: ', 'Historically, ')}
                     </div>
@@ -793,7 +793,7 @@ function TrailMarket() {
                 </div>
                 <div className="mt-2 overflow-x-auto" tabIndex={0}>
                   <table className="num w-full min-w-[480px] text-sm">
-                    <thead className="text-xs text-slate-500 dark:text-slate-400">
+                    <thead className="text-xs text-slate-600 dark:text-slate-400">
                       <tr className="text-right">
                         <th className="py-1 text-left font-medium">Sector</th>
                         <th className="font-medium">Stocks</th>
@@ -858,7 +858,7 @@ function TrailMarket() {
           <Slots doc={data} />
         </>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         {EVIDENCE_LABEL} {HISTORICAL_LABEL} Delivery balance compares delivery value on up days with down
         days; it does not say who took delivery.
       </p>
@@ -879,12 +879,12 @@ function NamedDealsCard({ deals, startDate, win }: { deals: Deal[]; startDate: s
   return (
     <section aria-label="Named deals" className="card min-w-0 p-3" data-testid="stock-named-deals">
       <h2 className="mb-1 text-sm font-semibold">Named deals, {WINDOW_LABEL[win]}</h2>
-      <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+      <p className="mb-2 text-xs text-slate-600 dark:text-slate-400">
         {DEALS_CAVEAT} Round trips are excluded from the totals. FII net {fmtCr(net(fii))}, DII net{' '}
         {fmtCr(net(dii))}.
       </p>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           No named bulk or block deals in this window.
         </p>
       ) : (
@@ -967,7 +967,7 @@ function TrailStock({ sym }: { sym: string }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">
           {sym}{' '}
-          <span className="text-base font-normal text-slate-500 dark:text-slate-400">Smart Money Trail</span>
+          <span className="text-base font-normal text-slate-600 dark:text-slate-400">Smart Money Trail</span>
         </h1>
         <AppLink
           to={`/stock/${encodeURIComponent(sym)}`}
@@ -994,7 +994,7 @@ function TrailStock({ sym }: { sym: string }) {
                 setParams(next);
               }}
             />
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-slate-600 dark:text-slate-400">
               Computed in your browser from this stock&apos;s daily history, as of {fmtDate(result.asOf)}.
               {!result.eligible &&
                 ' The latest day is excluded from trail rules (low liquidity, new listing or ETF).'}
@@ -1013,7 +1013,7 @@ function TrailStock({ sym }: { sym: string }) {
           <section aria-label="Footprints" className="card min-w-0 p-3" data-testid="stock-indicators">
             <h2 className="text-sm font-semibold">The footprints</h2>
             {!view ? (
-              <p className="py-3 text-sm text-slate-500 dark:text-slate-400">
+              <p className="py-3 text-sm text-slate-600 dark:text-slate-400">
                 Not enough history for this window yet.
               </p>
             ) : (
@@ -1050,7 +1050,7 @@ function TrailStock({ sym }: { sym: string }) {
                         <span className="num">
                           {value}{' '}
                           {secV && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400">({secV})</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">({secV})</span>
                           )}
                         </span>
                       </div>
@@ -1086,7 +1086,7 @@ function TrailStock({ sym }: { sym: string }) {
                 ariaLabel={`${sym} weekly close, delivery balance and spike days`}
               />
             )}
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               Each point covers the 20 trading days ending that week. Delivery balance above 1 means more
               delivery value on up days than on down days (capped at 4 in the chart).
             </p>
@@ -1097,7 +1097,7 @@ function TrailStock({ sym }: { sym: string }) {
               Compared with the {u.sector} median, {WINDOW_LABEL[win]}
             </h2>
             {!sector || !view ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">No sector comparison available.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">No sector comparison available.</p>
             ) : (
               <p className="text-sm">
                 {sym}: {view.A} A and {view.D} D footprints. Sector median across {sector.n} stocks:{' '}
@@ -1132,7 +1132,7 @@ function TrailStock({ sym }: { sym: string }) {
             </div>
             <div className="max-h-[480px] overflow-auto" tabIndex={0}>
               <table className="num w-full min-w-[760px] text-sm">
-                <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
+                <thead className="sticky top-0 bg-white text-xs text-slate-600 dark:text-slate-400 dark:bg-slate-900">
                   <tr className="text-right">
                     <th className="py-1 text-left font-medium">Week ending</th>
                     <th className="font-medium">Close</th>
@@ -1153,7 +1153,7 @@ function TrailStock({ sym }: { sym: string }) {
                         <td key={id}>
                           <span className="inline-flex items-center gap-1">
                             <CodeChip code={t.codes[j] ?? '-'} />
-                            <span className="hidden text-xs text-slate-500 dark:text-slate-400 sm:inline">
+                            <span className="hidden text-xs text-slate-600 dark:text-slate-400 sm:inline">
                               {id === 'delivBal'
                                 ? fmtNum(t.delivBal, 2)
                                 : id === 'delivPctTrend'

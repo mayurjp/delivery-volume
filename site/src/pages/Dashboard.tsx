@@ -36,7 +36,7 @@ function Tile({
 }) {
   return (
     <div className="card min-w-0 p-3" title={hint}>
-      <div className="truncate text-xs text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="truncate text-xs text-slate-600 dark:text-slate-400">{label}</div>
       <div className="num mt-0.5 truncate text-lg font-semibold">{value}</div>
       <div className="flex items-end justify-between gap-1">
         <span className={`num min-w-0 break-words text-xs ${subClass}`}>{sub ?? ' '}</span>
@@ -78,9 +78,9 @@ function TopCard({ spec, bySym }: { spec: CardSpec; bySym: ReturnType<typeof use
           View all
         </AppLink>
       </div>
-      {spec.note && <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{spec.note}</p>}
+      {spec.note && <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{spec.note}</p>}
       {spec.rows.length === 0 ? (
-        <p className="py-4 text-center text-xs text-slate-500 dark:text-slate-400">Nothing matches today.</p>
+        <p className="py-4 text-center text-xs text-slate-600 dark:text-slate-400">Nothing matches today.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {spec.rows.map((r) => {
@@ -97,7 +97,7 @@ function TopCard({ spec, bySym }: { spec: CardSpec; bySym: ReturnType<typeof use
                       <EtfBadge show={(r.flags & FLAG.etf) !== 0} />
                       <FlagIcons flags={r.flags} plain />
                     </span>
-                    <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+                    <span className="block truncate text-xs text-slate-600 dark:text-slate-400">
                       {u?.sector}
                     </span>
                   </span>
@@ -176,7 +176,7 @@ export default function Dashboard() {
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <div className="flex flex-wrap items-center gap-3">
           <TrailButton />
-          <p className="text-sm text-slate-500 dark:text-slate-400">{fmtDate(date)}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{fmtDate(date)}</p>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ export default function Dashboard() {
         </section>
         <section className="card min-w-0 p-3" aria-label="FII and DII net">
           <h2 className="mb-1 text-sm font-semibold">FII / DII net, last 20 days</h2>
-          <div className="flex h-[240px] items-center justify-center text-center text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex h-[240px] items-center justify-center text-center text-sm text-slate-600 dark:text-slate-400">
             {collecting}. The chart appears once the institutional history is built (a later phase).
           </div>
         </section>
@@ -268,14 +268,14 @@ export default function Dashboard() {
           ))}
           <section className="card min-w-0 p-3" aria-label="Bulk and block deals">
             <h2 className="mb-2 text-sm font-semibold">Today&apos;s largest bulk/block deals</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Bulk and block deals are collected every day. This card (round trips excluded) arrives with the
               deals pages in a later phase.
             </p>
           </section>
         </div>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         Delivery % shows how much of the day&apos;s trading ended in a change of ownership; it does not say
         whether buyers or sellers won. Lists exclude low-liquidity, trade-for-trade and newly listed stocks.
       </p>
