@@ -287,3 +287,7 @@ backfill (§8), the track record by tally bucket (§6), and the statistics with 
 Runs tab, the `#/runs` library page, the Learn case studies and the Stock page's Footprints pane (the next agent, on the
 outputs described in 03 section 5.9c). DEVIATIONS #139 to #149 hold the departures, including the statistics universe (the top
 750 by market cap, the study's), the pipeline's adjustment in the study script, and the measured reproduction (3% run counts).
+
+## Phase 5B part 2a as built (2026-11-15): the Stock page Runs tab and header panel
+
+Built: the Stock page's **Runs** tab (price with runs shaded, footprint pane with `delivBal60` and `delivValRatio60`, deal, results, corporate-action and quarter-end markers, the runs table with CSV, the footprint card for a clicked run, "This stock's pattern", the empty states) and the **header smart-money panel** (the 6-month tally, its tally-bucket "Historically" line, the evidence label, a link to `#/trail/:sym`). Pure logic in `site/src/lib/footprints.ts` (TS twin of `pipeline/footprints.py`, vectors in `footprintVectors.json`), `lib/runs.ts`, `lib/smartMoney.ts`, `charts/runs.ts`, `components/RunsTab.tsx` and `components/SmartMoneyPanel.tsx`. DEVIATIONS #150 to #156 hold the departures. **Not built here:** the `#/runs` library page, the Learn case studies, the trail shading on the stock trail (the next agent), and the early and full ordinary-day comparison (only pre is stored in `runSummary`, DEVIATIONS #150).

@@ -17,6 +17,7 @@ import type {
   Table,
   TrailDoc,
   TrailPerfDoc,
+  RunFootprintsDoc,
   TrailPerfRow,
   UniverseRow,
   CashRow,
@@ -265,6 +266,11 @@ export class DataClient {
   /** trail/latest.json, or the month-end snapshot trail/asof/{date}.json (07 section 6A). */
   trail(asOf: string | null): Promise<TrailDoc> {
     return this.getJson<TrailDoc>(asOf ? `trail/asof/${asOf}.json` : 'trail/latest.json');
+  }
+
+  /** stats/run_footprints.json: the market-wide run medians (07 section 5). */
+  runFootprints(): Promise<RunFootprintsDoc> {
+    return this.getJson<RunFootprintsDoc>('stats/run_footprints.json');
   }
 
   trailPerfDoc(): Promise<TrailPerfDoc> {

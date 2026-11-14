@@ -271,3 +271,11 @@ Static content written from 04 §0, §4 and §8:
 - **Colour tokens**: the light `up` / `dec` text colours are `#0a7c42` / `#b45309` (WCAG AA on white and slate-50/100). Chart series keep their brighter colours (DEVIATIONS #138).
 - **Checks** (`scripts/smoke.mjs`): `SMOKE_THEME=light|dark`, axe WCAG 2 A/AA on every route, 404-date and network-error cases. On 2026-11-15 axe reported 0 violations on 13 routes × light/dark × 360/1280 px.
 - **Lighthouse** (manual, not a dependency): mobile Dashboard on a local `vite preview` of the production build, 2026-11-15: **Performance 92, Accessibility 100** (LCP 0.8 s, TBT 340 ms, CLS 0.014). Command in README.
+
+### Stock page: Runs tab and smart-money panel (Phase 5B part 2a, 07 §7)
+
+- **Header:** a smart-money panel under the header chips: "6M: n of 8 footprints lean accumulation, m leans distribution", the "Historically" line of the matching tally bucket (`stats/trail_perf.json`, kind `tally`; "too few dates" below 6 month-ends), the label "Evidence summary, not advice. You decide." and a "details" link to `#/trail/:sym`.
+- **Overview / Runs switch** (`?tab=runs`). The Runs tab is lazy-loaded.
+- **Runs tab:** price (raw close) with runs shaded (UP teal, DOWN orange) and tooltips giving the move and days; the selected run's pre (grey), early (violet) and full (amber) windows; markers for deals, results dates, corporate actions and quarter ends; a footprint pane (`delivBal60`, `delivValRatio60`). The runs table (newest first, a row button per run, CSV). The footprint card of the selected run: pre, early and full against this stock's ordinary days (pre only) and the market medians, then the named deals (FII, DII, Other, Rs Cr), the holdings change (pp), the F&O fields and the results-date count, with a dash where the source did not cover the window. "This stock's pattern" from `runSummary` (not enough runs yet below 3 in a direction). Empty states: fewer than 80 trading days; no runs of 20% or more in the stored history.
+- **Tables** scroll inside their own container; the page has no horizontal scroll at 360 px. Colours: the `up` and `dec` text tokens only for text (AA).
+- DEVIATIONS #150 to #156.

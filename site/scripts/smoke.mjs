@@ -77,6 +77,55 @@ const ROUTES = [
         await p.locator('[data-testid=fo-latest]').innerText(),
       ),
   },
+  // 07 section 7: the Stock page Runs tab (chart, runs table, a clicked run opens its footprint card) and the header
+  // smart-money panel with its evidence label; the empty states (no runs; not enough history).
+  {
+    path: '#/stock/NATIONALUM?tab=runs',
+    wait: 'h1:has-text("NATIONALUM")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=runs-table]', { timeout: 25000 });
+      const rows = await p.locator('[data-testid=run-row]').count();
+      await p.locator('[data-testid=run-row] button').nth(0).click();
+      await p.waitForSelector('[data-testid=footprint-card]', { timeout: 10000 });
+      const panel = await p.locator('[data-testid=smart-money]').innerText();
+      return (
+        rows === 12 &&
+        (await p.locator('canvas').count()) >= 1 &&
+        /Evidence summary, not advice\. You decide\./.test(panel) &&
+        /6M: \d+ of 8 footprints lean accumulation/.test(panel)
+      );
+    },
+  },
+  {
+    path: '#/stock/WELCORP?tab=runs',
+    wait: 'h1:has-text("WELCORP")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=runs-table]', { timeout: 25000 });
+      const rows = await p.locator('[data-testid=run-row]').count();
+      await p.locator('[data-testid=run-row] button').nth(0).click();
+      await p.waitForSelector('[data-testid=footprint-card]', { timeout: 10000 });
+      return rows === 9 && (await p.locator('[data-testid=footprint-card]').count()) === 1;
+    },
+  },
+  {
+    path: '#/stock/21STCENMGM?tab=runs',
+    wait: 'h1:has-text("21STCENMGM")',
+    expect: async (p) =>
+      (await p.locator('text=No runs of 20% or more in the stored history.').count()) > 0,
+  },
+  {
+    path: '#/stock/ACEVECTOR?tab=runs',
+    wait: 'h1:has-text("ACEVECTOR")',
+    expect: async (p) => (await p.locator('text=Not enough history yet').count()) > 0,
+  },
+  {
+    path: '#/stock/NATIONALUM',
+    wait: 'h1:has-text("NATIONALUM")',
+    expect: async (p) =>
+      /6M: \d+ of 8 footprints lean accumulation/.test(
+        await p.locator('[data-testid=smart-money]').innerText(),
+      ),
+  },
   {
     path: '#/screener?p=buLB',
     wait: 'h1:has-text("Screener")',

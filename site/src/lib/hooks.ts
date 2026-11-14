@@ -13,6 +13,7 @@ import type {
   SymbolRow,
   TrailDoc,
   TrailPerfRow,
+  RunFootprintsDoc,
   UniverseRow,
   DealRow,
   FlowRow,
@@ -75,6 +76,8 @@ export const useSymbol = (fileKey: string | null): Async<{ file: SymbolFile; row
 
 export const useTrail = (asOf: string | null): Async<TrailDoc> =>
   useAsync(`trail:${asOf ?? 'latest'}`, () => dataClient.trail(asOf));
+export const useRunFootprints = (): Async<RunFootprintsDoc> =>
+  useAsync('runFootprints', () => dataClient.runFootprints());
 export const useTrailPerf = (): Async<TrailPerfRow[]> => useAsync('trailPerf', () => dataClient.trailPerf());
 
 // ---- Phase 4: institutions and deals ----------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { calendarOption, stockChartOption } from '../charts/options';
 import { dealFlowBarsOption } from '../charts/deals';
 import { barHolding, barSpecOf, baselineLabel, periodChartOption, periodTitle } from '../charts/periods';
@@ -11,6 +11,10 @@ import { footprintRows, priorWindow } from '../lib/footprint';
 import { periodSignalHistory } from '../lib/signalPerf';
 import EChart from '../charts/EChart';
 import { OwnershipSection } from '../components/Ownership';
+import SmartMoneyPanel from '../components/SmartMoneyPanel';
+
+// The Runs tab's chart code loads only when the tab opens (07 section 7).
+const RunsTab = lazy(() => import('../components/RunsTab'));
 import { FoSection } from '../components/FoPane';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import {
@@ -167,6 +171,7 @@ function Header({ u, rows }: { u: UniverseRow; rows: ReturnType<typeof useSymbol
           </span>
         ))}
       </div>
+      <SmartMoneyPanel sym={u.sym} />
       {last && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <span>
@@ -209,6 +214,8 @@ export default function Stock() {
   const dark = useDark();
   const mobile = useMobile();
   const [win, setWin] = useState(126);
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'runs' ? 'runs' : 'overview';
   const { meta } = useApp();
   const { state: tfState } = useTimeframe();
   const { date: globalDate } = useGlobalState();
@@ -321,350 +328,389 @@ export default function Stock() {
     <div className="space-y-3">
       <Header u={u} rows={data.data} />
 
-      {spec ? (
-        !periodsDoc.data ? (
-          <Skeleton height={540} />
+      <div role="group" aria-label="Stock views" className="flex gap-1">
+        {(
+          [
+            ['overview', 'Overview'],
+            ['runs', 'Runs'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={tab === id}
+            className={`chip ${tab === id ? 'bg-blue-600 text-white' : ''}`}
+            onClick={() => setParams(id === 'runs' ? { tab: 'runs' } : {}, { replace: true })}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'runs' ? (
+        data.data && rows ? (
+          <Suspense fallback={<Skeleton height={520} />}>
+            <RunsTab
+              sym={u.sym}
+              bucket={u.bucket}
+              file={data.data.file}
+              rows={data.data.rows}
+              pal={pal}
+              mobile={mobile}
+              dark={dark}
+            />
+          </Suspense>
         ) : (
-          <>
-            {summaryRow && (
-              <PeriodSummary
-                row={summaryRow}
-                title={periodTitle(spec, summaryRow)}
-                baseline={baselineLabel(spec, periodsDoc.data.config)}
-                bucket={u.bucket}
-                history={
-                  tfState.tf === 'w' || tfState.tf === 'm'
-                    ? (periodSignalHistory(
-                        periodPerf.data,
-                        tfState.tf,
-                        (summaryRow.signal as SignalCode | null) ?? null,
-                        u.bucket,
-                      ) ?? '')
-                    : ''
-                }
-              />
-            )}
-            <section aria-label="Price, volume and delivery chart by period" className="card min-w-0 p-3">
-              <h2 className="mb-1 text-sm font-semibold">
-                Price, delivered volume and delivery % by{' '}
-                {tfState.tf === 'w'
-                  ? 'week'
-                  : tfState.tf === 'm'
-                    ? 'month'
-                    : tfState.tf === 'q'
-                      ? 'quarter'
-                      : `${tfState.n}-day bar`}
-              </h2>
-              {periodRows && periodRows.length === 0 ? (
-                <Empty>Not enough history yet</Empty>
-              ) : periodChart ? (
+          <Skeleton height={520} />
+        )
+      ) : (
+        <>
+          {spec ? (
+            !periodsDoc.data ? (
+              <Skeleton height={540} />
+            ) : (
+              <>
+                {summaryRow && (
+                  <PeriodSummary
+                    row={summaryRow}
+                    title={periodTitle(spec, summaryRow)}
+                    baseline={baselineLabel(spec, periodsDoc.data.config)}
+                    bucket={u.bucket}
+                    history={
+                      tfState.tf === 'w' || tfState.tf === 'm'
+                        ? (periodSignalHistory(
+                            periodPerf.data,
+                            tfState.tf,
+                            (summaryRow.signal as SignalCode | null) ?? null,
+                            u.bucket,
+                          ) ?? '')
+                        : ''
+                    }
+                  />
+                )}
+                <section aria-label="Price, volume and delivery chart by period" className="card min-w-0 p-3">
+                  <h2 className="mb-1 text-sm font-semibold">
+                    Price, delivered volume and delivery % by{' '}
+                    {tfState.tf === 'w'
+                      ? 'week'
+                      : tfState.tf === 'm'
+                        ? 'month'
+                        : tfState.tf === 'q'
+                          ? 'quarter'
+                          : `${tfState.n}-day bar`}
+                  </h2>
+                  {periodRows && periodRows.length === 0 ? (
+                    <Empty>Not enough history yet</Empty>
+                  ) : periodChart ? (
+                    <EChart
+                      option={periodChart}
+                      height={mobile ? 540 : 620}
+                      ariaLabel={`${u.sym} candlestick, delivered volume, delivery percent, spike and delivery balance per bar`}
+                    />
+                  ) : (
+                    <Skeleton height={mobile ? 540 : 620} />
+                  )}
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    Each bar is one period; a faded bar is still in progress. Prices are in the basis of the
+                    period end, so a split does not break the candles (a warning marker sits on those bars);
+                    volume and delivered quantity are plain sums. Bottom pane: spike (delivery value vs the
+                    baseline) and delivery balance (delivery value on up days / down days, capped at 10), both
+                    as ratios where 1 is normal or equal. Drag the slider or Ctrl + scroll to zoom.
+                  </p>
+                </section>
+              </>
+            )
+          ) : custom ? (
+            <>
+              {!tfState.from || !tfState.to ? (
+                <section className="card p-3">
+                  <Empty>Pick a start and end date in the timeframe control to see a custom range.</Empty>
+                </section>
+              ) : !rows || !periodsDoc.data ? (
+                <Skeleton height={320} />
+              ) : !rangeInfo?.cur ? (
+                <section className="card p-3">
+                  <Empty>Not enough history yet: no trading day in this range</Empty>
+                </section>
+              ) : (
+                <>
+                  <FootprintCard
+                    rows={footprintRows(rangeInfo.cur, rangeInfo.prev)}
+                    rangeText={rangeSpanText(rangeInfo.lo, rangeInfo.hi, rangeInfo.cur.daysIn)}
+                    prevText={
+                      rangeInfo.pw ? rangeSpanText(rangeInfo.pw.a, rangeInfo.pw.b, rangeInfo.pw.days) : null
+                    }
+                  />
+                  <section aria-label="The range as one bar" className="card min-w-0 p-3">
+                    <h2 className="mb-1 text-sm font-semibold">The range as one bar</h2>
+                    {rangeChart && (
+                      <EChart
+                        option={rangeChart}
+                        height={mobile ? 420 : 460}
+                        ariaLabel={`${u.sym} the custom range as one bar`}
+                      />
+                    )}
+                  </section>
+                  <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
+                    <h2 className="mb-1 text-sm font-semibold">Daily bars, range shaded</h2>
+                    {dailyHighlighted && (
+                      <EChart
+                        option={dailyHighlighted}
+                        height={mobile ? 460 : 540}
+                        ariaLabel={`${u.sym} daily chart with the custom range shaded`}
+                      />
+                    )}
+                  </section>
+                </>
+              )}
+            </>
+          ) : (
+            <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
+              <h2 className="mb-1 text-sm font-semibold">Price, delivered volume and delivery %</h2>
+              {chart ? (
                 <EChart
-                  option={periodChart}
-                  height={mobile ? 540 : 620}
-                  ariaLabel={`${u.sym} candlestick, delivered volume, delivery percent, spike and delivery balance per bar`}
+                  option={chart}
+                  height={mobile ? 460 : 540}
+                  ariaLabel={`${u.sym} candlestick, delivered volume and delivery percent`}
                 />
               ) : (
-                <Skeleton height={mobile ? 540 : 620} />
+                <Skeleton height={mobile ? 460 : 540} />
               )}
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                Each bar is one period; a faded bar is still in progress. Prices are in the basis of the
-                period end, so a split does not break the candles (a warning marker sits on those bars);
-                volume and delivered quantity are plain sums. Bottom pane: spike (delivery value vs the
-                baseline) and delivery balance (delivery value on up days / down days, capped at 10), both as
-                ratios where 1 is normal or equal. Drag the slider or Ctrl + scroll to zoom.
+                {mobile
+                  ? 'Drag the slider to zoom; tap the chart for values.'
+                  : 'Ctrl + scroll to zoom, drag to pan; hover for values.'}{' '}
+                Dashed vertical lines mark corporate-action ex-dates. Volume is in shares and not adjusted for
+                splits or bonuses; compare delivery value and delivery %, not raw quantity, across such dates.
               </p>
             </section>
-          </>
-        )
-      ) : custom ? (
-        <>
-          {!tfState.from || !tfState.to ? (
-            <section className="card p-3">
-              <Empty>Pick a start and end date in the timeframe control to see a custom range.</Empty>
-            </section>
-          ) : !rows || !periodsDoc.data ? (
-            <Skeleton height={320} />
-          ) : !rangeInfo?.cur ? (
-            <section className="card p-3">
-              <Empty>Not enough history yet: no trading day in this range</Empty>
-            </section>
-          ) : (
-            <>
-              <FootprintCard
-                rows={footprintRows(rangeInfo.cur, rangeInfo.prev)}
-                rangeText={rangeSpanText(rangeInfo.lo, rangeInfo.hi, rangeInfo.cur.daysIn)}
-                prevText={
-                  rangeInfo.pw ? rangeSpanText(rangeInfo.pw.a, rangeInfo.pw.b, rangeInfo.pw.days) : null
+          )}
+
+          <section aria-label="Delivery statistics" className="card p-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Delivery statistics</h2>
+              <div role="group" aria-label="Window" className="flex gap-1">
+                {WINDOWS.map((w) => (
+                  <button
+                    key={w.n}
+                    type="button"
+                    aria-pressed={win === w.n}
+                    className={`chip ${win === w.n ? 'bg-blue-600 text-white' : ''}`}
+                    onClick={() => setWin(w.n)}
+                  >
+                    {w.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {!stats ? (
+              <Skeleton height={120} />
+            ) : thin ? (
+              <Empty>Not enough history yet (needs 10 trading days)</Empty>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                <Stat label="Mean delivery %" value={fmtPct(stats.mean)} />
+                <Stat label="Median delivery %" value={fmtPct(stats.median)} />
+                <Stat label="Min / max" value={`${fmtPct(stats.min)} / ${fmtPct(stats.max)}`} />
+                <Stat label="Std deviation" value={fmtPp(stats.std).replace('+', '')} />
+                <Stat
+                  label="Days above 60%"
+                  value={String(stats.daysAbove60)}
+                  hint={`of ${stats.n} valid days`}
+                />
+                <Stat label="Avg turnover" value={fmtCr(stats.avgTurnoverCr)} />
+                <Stat label="Avg delivery value" value={fmtCr(stats.avgDelivValCr)} />
+                <Stat
+                  label="Today's percentile"
+                  value={stats.todayPercentile === null ? '—' : `${fmtNum(stats.todayPercentile, 0)}`}
+                  hint="Share of window days with delivery % at or below today's"
+                />
+                <Stat
+                  label="Longest above-average streak"
+                  value={`${stats.longestAboveAvgStreak} days`}
+                  hint="Consecutive days with delivery % above its prior 20-day average"
+                />
+                <Stat
+                  label="Corr. with next-day return"
+                  value={stats.corrNextDayRet === null ? '—' : fmtNum(stats.corrNextDayRet)}
+                  hint="Historical, descriptive: correlation of delivery % with the next day's close-to-close return, unadjusted for splits"
+                />
+              </div>
+            )}
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+              Historical and descriptive. Over {stats?.n ?? 0} valid delivery days in the window.
+            </p>
+          </section>
+
+          {data.data && <OwnershipSection file={data.data.file} />}
+          {data.data && <FoSection file={data.data.file} rows={data.data.rows} pal={pal} mobile={mobile} />}
+          <section aria-label="Delivery calendar" className="card min-w-0 p-3">
+            <h2 className="mb-1 text-sm font-semibold">Delivery % calendar</h2>
+            <div className="overflow-x-auto" tabIndex={0}>
+              <div style={{ minWidth: 860 }}>
+                {cal ? (
+                  <EChart option={cal} height={230} ariaLabel="Calendar heat map of delivery percent" />
+                ) : (
+                  <Skeleton height={230} />
+                )}
+              </div>
+            </div>
+          </section>
+
+          <section aria-label="Last 30 days" className="card min-w-0 p-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Last 30 days</h2>
+              <CsvButton
+                disabled={last30.length === 0}
+                onClick={() =>
+                  exportCsv(
+                    `stock-${sym}-last-30-days`,
+                    last30[0]?.date ?? 'none',
+                    [
+                      'Date',
+                      'Close',
+                      'Return %',
+                      'Volume',
+                      'Deliv %',
+                      'Deliv value Cr',
+                      'Spike',
+                      'Signal',
+                      'Flags',
+                    ],
+                    last30.map((r, i, arr) => {
+                      const prev = arr[i + 1] ?? rows?.[rows.length - 31];
+                      const ret = r.close && prev?.close ? (r.close / prev.close - 1) * 100 : null;
+                      return [
+                        r.date,
+                        r.close,
+                        ret === null ? null : Number(ret.toFixed(2)),
+                        r.vol,
+                        r.delivPct,
+                        r.delivValCr,
+                        r.spike,
+                        r.signal,
+                        r.flags,
+                      ];
+                    }),
+                  )
                 }
               />
-              <section aria-label="The range as one bar" className="card min-w-0 p-3">
-                <h2 className="mb-1 text-sm font-semibold">The range as one bar</h2>
-                {rangeChart && (
-                  <EChart
-                    option={rangeChart}
-                    height={mobile ? 420 : 460}
-                    ariaLabel={`${u.sym} the custom range as one bar`}
-                  />
-                )}
-              </section>
-              <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
-                <h2 className="mb-1 text-sm font-semibold">Daily bars, range shaded</h2>
-                {dailyHighlighted && (
-                  <EChart
-                    option={dailyHighlighted}
-                    height={mobile ? 460 : 540}
-                    ariaLabel={`${u.sym} daily chart with the custom range shaded`}
-                  />
-                )}
-              </section>
-            </>
-          )}
-        </>
-      ) : (
-        <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
-          <h2 className="mb-1 text-sm font-semibold">Price, delivered volume and delivery %</h2>
-          {chart ? (
-            <EChart
-              option={chart}
-              height={mobile ? 460 : 540}
-              ariaLabel={`${u.sym} candlestick, delivered volume and delivery percent`}
-            />
-          ) : (
-            <Skeleton height={mobile ? 460 : 540} />
-          )}
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-            {mobile
-              ? 'Drag the slider to zoom; tap the chart for values.'
-              : 'Ctrl + scroll to zoom, drag to pan; hover for values.'}{' '}
-            Dashed vertical lines mark corporate-action ex-dates. Volume is in shares and not adjusted for
-            splits or bonuses; compare delivery value and delivery %, not raw quantity, across such dates.
-          </p>
-        </section>
-      )}
-
-      <section aria-label="Delivery statistics" className="card p-3">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">Delivery statistics</h2>
-          <div role="group" aria-label="Window" className="flex gap-1">
-            {WINDOWS.map((w) => (
-              <button
-                key={w.n}
-                type="button"
-                aria-pressed={win === w.n}
-                className={`chip ${win === w.n ? 'bg-blue-600 text-white' : ''}`}
-                onClick={() => setWin(w.n)}
-              >
-                {w.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {!stats ? (
-          <Skeleton height={120} />
-        ) : thin ? (
-          <Empty>Not enough history yet (needs 10 trading days)</Empty>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            <Stat label="Mean delivery %" value={fmtPct(stats.mean)} />
-            <Stat label="Median delivery %" value={fmtPct(stats.median)} />
-            <Stat label="Min / max" value={`${fmtPct(stats.min)} / ${fmtPct(stats.max)}`} />
-            <Stat label="Std deviation" value={fmtPp(stats.std).replace('+', '')} />
-            <Stat
-              label="Days above 60%"
-              value={String(stats.daysAbove60)}
-              hint={`of ${stats.n} valid days`}
-            />
-            <Stat label="Avg turnover" value={fmtCr(stats.avgTurnoverCr)} />
-            <Stat label="Avg delivery value" value={fmtCr(stats.avgDelivValCr)} />
-            <Stat
-              label="Today's percentile"
-              value={stats.todayPercentile === null ? '—' : `${fmtNum(stats.todayPercentile, 0)}`}
-              hint="Share of window days with delivery % at or below today's"
-            />
-            <Stat
-              label="Longest above-average streak"
-              value={`${stats.longestAboveAvgStreak} days`}
-              hint="Consecutive days with delivery % above its prior 20-day average"
-            />
-            <Stat
-              label="Corr. with next-day return"
-              value={stats.corrNextDayRet === null ? '—' : fmtNum(stats.corrNextDayRet)}
-              hint="Historical, descriptive: correlation of delivery % with the next day's close-to-close return, unadjusted for splits"
-            />
-          </div>
-        )}
-        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
-          Historical and descriptive. Over {stats?.n ?? 0} valid delivery days in the window.
-        </p>
-      </section>
-
-      {data.data && <OwnershipSection file={data.data.file} />}
-      {data.data && <FoSection file={data.data.file} rows={data.data.rows} pal={pal} mobile={mobile} />}
-      <section aria-label="Delivery calendar" className="card min-w-0 p-3">
-        <h2 className="mb-1 text-sm font-semibold">Delivery % calendar</h2>
-        <div className="overflow-x-auto" tabIndex={0}>
-          <div style={{ minWidth: 860 }}>
-            {cal ? (
-              <EChart option={cal} height={230} ariaLabel="Calendar heat map of delivery percent" />
-            ) : (
-              <Skeleton height={230} />
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section aria-label="Last 30 days" className="card min-w-0 p-3">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">Last 30 days</h2>
-          <CsvButton
-            disabled={last30.length === 0}
-            onClick={() =>
-              exportCsv(
-                `stock-${sym}-last-30-days`,
-                last30[0]?.date ?? 'none',
-                [
-                  'Date',
-                  'Close',
-                  'Return %',
-                  'Volume',
-                  'Deliv %',
-                  'Deliv value Cr',
-                  'Spike',
-                  'Signal',
-                  'Flags',
-                ],
-                last30.map((r, i, arr) => {
-                  const prev = arr[i + 1] ?? rows?.[rows.length - 31];
-                  const ret = r.close && prev?.close ? (r.close / prev.close - 1) * 100 : null;
-                  return [
-                    r.date,
-                    r.close,
-                    ret === null ? null : Number(ret.toFixed(2)),
-                    r.vol,
-                    r.delivPct,
-                    r.delivValCr,
-                    r.spike,
-                    r.signal,
-                    r.flags,
-                  ];
-                }),
-              )
-            }
-          />
-        </div>
-        <div className="max-h-[480px] overflow-auto" tabIndex={0}>
-          <table className="num w-full min-w-[640px] text-sm">
-            <thead className="sticky top-0 bg-white text-xs text-slate-600 dark:text-slate-400 dark:bg-slate-900">
-              <tr className="text-right">
-                <th className="py-1 text-left font-medium">Date</th>
-                <th className="font-medium">Close</th>
-                <th className="font-medium">Return</th>
-                <th className="font-medium">Volume</th>
-                <th className="font-medium">Deliv %</th>
-                <th className="font-medium">Deliv value</th>
-                <th className="font-medium">Spike</th>
-                <th className="pl-2 text-left font-medium">Signal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {last30.map((r, i, arr) => {
-                const prev = arr[i + 1] ?? rows?.[rows.length - 31];
-                const ret = r.close && prev?.close ? (r.close / prev.close - 1) * 100 : null;
-                return (
-                  <tr key={r.date} className="border-t border-slate-100 text-right dark:border-slate-800">
-                    <td className="py-1 text-left">{fmtDate(r.date)}</td>
-                    <td>{fmtPrice(r.close)}</td>
-                    <td className={priceClass(ret)}>{fmtPctChg(ret, 2)}</td>
-                    <td>{fmtQty(r.vol)}</td>
-                    <td>{fmtPct(r.delivPct)}</td>
-                    <td>{fmtCr(r.delivValCr)}</td>
-                    <td>{fmtRatio(r.spike)}</td>
-                    <td className="pl-2 text-left">
-                      <span className="inline-flex items-center gap-1">
-                        <SignalBadge signal={r.signal} bucket={u.bucket} />
-                        <FlagIcons flags={r.flags} />
-                      </span>
-                    </td>
+            </div>
+            <div className="max-h-[480px] overflow-auto" tabIndex={0}>
+              <table className="num w-full min-w-[640px] text-sm">
+                <thead className="sticky top-0 bg-white text-xs text-slate-600 dark:text-slate-400 dark:bg-slate-900">
+                  <tr className="text-right">
+                    <th className="py-1 text-left font-medium">Date</th>
+                    <th className="font-medium">Close</th>
+                    <th className="font-medium">Return</th>
+                    <th className="font-medium">Volume</th>
+                    <th className="font-medium">Deliv %</th>
+                    <th className="font-medium">Deliv value</th>
+                    <th className="font-medium">Spike</th>
+                    <th className="pl-2 text-left font-medium">Signal</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                </thead>
+                <tbody>
+                  {last30.map((r, i, arr) => {
+                    const prev = arr[i + 1] ?? rows?.[rows.length - 31];
+                    const ret = r.close && prev?.close ? (r.close / prev.close - 1) * 100 : null;
+                    return (
+                      <tr key={r.date} className="border-t border-slate-100 text-right dark:border-slate-800">
+                        <td className="py-1 text-left">{fmtDate(r.date)}</td>
+                        <td>{fmtPrice(r.close)}</td>
+                        <td className={priceClass(ret)}>{fmtPctChg(ret, 2)}</td>
+                        <td>{fmtQty(r.vol)}</td>
+                        <td>{fmtPct(r.delivPct)}</td>
+                        <td>{fmtCr(r.delivValCr)}</td>
+                        <td>{fmtRatio(r.spike)}</td>
+                        <td className="pl-2 text-left">
+                          <span className="inline-flex items-center gap-1">
+                            <SignalBadge signal={r.signal} bucket={u.bucket} />
+                            <FlagIcons flags={r.flags} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        <section aria-label="Deals" className="card p-3">
-          <h2 className="mb-1 flex items-center gap-1 text-sm font-semibold">
-            Bulk and block deals
-            <Tip label={<span className="chip">?</span>}>{DEALS_CAVEAT}</Tip>
-          </h2>
-          <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{HISTORY_GAP_NOTE}</p>
-          {deals.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              No bulk or block deals stored for this stock.
-            </p>
-          ) : (
-            <ul className="space-y-1 text-sm">
-              {[...deals]
-                .sort((a, b) => b.date.localeCompare(a.date))
-                .map((d, i) => (
-                  <li key={i} className="flex flex-wrap items-center gap-1">
-                    <span className="num">{fmtDate(d.date)}</span>
-                    <span className="chip">{dealChip(d)}</span>
-                    {d.roundTrip && (
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
-                        round trip, not counted
-                      </span>
-                    )}
-                    {d.entityId ? (
-                      <AppLink to={`/entity/${encodeURIComponent(d.entityId)}`}>
-                        {d.entityName ?? d.client}
-                      </AppLink>
-                    ) : (
-                      <span className="text-slate-600 dark:text-slate-300">{d.client}</span>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          )}
-          <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
-            Net via deals by month (Rs Cr)
-          </h3>
-          {flowMonths.months.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">No deal flows for this stock.</p>
-          ) : (
-            <EChart
-              option={dealFlowBarsOption(flowMonths, pal)}
-              height={220}
-              ariaLabel="Deal flows by month"
-            />
-          )}
-        </section>
-        <section aria-label="Corporate actions" className="card p-3">
-          <h2 className="mb-1 flex items-center gap-1 text-sm font-semibold">
-            Corporate actions
-            <Tip label={<span className="chip">?</span>}>
-              Ex-dates listed by NSE. Delivery can jump before record dates; splits and bonuses make raw
-              prices and quantities non-comparable.
-            </Tip>
-          </h2>
-          {corp.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              No corporate actions recorded in the stored history.
-            </p>
-          ) : (
-            <ul className="space-y-0.5 text-sm">
-              {[...corp].reverse().map((c, i) => (
-                <li key={i}>
-                  <span className="num">{fmtDate(c.exDate)}</span> <span className="chip">{c.kind}</span>{' '}
-                  <span className="text-slate-600 dark:text-slate-300">{c.purpose}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <section aria-label="Deals" className="card p-3">
+              <h2 className="mb-1 flex items-center gap-1 text-sm font-semibold">
+                Bulk and block deals
+                <Tip label={<span className="chip">?</span>}>{DEALS_CAVEAT}</Tip>
+              </h2>
+              <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">{HISTORY_GAP_NOTE}</p>
+              {deals.length === 0 ? (
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  No bulk or block deals stored for this stock.
+                </p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {[...deals]
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .map((d, i) => (
+                      <li key={i} className="flex flex-wrap items-center gap-1">
+                        <span className="num">{fmtDate(d.date)}</span>
+                        <span className="chip">{dealChip(d)}</span>
+                        {d.roundTrip && (
+                          <span className="text-xs text-slate-600 dark:text-slate-400">
+                            round trip, not counted
+                          </span>
+                        )}
+                        {d.entityId ? (
+                          <AppLink to={`/entity/${encodeURIComponent(d.entityId)}`}>
+                            {d.entityName ?? d.client}
+                          </AppLink>
+                        ) : (
+                          <span className="text-slate-600 dark:text-slate-300">{d.client}</span>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              )}
+              <h3 className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                Net via deals by month (Rs Cr)
+              </h3>
+              {flowMonths.months.length === 0 ? (
+                <p className="text-sm text-slate-600 dark:text-slate-400">No deal flows for this stock.</p>
+              ) : (
+                <EChart
+                  option={dealFlowBarsOption(flowMonths, pal)}
+                  height={220}
+                  ariaLabel="Deal flows by month"
+                />
+              )}
+            </section>
+            <section aria-label="Corporate actions" className="card p-3">
+              <h2 className="mb-1 flex items-center gap-1 text-sm font-semibold">
+                Corporate actions
+                <Tip label={<span className="chip">?</span>}>
+                  Ex-dates listed by NSE. Delivery can jump before record dates; splits and bonuses make raw
+                  prices and quantities non-comparable.
+                </Tip>
+              </h2>
+              {corp.length === 0 ? (
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  No corporate actions recorded in the stored history.
+                </p>
+              ) : (
+                <ul className="space-y-0.5 text-sm">
+                  {[...corp].reverse().map((c, i) => (
+                    <li key={i}>
+                      <span className="num">{fmtDate(c.exDate)}</span> <span className="chip">{c.kind}</span>{' '}
+                      <span className="text-slate-600 dark:text-slate-300">{c.purpose}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -164,6 +164,12 @@ export interface SymbolFile {
   namedHolders: { columns: string[]; rows: unknown[][] };
   /** F&O history (Phase 5): one row per day the stock had stock futures. Absent for stocks outside the F&O list. */
   fo?: { columns: string[]; rows: unknown[][] };
+  /** Runs of 20% or more (07 section 4): one row per run, with the pre, early, full and post features. */
+  runs?: { columns: string[]; rows: unknown[][] };
+  /** This stock's median features in its up-run and down-run pre windows, and on its ordinary days. */
+  runSummary?: { columns: string[]; rows: unknown[][] };
+  /** Results dates (board meetings whose purpose includes Financial Results), ISO dates. */
+  resultsDates?: string[];
 }
 
 /** One F&O stock-day of fo/{date}.json (Phase 5; futOi in shares, futOiChgPct in per cent). */
@@ -386,7 +392,7 @@ export interface TrailDoc {
 
 /** stats/trail_perf.json (07 section 6A): the track record per list and per indicator. */
 export interface TrailPerfRow {
-  kind: 'list' | 'indicator';
+  kind: 'list' | 'indicator' | 'tally';
   id: string;
   window: string;
   horizon: number;
@@ -395,6 +401,16 @@ export interface TrailPerfRow {
   medianExcess: number | null;
   meanExcess: number | null;
   hitRate: number | null;
+}
+
+/** stats/run_footprints.json (07 section 5): market-wide medians and the lift tables. Only medians are read by the UI. */
+export interface RunFootprintsDoc {
+  schemaVersion: 1;
+  asOf: string;
+  label: string;
+  bigMovePct: number;
+  medians: { columns: string[]; rows: unknown[][] };
+  [key: string]: unknown;
 }
 
 export interface TrailPerfDoc {

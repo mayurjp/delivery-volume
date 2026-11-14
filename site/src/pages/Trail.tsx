@@ -951,7 +951,7 @@ function TrailStock({ sym }: { sym: string }) {
       <div className="space-y-2">
         <h1 className="text-xl font-semibold">No stock found</h1>
         <p className="text-sm">No stock is listed as {sym}.</p>
-        <Link className="text-blue-700 underline" to="/trail">
+        <Link className="text-blue-700 underline dark:text-blue-300" to="/trail">
           Back to the Smart Money Trail
         </Link>
       </div>

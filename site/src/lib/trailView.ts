@@ -219,7 +219,7 @@ export interface PerfLookup {
 
 export function perfRow(
   rows: readonly TrailPerfRow[],
-  kind: 'list' | 'indicator',
+  kind: 'list' | 'indicator' | 'tally',
   id: string,
   win: WindowName,
   horizon: number,
@@ -244,7 +244,7 @@ export function perfThin(r: TrailPerfRow | undefined, minN = 30): string | null 
 /** "Historically: 60 days +1.5% median excess, 54% hit rate (n 437); 120 days ..." read from stats/trail_perf.json. */
 export function historyLine(
   rows: readonly TrailPerfRow[] | null,
-  kind: 'list' | 'indicator',
+  kind: 'list' | 'indicator' | 'tally',
   id: string,
   win: WindowName,
   minN = 30,
