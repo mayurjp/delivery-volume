@@ -345,7 +345,7 @@ def not_split_mask(sym: np.ndarray, date: np.ndarray | None, not_splits) -> np.n
 
 
 def adjustment_events(sym: np.ndarray, close: np.ndarray, date: np.ndarray | None = None,
-                      not_splits=None) -> tuple[np.ndarray, np.ndarray]:
+                      not_splits=None, demergers_adjust: bool = False) -> tuple[np.ndarray, np.ndarray]:
     """(event, factor) per row. An event is a day whose close(t) / close(t-1) (same stock, previous stored row) is at most
     0.78 (or at least 1.8) AND within 10% of a corporate-action ratio (1:2, 1:3, 1:5, 1:10, bonus 1:1 = 1/2, 1:2 = 2/3,
     consolidations 2..100). `factor` is that exact ratio (the observed ratio also contains the day's own move). A fall
@@ -361,16 +361,26 @@ def adjustment_events(sym: np.ndarray, close: np.ndarray, date: np.ndarray | Non
         cand = _SPLIT_CANDIDATES[np.abs(np.log(obs[:, None] / _SPLIT_CANDIDATES[None, :])).argmin(axis=1)]             if n else np.empty(0)
         near = np.abs(obs / cand - 1) <= SPLIT_TOL
         ev = ((obs <= SPLIT_MAX_DOWN) | (obs >= SPLIT_MIN_UP)) & near & ((cand < 1) == (obs < 1))
-    ev = ev & ~not_split_mask(sym, date, not_splits)
-    return ev, np.where(ev, cand, 1.0)
+    listed = not_split_mask(sym, date, not_splits)
+    ev = ev & ~listed
+    f = np.where(ev, cand, 1.0)
+    if demergers_adjust:
+        # Run detection only (DEVIATIONS #168): a listed demerger moves value into the demerged company; it is not a
+        # market move for holders. Adjust by the observed one-day ratio (it also holds that day's own move, the best
+        # proxy available) instead of a corporate-action ratio. Displayed prices and periods stay unadjusted (#71).
+        ok = listed & np.isfinite(obs) & (obs > 0)
+        ev = ev | ok
+        f = np.where(ok, obs, f)
+    return ev, f
 
 
 def price_adjustment(sym: np.ndarray, close: np.ndarray, date: np.ndarray | None = None,
-                     not_splits=None) -> np.ndarray:
+                     not_splits=None, demergers_adjust: bool = False) -> np.ndarray:
     """Factor A(t) turning day-t prices into the prices of the LATEST day's basis: A(t) = product of the factors of the
-    adjustment events on the days j > t of the same stock (`adjustment_events`)."""
+    adjustment events on the days j > t of the same stock (`adjustment_events`). `demergers_adjust` (runs only) also
+    adjusts the listed notSplits demergers by their observed ratio."""
     n = len(sym)
-    ev, f = adjustment_events(sym, close, date, not_splits)
+    ev, f = adjustment_events(sym, close, date, not_splits, demergers_adjust)
     lg = np.log(f)
     cum = np.cumsum(lg)
     starts = np.flatnonzero(np.r_[True, sym[1:] != sym[:-1]])

@@ -24,6 +24,7 @@ const MORE: { to: string; label: string; icon: string }[] = [
   { to: '/institutions', label: 'Institutions', icon: '⌂' },
   { to: '/deals', label: 'Deals', icon: '≡' },
   { to: '/trail', label: 'Trail', icon: '⌇' },
+  { to: '/runs', label: 'Runs', icon: '↕' },
   { to: '/stats', label: 'Stats', icon: '∿' },
   { to: '/watchlist', label: 'Watchlist', icon: '★' },
   { to: '/learn', label: 'Learn', icon: '?' },

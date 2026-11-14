@@ -581,3 +581,39 @@ export interface FiiDerivRow {
   oiContracts: number | null;
   oiAmtCr: number | null;
 }
+
+// ---- Phase 5B: the market-wide run library (07 section 5, runs/library.json) ------------------------------------------
+
+/** One row of runs/library.json: one run in the universe, with its pre and early features (columns as published). */
+export interface RunLibRow {
+  sym: string;
+  dir: 'UP' | 'DOWN';
+  start: string;
+  end: string;
+  movePct: number;
+  days: number;
+  bucket: Bucket | null;
+  sector: string | null;
+  preDelivValRatio: number | null;
+  preDelivPctChgPp: number | null;
+  preTurnoverRatio: number | null;
+  preTradeSizeRatio: number | null;
+  preDelivBalance: number | null;
+  preSpikeDays: number | null;
+  prePriceChgPct: number | null;
+  earlyDelivValRatio: number | null;
+  earlyDelivBalance: number | null;
+}
+
+/** runs/library.json as published: the detection settings, then the columns and the rows. */
+export interface RunsLibraryDoc {
+  schemaVersion: 1;
+  asOf: string;
+  bigMovePct: number;
+  minMovePct: number;
+  reversalPct: number;
+  minDays: number;
+  universe: string;
+  columns: string[];
+  rows: unknown[][];
+}

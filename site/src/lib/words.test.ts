@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { TrailPerfRow, UniverseRow } from '../types/data';
+import type { RunLibRow, TrailPerfRow, UniverseRow } from '../types/data';
 import { rowsToObjects } from './dataClient';
 import { buildInsights, historyLine, narrative, parseTrail } from './trailView';
 import {
@@ -184,6 +184,51 @@ describe('smart money trail wording', () => {
       for (const id of ['strongA', 'strongD', 'flip']) texts.push(historyLine(perf, 'list', id, win));
     }
     const bad = [...new Set(texts)].filter((t) => TRAIL_ADVICE.test(t));
+    expect(bad).toEqual([]);
+  });
+});
+
+/** Run forensics wording (07 sections 6 and 7, 9): the library, the case studies, the Runs tab and the Learn section. */
+describe('run forensics wording', () => {
+  const runFiles = [
+    'src/pages/Runs.tsx',
+    'src/pages/Learn.tsx',
+    'src/lib/runLibrary.ts',
+    'src/lib/caseStudies.ts',
+    'src/components/FootprintLearn.tsx',
+    'src/components/RunsTab.tsx',
+    'src/lib/runs.ts',
+    'src/charts/runs.ts',
+    'src/charts/runsLibrary.ts',
+  ].map((f) => resolve(process.cwd(), f));
+
+  it('no run source string or JSX text gives advice or a rating', () => {
+    const bad: string[] = [];
+    for (const f of runFiles) {
+      for (const s of uiStrings(readFileSync(f, 'utf8'))) {
+        const t = s.replace(/^['"`]|['"`]$/g, '');
+        if (TRAIL_ADVICE.test(t) || FORBIDDEN.test(t)) bad.push(`${f}: ${t.slice(0, 80)}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('the generated texts (caveats, case-study sentences, odds labels) pass too', async () => {
+    const { LIB_CAVEATS, ODDS_LABEL } = await import('./runLibrary');
+    const { pickCaseStudies } = await import('./caseStudies');
+    const lib = rowsToObjects<RunLibRow>(
+      JSON.parse(readFileSync(resolve(process.cwd(), 'src/lib/__fixtures__/runs/library.json'), 'utf8')),
+    );
+    const uni = rowsToObjects<UniverseRow>(
+      JSON.parse(readFileSync(resolve(process.cwd(), 'src/lib/__fixtures__/runs/universe.json'), 'utf8')),
+    );
+    const rank = new Map(uni.map((u) => [u.sym, u.mcapRank]));
+    const texts = [
+      ...LIB_CAVEATS,
+      ...Object.values(ODDS_LABEL),
+      ...pickCaseStudies(lib, rank, '2026-11-13').map((p) => p.text),
+    ];
+    const bad = texts.filter((t) => TRAIL_ADVICE.test(t) || FORBIDDEN.test(t));
     expect(bad).toEqual([]);
   });
 });

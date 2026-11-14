@@ -8,7 +8,7 @@
   - the date control (§3);
   - a filter button with a badge showing how many filters are active;
   - a theme toggle.
-- **Navigation:** a left rail on desktop (≥ 1024 px) and a bottom tab bar on mobile. The tab bar holds Dashboard, Screener, Compare, Heatmap and More; More holds Institutions, Deals, Stats, Learn and Watchlist (Institutions and Deals appear once those pages exist).
+- **Navigation:** a left rail on desktop (≥ 1024 px) and a bottom tab bar on mobile. The tab bar holds Dashboard, Screener, Compare, Heatmap and More; More holds Institutions, Deals, Trail, Runs, Stats, Watchlist and Learn (Institutions and Deals appear once those pages exist; Runs is the Run library, Phase 5B).
 - **Footer:** the disclaimer from 01 §7, on every page.
 - **Routing:** HashRouter. Routes are `#/`, `#/screener`, `#/compare`, `#/heatmap`, `#/stock/:sym`, `#/institutions`, `#/deals`, `#/entity/:id`, `#/stats`, `#/trail`, `#/trail/:sym`, `#/learn`, `#/watchlist`.
 - **State in the URL:** all filter and date state lives in query params, e.g. `#/screener?u=NIFTY200&b=L,M&sec=Financial%20Services&d=2026-11-13`. Links are therefore shareable, and Back/Forward work. Store the last-used filters in `localStorage` (inside try/catch) and apply them only when the URL has none.
@@ -202,7 +202,17 @@ Banner on tabs 1–3: "These FII/DII figures are provisional and combined across
 - **Entry points:** a prominent filled "Smart Money Trail" button on the Dashboard header and next to the Screener's watch buttons, "Show this stock's trail" in every Stock page header, and a "Trail" item in the menu.
 - **Market mode.** Controls, all in the URL: window `tw` (3M, 6M default, 1Y), universe `tu` (Nifty 500 default), sector `ts`, as-of month-end `ta`. Sections: an insights panel (5 to 10 template sentences, each with "Show the N rows"; `ti` selects one), the strongest A and strongest D lists, the Taste-changing list, the four indicators with their rules and A/D counts, sector rotation (bar chart, week grid, table), the track record table, and the slots for later indicators ("arrives in Phase 4 / 4B / 5"). Every list header and indicator row has a "Historically: ..." line read from `stats/trail_perf.json`. In as-of mode a "Since" column shows the change of the last close since that day (blank across a split or bonus).
 - **Stock mode.** Computed in the browser from `symbols/{f}.json` by `trailForRows` (TS twin of `pipeline/trail.py`). Narrative (3 to 5 sentences), the four indicators with code, value and Historically line, the tally and flip, a price line with weekly delivery balance and spike-day bars, the comparison with the sector median, and the weekly timeline table.
+- **Run shading (Phase 5B):** the weekly chart shades this stock's UP runs (teal) and DOWN runs (orange) with the Runs tab's bars (DEVIATIONS #163).
 - **Wording:** "Evidence summary, not advice. You decide." No buy/sell/hold/add/reduce, no rating. The wording test (`words.test.ts`) scans the trail source and the generated sentences for imperative advice.
+
+### P8c Run library `#/runs` (Phase 5B, 07 §7)
+
+- **Filters in the URL:** direction (`dir`), minimum move (`mm`, 20 to 50%), universe (`u`, with the watchlist), cap bucket (`b`), sector (`sec`) and start-date range (`from`, `to`). The global keys are shared with the Filters panel.
+- **Runs table** from `runs/library.json`: the first 200 filtered rows with "Show all", the whole filtered list in the CSV. A row opens the stock's Runs tab at that run (`?tab=runs&run=<start>`).
+- **"What came before big moves":** grouped bars of UP, DOWN and ordinary medians for each feature, with window and cap-bucket switches (`stats/run_footprints.json`).
+- **"Does it raise the odds?":** one quintile chart per feature (P(big up) and P(big down), base rates as dashed lines), switching between the 20-day lift and the 60-day long-horizon table.
+- **Caveats panel:** survivorship, one sample period, before costs, correlated features, footprints rather than identities, and "Historical, not a prediction. Evidence, not advice."
+- Lazy-loaded. Logic in `lib/runLibrary.ts`, charts in `charts/runsLibrary.ts`. DEVIATIONS #157 to #161.
 
 ### P9 Learn `#/learn`
 
@@ -212,6 +222,7 @@ Static content written from 04 §0, §4 and §8:
 - "What a year of data showed": a plain-language summary of docs/research/2026-11-delivery-signal-study.md, linked to the live signal-performance table;
 - what each signal means;
 - traps: record dates, block deals, circuits, T2T, splits and bonuses, expiry, provisional FII data, current-constituents bias;
+- "Reading footprints" (Phase 5B): a short plain-language guide to runs and footprints, and three case studies picked from the data by a rule (`lib/caseStudies.ts`), each with its footprint card (DEVIATIONS #162);
 - data sources and update times;
 - the source-freshness table (from `meta.sources`).
 
@@ -279,3 +290,7 @@ Static content written from 04 §0, §4 and §8:
 - **Runs tab:** price (raw close) with runs shaded (UP teal, DOWN orange) and tooltips giving the move and days; the selected run's pre (grey), early (violet) and full (amber) windows; markers for deals, results dates, corporate actions and quarter ends; a footprint pane (`delivBal60`, `delivValRatio60`). The runs table (newest first, a row button per run, CSV). The footprint card of the selected run: pre, early and full against this stock's ordinary days (pre only) and the market medians, then the named deals (FII, DII, Other, Rs Cr), the holdings change (pp), the F&O fields and the results-date count, with a dash where the source did not cover the window. "This stock's pattern" from `runSummary` (not enough runs yet below 3 in a direction). Empty states: fewer than 80 trading days; no runs of 20% or more in the stored history.
 - **Tables** scroll inside their own container; the page has no horizontal scroll at 360 px. Colours: the `up` and `dec` text tokens only for text (AA).
 - DEVIATIONS #150 to #156.
+
+## Phase 5B part 2b as built (2026-11-15): the Run library, Learn case studies, trail shading
+
+Built: the `#/runs` Run library (P8c), the Learn page's "Reading footprints" section with three data-picked case studies (P9), the Runs tab's `?run=` selection, and the run shading on the stock trail (P8b). Shared pieces: `charts/runs.ts` (`runBarData`, `runCoverage`) used by the Runs tab and the trail. DEVIATIONS #157 to #167.

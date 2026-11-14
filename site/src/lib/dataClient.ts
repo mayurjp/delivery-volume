@@ -31,6 +31,8 @@ import type {
   HoldingsQuarterRow,
   HolderRow,
   FoDayRow,
+  RunLibRow,
+  RunsLibraryDoc,
 } from '../types/data';
 
 /**
@@ -271,6 +273,17 @@ export class DataClient {
   /** stats/run_footprints.json: the market-wide run medians (07 section 5). */
   runFootprints(): Promise<RunFootprintsDoc> {
     return this.getJson<RunFootprintsDoc>('stats/run_footprints.json');
+  }
+
+  /** runs/library.json: every run in the universe (07 section 5), as rows. */
+  runsLibraryDoc(): Promise<RunsLibraryDoc> {
+    return this.getJson<RunsLibraryDoc>('runs/library.json');
+  }
+
+  runsLibrary(): Promise<RunLibRow[]> {
+    return this.cached('runs/library:rows', async () =>
+      rowsToObjects<RunLibRow>(await this.runsLibraryDoc()),
+    );
   }
 
   trailPerfDoc(): Promise<TrailPerfDoc> {

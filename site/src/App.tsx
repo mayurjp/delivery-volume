@@ -13,6 +13,7 @@ const Compare = lazy(() => import('./pages/Compare'));
 const Heatmap = lazy(() => import('./pages/Heatmap'));
 const Stats = lazy(() => import('./pages/Stats'));
 const Trail = lazy(() => import('./pages/Trail'));
+const Runs = lazy(() => import('./pages/Runs'));
 const Placeholder = lazy(() => import('./pages/Placeholder'));
 const Watchlist = lazy(() => import('./pages/Watchlist'));
 const Institutions = lazy(() => import('./pages/Institutions'));
@@ -54,6 +55,7 @@ function Loaded() {
           <Route path="stats" element={<Stats />} />
           <Route path="trail" element={<Trail />} />
           <Route path="trail/:sym" element={<Trail />} />
+          <Route path="runs" element={<Runs />} />
           <Route path="*" element={<Placeholder title="Page not found" />} />
         </Route>
       </Routes>

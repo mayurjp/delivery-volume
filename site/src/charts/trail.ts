@@ -1,7 +1,9 @@
 import { fmtDateShort, fmtNum, fmtPct, fmtPrice } from '../lib/format';
+import type { RunRec } from '../lib/runs';
 import type { TimelineWeek } from '../lib/trail';
 import type { SectorGrid, SectorRow } from '../lib/trailView';
 import type { EChartsOption } from './echarts';
+import { runBarData } from './runs';
 import type { Palette } from './theme';
 
 /** Sector rotation: share of stocks leaning A minus the share leaning D, per sector (blue = more A, orange = more D). */
@@ -96,12 +98,25 @@ export function sectorGridOption(
   };
 }
 
+/**
+ * The run shading of the stock trail (07 6A row 5B): the runs covering each week (`coverage`, from runCoverage), shaded
+ * with the same bars as the Stock page's Runs tab. The price axis is fixed to [yMin, yMax] so the bars fill it.
+ */
+export interface TrailRunShade {
+  coverage: readonly number[];
+  runs: readonly RunRec[];
+  yMin: number;
+  yMax: number;
+  dark: boolean;
+}
+
 /** Stock trail chart: weekly close as a line, with weekly delivery balance and spike-day bars underneath. */
 export function stockTrailOption(
   timeline: readonly TimelineWeek[],
   closes: readonly (number | null)[],
   p: Palette,
   mobile: boolean,
+  shade?: TrailRunShade,
 ): EChartsOption {
   const x = timeline.map((t) => fmtDateShort(t.end));
   const bal = timeline.map((t) => (t.delivBal === null ? null : Math.min(t.delivBal, 4)));
@@ -139,7 +154,8 @@ export function stockTrailOption(
       {
         type: 'value',
         gridIndex: 0,
-        scale: true,
+        scale: !shade,
+        ...(shade ? { min: shade.yMin, max: shade.yMax } : {}),
         axisLabel: { color: p.muted },
         splitLine: { lineStyle: { color: p.grid } },
       },
@@ -153,6 +169,22 @@ export function stockTrailOption(
       { type: 'value', gridIndex: 1, show: false, min: 0, max: 20 },
     ],
     series: [
+      ...(shade
+        ? [
+            {
+              name: 'Runs',
+              type: 'bar' as const,
+              xAxisIndex: 0,
+              yAxisIndex: 0,
+              data: runBarData(shade.coverage, shade.runs, shade.yMax, shade.dark),
+              barWidth: '100%',
+              barCategoryGap: '0%',
+              silent: true,
+              z: 1,
+              tooltip: { show: false },
+            },
+          ]
+        : []),
       {
         name: 'Close',
         type: 'line',
@@ -161,6 +193,7 @@ export function stockTrailOption(
         data: closes.map((c) => (c === null ? '-' : c)),
         showSymbol: false,
         lineStyle: { color: p.line, width: 2 },
+        z: 3,
       },
       {
         name: 'Delivery balance',

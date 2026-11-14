@@ -101,8 +101,9 @@ def build_grids(df: pd.DataFrame, days: list[str], syms: list[str], not_splits=N
     keep = ~pd.isna(ti)
     eq, ti, sj = eq[keep], ti[keep].astype(np.int64), sj[keep].astype(np.int64)
     close = eq["close"].to_numpy(dtype=float)
+    # demergers_adjust: a listed demerger (notSplits) is not a market move for a run (DEVIATIONS #168)
     a = metrics.price_adjustment(eq["sym"].to_numpy(dtype=object), close, eq["date"].to_numpy(dtype=object),
-                                 not_splits or [])
+                                 not_splits or [], demergers_adjust=True)
     adj_row = close * a
     raw_adj = _to_grid(ti, sj, adj_row, T, S)
     adj = pd.DataFrame(raw_adj).ffill().to_numpy()

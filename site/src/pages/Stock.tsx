@@ -358,6 +358,7 @@ export default function Stock() {
               pal={pal}
               mobile={mobile}
               dark={dark}
+              initialRun={params.get('run')}
             />
           </Suspense>
         ) : (

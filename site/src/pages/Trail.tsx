@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import EChart from '../charts/EChart';
 import { palette } from '../charts/theme';
-import { sectorBarOption, sectorGridOption, stockTrailOption } from '../charts/trail';
+import { runCoverage, nextDay } from '../charts/runs';
+import { sectorBarOption, sectorGridOption, stockTrailOption, type TrailRunShade } from '../charts/trail';
 import { AppLink, CsvButton, Empty, ErrorBox, Skeleton } from '../components/ui';
 import { exportCsv } from '../lib/csv';
 import { corpActionSyms } from '../lib/range';
+import { parseRuns } from '../lib/runs';
 import { dataClient } from '../lib/dataClient';
 import { DEALS_CAVEAT, dealChip, dealsByDate, round2, signedValue } from '../lib/deals';
 import { fmtCr, fmtDate, fmtInt, fmtNum, fmtPct, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
@@ -943,6 +945,25 @@ function TrailStock({ sym }: { sym: string }) {
     const by = new Map(data.data.rows.map((r) => [r.date, r.close]));
     return result.timeline.map((t) => by.get(t.end) ?? null);
   }, [data.data, result]);
+  const runs = useMemo(() => parseRuns(data.data?.file.runs), [data.data]);
+  // Run shading on the weekly chart (07 6A row 5B): a week is covered when a run overlaps (the previous week's end, its end].
+  const runShade = useMemo<TrailRunShade | undefined>(() => {
+    if (!result || runs.length === 0) return undefined;
+    const tl = result.timeline;
+    const intervals = tl.map((t, i): [string, string] => [
+      i === 0 ? '0000-01-01' : nextDay(tl[i - 1]!.end),
+      t.end,
+    ]);
+    const vals = closes.filter((c): c is number => c !== null);
+    if (vals.length === 0) return undefined;
+    return {
+      coverage: runCoverage(intervals, runs),
+      runs,
+      yMin: Math.min(...vals) * 0.95,
+      yMax: Math.max(...vals) * 1.03,
+      dark,
+    };
+  }, [result, runs, closes, dark]);
   const entries = useMemo(() => (latest.data ? parseTrail(latest.data) : []), [latest.data]);
   const sector = u ? sectorMedian(entries, bySym, u.sector, win) : null;
 
@@ -1081,14 +1102,15 @@ function TrailStock({ sym }: { sym: string }) {
               <Empty>Not enough history yet.</Empty>
             ) : (
               <EChart
-                option={stockTrailOption(result.timeline, closes, pal, mobile)}
+                option={stockTrailOption(result.timeline, closes, pal, mobile, runShade)}
                 height={mobile ? 340 : 410}
                 ariaLabel={`${sym} weekly close, delivery balance and spike days`}
               />
             )}
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-              Each point covers the 20 trading days ending that week. Delivery balance above 1 means more
-              delivery value on up days than on down days (capped at 4 in the chart).
+              Each point covers the 20 trading days ending that week. Teal shading marks an UP run and orange
+              a DOWN run (the Runs tab has the detail). Delivery balance above 1 means more delivery value on
+              up days than on down days (capped at 4 in the chart).
             </p>
           </section>
 

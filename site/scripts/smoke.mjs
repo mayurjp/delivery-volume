@@ -139,6 +139,47 @@ const ROUTES = [
     expect: async (p) =>
       (await p.locator('text=Every delivered share has both a buyer and a seller').count()) > 0,
   },
+  {
+    // Phase 5B: the Learn page's footprint guide and its three case studies (picked from the data)
+    path: '#/learn',
+    wait: 'h1:has-text("Learn")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=case-study] table', { timeout: 25000 });
+      return (
+        (await p.locator('[data-testid=learn-footprints]').count()) === 1 &&
+        (await p.locator('[data-testid=case-study]').count()) >= 2
+      );
+    },
+  },
+  {
+    // Phase 5B: the Run library, default filters (rows, the two charts, the caveats panel)
+    path: '#/runs',
+    wait: 'h1:has-text("Run library")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=lib-row]', { timeout: 25000 });
+      await p.waitForSelector('[aria-label="Does it raise the odds"] canvas', { timeout: 25000 });
+      return (await p.locator('[aria-label="Caveats"]').count()) === 1 && (await p.locator('canvas').count()) >= 2;
+    },
+  },
+  {
+    // the same page with a filtered URL (direction, minimum move, universe, start date)
+    path: '#/runs?dir=UP&mm=30&u=NIFTY500&from=2025-01-01',
+    wait: 'h1:has-text("Run library")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=lib-count]', { timeout: 25000 });
+      const n = await p.locator('[data-testid=lib-row]').count();
+      return /runs match/.test(await p.locator('[data-testid=lib-count]').innerText()) && n > 0 && n <= 200;
+    },
+  },
+  {
+    // a stock's Runs tab opened at one run (the Run library's row link): that run's footprint card shows
+    path: '#/stock/NATIONALUM?tab=runs&run=2024-03-13',
+    wait: 'h1:has-text("NATIONALUM")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=footprint-card]', { timeout: 25000 });
+      return (await p.locator('[data-testid=footprint-card] h3').innerText()).includes('2024');
+    },
+  },
   { path: '#/watchlist', wait: 'h1:has-text("Watchlist")', expect: async () => true },
   {
     path: '#/compare',
@@ -258,6 +299,15 @@ ROUTES.push(
           await p.locator('[data-testid=holdings-card]').innerText(),
         )
       );
+    },
+  },
+  {
+    // Phase 5B: the stock trail with this stock's runs shaded (the chart caption names the shading)
+    path: '#/trail/NATIONALUM',
+    wait: 'h1:has-text("NATIONALUM")',
+    expect: async (p) => {
+      await p.waitForSelector('section[aria-label="Weekly trail chart"] canvas', { timeout: 25000 });
+      return /Teal shading/.test(await p.locator('section[aria-label="Weekly trail chart"]').innerText());
     },
   },
   {
@@ -522,6 +572,25 @@ try {
         `${werr.length ? 'FAIL' : 'ok  '} ${vp.w}px Daily delivery watch (${count} stocks, ${wp.url().split('?')[1]})`,
       );
       await wp.close();
+    }
+
+    // Phase 5B: a row of the Run library opens the stock's Runs tab at that run
+    {
+      const rp = await ctx.newPage();
+      const rerr = [];
+      rp.on('console', (m) => m.type() === 'error' && rerr.push(`console: ${m.text()}`));
+      rp.on('pageerror', (e) => rerr.push(`pageerror: ${e.message}`));
+      await rp.goto(`${ORIGIN}${BASE}#/runs`);
+      await rp.waitForSelector('[data-testid=lib-row]', { timeout: 25000 });
+      await rp.locator('[data-testid=lib-row]').first().locator('td').nth(4).click();
+      await rp.waitForSelector('[data-testid=footprint-card]', { timeout: 25000 });
+      const hash = new URL(rp.url()).hash;
+      if (!/^#\/stock\/[^?]+\?tab=runs&run=\d{4}-\d{2}-\d{2}(&|$)/.test(hash)) fail(`${vp.w}px runs row: ${hash}`);
+      if (!(await rp.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)))
+        fail(`${vp.w}px: horizontal scroll on the Run library`);
+      for (const e of rerr) fail(`${vp.w}px runs row: ${e}`);
+      console.log(`${rerr.length ? 'FAIL' : 'ok  '} ${vp.w}px Run library row click (${hash})`);
+      await rp.close();
     }
 
     // the three Smart Money Trail buttons: Dashboard, Screener and Stock page

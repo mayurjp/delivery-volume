@@ -153,7 +153,7 @@ Controls: window (3M / 6M / 1Y), universe (default **Nifty 500**, with the liqui
 | **4** | Named deals indicator, and the FII-vs-DII sector flows |
 | **4B** (wired, part 2) | Holdings indicators (`holdInst`, `holdPromoter`) and named holders: wired into the trail (DEVIATIONS #100 to #108). The stock-page Ownership section, the Institutions Holdings tab and the Screener columns are still to build |
 | **5** | The F&O indicator (`foTrend`, built in Phase 5: DEVIATIONS #119 to #127) |
-| **5B** | Runs integration (runs shaded on the stock trail) and the final track-record polish |
+| **5B** | Runs integration (runs shaded on the stock trail) and the final track-record polish. **Built** (UI, Phase 5B parts 2a and 2b; DEVIATIONS #150 to #167): the Runs tab, the header panel, the `#/runs` Run library, the Learn case studies and the trail shading |
 
 Each of those phases' acceptance includes "the indicator is wired into the trail, and the trail tests are updated".
 
@@ -291,3 +291,9 @@ outputs described in 03 section 5.9c). DEVIATIONS #139 to #149 hold the departur
 ## Phase 5B part 2a as built (2026-11-15): the Stock page Runs tab and header panel
 
 Built: the Stock page's **Runs** tab (price with runs shaded, footprint pane with `delivBal60` and `delivValRatio60`, deal, results, corporate-action and quarter-end markers, the runs table with CSV, the footprint card for a clicked run, "This stock's pattern", the empty states) and the **header smart-money panel** (the 6-month tally, its tally-bucket "Historically" line, the evidence label, a link to `#/trail/:sym`). Pure logic in `site/src/lib/footprints.ts` (TS twin of `pipeline/footprints.py`, vectors in `footprintVectors.json`), `lib/runs.ts`, `lib/smartMoney.ts`, `charts/runs.ts`, `components/RunsTab.tsx` and `components/SmartMoneyPanel.tsx`. DEVIATIONS #150 to #156 hold the departures. **Not built here:** the `#/runs` library page, the Learn case studies, the trail shading on the stock trail (the next agent), and the early and full ordinary-day comparison (only pre is stored in `runSummary`, DEVIATIONS #150).
+
+## Phase 5B part 2b as built (2026-11-15): the Run library, Learn case studies and trail shading
+
+Built: the **`#/runs` Run library** (§7: filters in the URL, the runs table with CSV, "What came before big moves", "Does it raise the odds?" with the 20-day and 60-day switch, the caveats panel), the **Learn "Reading footprints"** section (a short guide and three case studies picked from `runs/library.json` by `lib/caseStudies.ts`, each with its footprint card), and the **run shading on the stock trail** (§6A row 5B, the Runs tab's bars through `charts/runs.ts`). The Runs tab accepts `?run=<start>`. DEVIATIONS #157 to #167 hold the departures, including the case-study rule (last year = run end within the year before the latest day; top 200 by market cap; the third pick is the largest UP run with pre-run delivery at least 2x normal) and the trimmed fixtures.
+
+Still open: the 120-day outcome in the long-horizon table is stored but not charted, and the long-horizon odds show "needs more history" until the store holds 2 years.

@@ -53,6 +53,48 @@ export function runIndexByRow(rows: readonly { date: string }[], runs: readonly 
   return out;
 }
 
+/**
+ * Bar data that shades each category covered by a run (07 section 7, 6A row 5B). `coverage[i]` is the run index for
+ * category i, or -1. Shared by the Stock Runs tab (daily rows) and the Trail stock chart (weeks). Bars run from the
+ * axis minimum to `yMax`, so the caller fixes the price axis to [min, yMax].
+ */
+export function runBarData(
+  coverage: readonly number[],
+  runs: readonly Pick<RunRec, 'dir'>[],
+  yMax: number,
+  dark: boolean,
+): ({ value: number; itemStyle: { color: string; opacity: number } } | null)[] {
+  return coverage.map((k) => {
+    if (k < 0) return null;
+    const dir = runs[k]!.dir;
+    return { value: yMax, itemStyle: { color: RUN_COLOR[dir][dark ? 'dark' : 'light'], opacity: 0.2 } };
+  });
+}
+
+/** Days after an ISO date (YYYY-MM-DD), in calendar days. */
+export function nextDay(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * The run covering each category, for categories given as inclusive date intervals [from, to]. A category is covered
+ * when the run's span overlaps its interval; later runs win on a shared day (as runIndexByRow does).
+ */
+export function runCoverage(
+  intervals: readonly (readonly [string, string])[],
+  runs: readonly Pick<RunRec, 'start' | 'end'>[],
+): number[] {
+  return intervals.map(([from, to]) => {
+    let k = -1;
+    runs.forEach((r, j) => {
+      if (r.start <= to && r.end >= from) k = j;
+    });
+    return k;
+  });
+}
+
 /** The selected run's window of each row (pre, early or full), or null. */
 export function selectedWindowByRow(
   rows: readonly { date: string }[],
@@ -88,12 +130,7 @@ export function runsChartOption(
   const sel = selected !== null ? (runs[selected] ?? null) : null;
   const selWin = selectedWindowByRow(rows, sel);
 
-  const runBars = rows.map((_, i) => {
-    const k = runOf[i]!;
-    if (k < 0) return null;
-    const dir = runs[k]!.dir;
-    return { value: yMax, itemStyle: { color: RUN_COLOR[dir][dark ? 'dark' : 'light'], opacity: 0.2 } };
-  });
+  const runBars = runBarData(runOf, runs, yMax, dark);
   const windowBars = rows.map((_, i) => {
     const w = selWin.window[i];
     if (!w) return null;

@@ -82,7 +82,8 @@ ats = tv * 1e7 / trades                                  # Rs per trade
 not_splits = json.loads((root / "config/settings.json").read_text(encoding="utf-8")).get("notSplits", [])
 ordr = raw.assign(_si=sj, _ti=ti).sort_values(["SYMBOL", "date"], kind="stable")
 fac_rows = metrics.price_adjustment(ordr["SYMBOL"].to_numpy(dtype=object), ordr["CLOSE_PRICE"].to_numpy(float),
-                                    ordr["date"].to_numpy(dtype=object), not_splits)
+                                    ordr["date"].to_numpy(dtype=object), not_splits,
+                                    demergers_adjust=True)  # a listed demerger is not a run (DEVIATIONS #168)
 adj_m = np.full((T, N), np.nan)
 adj_m[ordr["_ti"].to_numpy(), ordr["_si"].to_numpy()] = ordr["CLOSE_PRICE"].to_numpy(float) * fac_rows
 adj = pd.DataFrame(adj_m).ffill().to_numpy()

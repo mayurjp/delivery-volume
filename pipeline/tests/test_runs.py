@@ -108,11 +108,17 @@ def test_demerger_in_not_splits_is_not_adjusted():
     assert np.isclose(plain[99], 0.6)  # without the list the 3:5 ratio is taken as a split
     listed = [{"sym": "AAA", "date": days[100], "kind": "DEMERGER"}]
     kept = metrics.price_adjustment(sym, demerged, dt, listed)
-    assert np.isclose(kept[99], 1.0)  # with the list the price is not adjusted, and the fall is a real move
+    assert np.isclose(kept[99], 1.0)  # displayed prices and periods: the listed demerger is not adjusted (#71)
+    ratio = demerged[100] / demerged[99]
+    runs_basis = metrics.price_adjustment(sym, demerged, dt, listed, demergers_adjust=True)
+    assert np.isclose(runs_basis[99], ratio) and np.isclose(runs_basis[100], 1.0)  # runs: the observed ratio (#168)
+    # so the demerger does not create a run: the runs match those of the series without the drop
     g, _ = _grids(demerged, notsplits=listed)
+    g0, _ = _grids(closes)
     runs = R.detect_runs(g, R.run_cfg({"notSplits": listed}))
-    down = [r for r in runs.itertuples() if r.dir == "DOWN"]
-    assert down and min(r.move for r in down) < -40
+    runs0 = R.detect_runs(g0, R.run_cfg({}))
+    assert len(runs0) > 0  # the known path has runs, so the comparison below is not vacuous
+    assert [(r.dir, r.start, r.end) for r in runs.itertuples()] == [(r.dir, r.start, r.end) for r in runs0.itertuples()]
 
 
 def test_features_use_only_data_up_to_t():

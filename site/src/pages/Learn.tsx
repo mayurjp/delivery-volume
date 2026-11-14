@@ -1,3 +1,4 @@
+import FootprintLearn from '../components/FootprintLearn';
 import TrailLearn from '../components/TrailLearn';
 import { fmtDate } from '../lib/format';
 import { useApp } from '../lib/hooks';
@@ -179,6 +180,8 @@ export default function Learn() {
       </section>
 
       <TrailLearn />
+
+      <FootprintLearn />
 
       <section className="space-y-2">
         <h2 className="text-base font-semibold">Traps</h2>

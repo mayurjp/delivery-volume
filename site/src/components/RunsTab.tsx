@@ -36,6 +36,8 @@ interface Props {
   pal: Palette;
   mobile: boolean;
   dark: boolean;
+  /** `?run=<start>` from the URL (the Run library's row link): the run selected on open. */
+  initialRun?: string | null;
 }
 
 const WINDOW_NAME: Record<WindowId, string> = {
@@ -80,7 +82,7 @@ function PatternCard({ title, row, dir }: { title: string; row: SummaryRow | nul
   );
 }
 
-function FootprintCard({
+export function FootprintCard({
   run,
   index,
   summary,
@@ -189,11 +191,15 @@ function FootprintCard({
   );
 }
 
-export default function RunsTab({ sym, bucket, file, rows, pal, mobile, dark }: Props) {
+export default function RunsTab({ sym, bucket, file, rows, pal, mobile, dark, initialRun = null }: Props) {
   const runs = useMemo(() => parseRuns(file.runs), [file.runs]);
   const summary = useMemo(() => parseSummary(file.runSummary), [file.runSummary]);
   const medians = useRunFootprints();
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(() => {
+    if (initialRun === null) return null;
+    const k = runs.findIndex((r) => r.start === initialRun);
+    return k >= 0 ? k : null;
+  });
   const foot = useMemo(() => footprintSeries(rows), [rows]);
   const latest = useMemo(() => footprintIndicators(rows), [rows]);
   const state = runsState(runs.length, rows.length);
