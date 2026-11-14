@@ -290,8 +290,10 @@ export interface InsightCtx {
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 const round2 = (x: number): number => Math.round((x + Number.EPSILON) * 100) / 100;
 
-/** The number of indicators the trail computes (five since Phase 4: delivery x4 and named deals). */
-export const INDICATOR_COUNT = 5;
+/** The number of indicators the trail computes (seven since Phase 4B: delivery x4, named deals, holdings x2). */
+export const INDICATOR_COUNT = 7;
+/** A holdings rise is reported above this many pp over the last two quarters (config/signals.json holdInst.aboveA). */
+export const HOLD_RISE_PP = 0.5;
 
 function topSectors(syms: readonly string[], bySym: ReadonlyMap<string, UniverseRow>, k: number) {
   const c = new Map<string, number>();
@@ -418,12 +420,19 @@ export function buildInsights(
       numbers: { fii: handover.fiiDeals!, dii: handover.diiDeals! },
     });
   }
-  out.push({
-    id: 'slots',
-    syms: [],
-    text: 'Holdings and F&O footprints arrive in Phase 4B and 5; until then the trail reads delivery and named-deal footprints only.',
-    numbers: {},
-  });
+  // Holdings (Phase 4B): FII + DII holdings change over the last two quarters, as known on the as-of day
+  const withHold = withW.filter((x) => x.v.holdInstPp !== null);
+  const rose = withHold.filter((x) => x.v.holdInstPp! > HOLD_RISE_PP).map((x) => x.e.sym);
+  if (withHold.length > 0) {
+    const tops = topSectors(rose, bySym, 1);
+    const where = !ctx.sectorLabel && tops.length ? `; most are in ${tops[0]![0]} (${tops[0]![1]})` : '';
+    out.push({
+      id: 'holdings',
+      syms: rose,
+      text: `In the last two quarters, FII + DII holdings rose by more than ${HOLD_RISE_PP} pp in ${rose.length} ${scope} ${plural(rose.length, 'stock', 'stocks')} (of ${withHold.length} with two quarters filed)${where}.`,
+      numbers: { count: rose.length, of: withHold.length, ...(tops[0] ? { top1: tops[0][1] } : {}) },
+    });
+  }
   return out.slice(0, 10);
 }
 

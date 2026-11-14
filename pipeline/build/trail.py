@@ -18,13 +18,14 @@ LISTS = [("strongA", "Strongest accumulation trail"), ("strongD", "Strongest dis
          ("flipDA", "Flip, distribution to accumulation")]
 IND_LABELS = {"delivBal": "Delivery balance (up days vs down days)", "delivPctTrend": "Delivery % trend vs own baseline",
               "tradeSizeTrend": "Average trade size trend", "spikePersist": "Delivery spike persistence",
-              "dealsNet": "Named deals, FII + DII net (bulk and block)"}
-SLOTS = [{"id": "holdings", "label": "Holdings change (FII, DII, MF)", "arrives": "Phase 4B"},
-         {"id": "promoter", "label": "Promoter holdings change", "arrives": "Phase 4B"},
-         {"id": "fnoOi", "label": "F&O open interest with price", "arrives": "Phase 5"}]
+              "dealsNet": "Named deals, FII + DII net (bulk and block)",
+              "holdInst": "FII + DII holdings change, last two quarters",
+              "holdPromoter": "Promoter holdings change, last two quarters"}
+SLOTS = [{"id": "fnoOi", "label": "F&O open interest with price", "arrives": "Phase 5"}]
 CONFIG_KEYS = ["windows", "baselineDays", "minBaselineDays", "minWindowFraction", "delivBal", "delivPctTrendPp",
                "tradeSizeTrendPct", "spike", "weekDays", "weekMargin", "flipDays", "flipMinIndicators", "stripWeeks",
-               "listSize", "persistent", "dealsNet", "dealsFrom"]
+               "listSize", "persistent", "dealsNet", "dealsFrom", "flipMinIndicatorsFull", "fullIndicatorCount",
+               "holdInst", "holdPromoter"]
 LABEL = ("Evidence summary, not advice. You decide. Historical, one sample period, today's index membership "
          "(survivorship bias), before costs. Not a prediction.")
 
@@ -32,6 +33,12 @@ LABEL = ("Evidence summary, not advice. You decide. Historical, one sample perio
 def indicator_defs(cfg: dict) -> list[dict]:
     sp = cfg["spike"]
     rule = {
+        "holdInst": (f"A above +{cfg['holdInst']['aboveA']} pp, D below {cfg['holdInst']['belowD']} pp of FII + DII "
+                     "holdings over the last two quarters (a filing counts from its broadcast day); null when a base "
+                     "quarter is not filed"),
+        "holdPromoter": (f"A above +{cfg['holdPromoter']['aboveA']} pp, D below {cfg['holdPromoter']['belowD']} pp of "
+                         "promoter holdings over the last two quarters (promoter selling is D); null when a base "
+                         "quarter is not filed"),
         "delivBal": f"A above {cfg['delivBal']['aboveA']}, D below {cfg['delivBal']['belowD']}",
         "delivPctTrend": f"A above +{cfg['delivPctTrendPp']} pp, D below -{cfg['delivPctTrendPp']} pp",
         "tradeSizeTrend": f"A above +{cfg['tradeSizeTrendPct']}%, D below -{cfg['tradeSizeTrendPct']}%",
@@ -57,7 +64,7 @@ class TrailInputs:
     """Matrices for one build: cumulative sums, the close matrix and the symbol index."""
 
     def __init__(self, df: pd.DataFrame, days: list[str], syms: list[str], flows: pd.DataFrame | None = None,
-                 cfg: dict | None = None):
+                 cfg: dict | None = None, holdings: dict | None = None):
         self.days, self.syms = days, syms
         Td, S = len(days), len(syms)
         d = df[df["sym"].isin(set(syms))]
@@ -68,8 +75,13 @@ class TrailInputs:
         v = _round_inputs(d)
         el = T.eligible(d["series"].to_numpy(dtype=object), v["delivq"], v["vol"], v["trades"], d["flags"].to_numpy())
         dfii, ddii = _deal_matrices(flows, tix, pos, Td, S)
+        hc = hp = None
+        if holdings is not None:  # Phase 4B: {"filings": {sym: [filing rows]}, "quarters": [...]}
+            from ..holdings_trail import hold_matrices
+
+            hc, hp = hold_matrices(holdings["filings"], syms, days, holdings["quarters"], cfg or {})
         self.cs = T.build_cums(ti, sj, Td, S, v["close"], v["prev"], v["dval"], v["turn"], v["trades"], v["spike"], el,
-                               dfii, ddii)
+                               dfii, ddii, hc, hp)
         self.cs["_dealFrom"] = T.deal_from_index(days, cfg or {})
         close = np.full((Td, S), np.nan)
         prev = np.full((Td, S), np.nan)
@@ -209,11 +221,12 @@ def track_record(inp: TrailInputs, ind_w: dict, points: np.ndarray, uni_mask: np
 
 
 def write_trail(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, signals: dict, out: Path, pub_first: str,
-                n500_bit: int, flows: pd.DataFrame | None = None, deals_from: str | None = None) -> tuple[int, dict]:
+                n500_bit: int, flows: pd.DataFrame | None = None, deals_from: str | None = None,
+                holdings: dict | None = None) -> tuple[int, dict]:
     cfg = {**T.trail_cfg(signals), "dealsFrom": deals_from}
     ud = uni.set_index("sym")
     syms = sorted(set(df["sym"]) & set(ud.index))
-    inp = TrailInputs(df, days, syms, flows, cfg)
+    inp = TrailInputs(df, days, syms, flows, cfg, holdings)
     idx = ud.loc[syms, "idx"].to_numpy(dtype=np.int64)
     n500 = (idx >> n500_bit) & 1 == 1
     any_index = idx != 0

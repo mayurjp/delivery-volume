@@ -15,6 +15,8 @@ export const INDICATORS = [
   'tradeSizeTrend',
   'spikePersist',
   'dealsNet',
+  'holdInst',
+  'holdPromoter',
 ] as const;
 export type IndicatorId = (typeof INDICATORS)[number];
 export type Code = 'A' | 'D' | 'N' | '-';
@@ -39,6 +41,8 @@ export const WINDOW_COLS = [
   'flipSince',
   'dealsFii',
   'dealsDii',
+  'holdInstPp',
+  'holdPromoterPp',
 ] as const;
 
 export type WindowRec = [
@@ -58,6 +62,8 @@ export type WindowRec = [
   flipSince: string | null,
   dealsFii: number | null,
   dealsDii: number | null,
+  holdInstPp: number | null,
+  holdPromoterPp: number | null,
 ];
 
 export interface TrailCfg {
@@ -80,6 +86,28 @@ export interface TrailCfg {
   dealsNet: { aboveA: number; belowD: number };
   /** First day of the named-deal history (ISO); null means no history is configured (the indicator is missing). */
   dealsFrom: string | null;
+  /** Holdings (Phase 4B): change in pp over the last two quarters, A above aboveA, D below belowD. */
+  holdInst: { aboveA: number; belowD: number };
+  holdPromoter: { aboveA: number; belowD: number };
+  /** Flip threshold: flipMinIndicators below fullIndicatorCount indicators, flipMinIndicatorsFull from it on (07 6A). */
+  flipMinIndicatorsFull: number;
+  fullIndicatorCount: number;
+}
+
+/** One stored quarterly filing as the symbol file's holdings block carries it (grouped percentages, 2 dp). */
+export interface HoldingFiling {
+  quarter: string;
+  filedOn: string;
+  promoterPct: number | null;
+  fiiPct: number | null;
+  diiPct: number | null;
+  mfPct: number | null;
+}
+
+/** One stock's holdings for the trail: the store's quarter list and its filings (Phase 4B). */
+export interface HoldingsInput {
+  quarters: string[];
+  filings: HoldingFiling[];
 }
 
 /** Named deal flows of one stock on one day, Rs Crore, round trips excluded (symbols/{f}.json dealFlows). */
@@ -190,6 +218,8 @@ function buildCums(
 interface Ind {
   ok: boolean;
   codes: number[];
+  hInst: number | null;
+  hProm: number | null;
   fii: number | null;
   dii: number | null;
   bal: number | null;
@@ -203,7 +233,16 @@ interface Ind {
   dn: number | null;
 }
 
-function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg, dealFrom: number): Ind {
+type HoldSeries = { codes: number[][]; pp: (number | null)[][] };
+
+function indicators(
+  cs: Cums,
+  end: number,
+  n: number,
+  cfg: TrailCfg,
+  dealFrom: number,
+  hold: HoldSeries,
+): Ind {
   const lo = end + 1 - n;
   const full = lo >= 0;
   const loC = Math.max(lo, 0);
@@ -240,10 +279,14 @@ function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg, dealFrom: n
     lead(ts, cfg.tradeSizeTrendPct, -cfg.tradeSizeTrendPct),
     !okB ? MISSING : spikeA ? 1 : spikeD ? -1 : 0,
     dealCode,
+    hold.codes[end]![0]!,
+    hold.codes[end]![1]!,
   ];
   return {
     ok: okW,
     codes,
+    hInst: hold.pp[end]![0] ?? null,
+    hProm: hold.pp[end]![1] ?? null,
     fii: dealOk ? r(dfw, 2) : null,
     dii: dealOk ? r(ddw, 2) : null,
     bal,
@@ -256,6 +299,76 @@ function indicators(cs: Cums, end: number, n: number, cfg: TrailCfg, dealFrom: n
     up: okW ? up : null,
     dn: okW ? dn : null,
   };
+}
+
+/**
+ * A symbol file's holdings block (columns named as pipeline/build/columns.py HOLDINGS_COLS) as the trail's input. The
+ * quarter list is the store's (block.quarters); without it, the quarters the stock has filings for.
+ */
+export function holdingsOf(
+  block: { columns: string[]; rows: unknown[][]; quarters?: string[] } | undefined,
+): HoldingsInput | undefined {
+  if (!block) return undefined;
+  const at = (c: string) => block.columns.indexOf(c);
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const filings: HoldingFiling[] = block.rows.map((r) => ({
+    quarter: String(r[at('quarter')]),
+    filedOn: String(r[at('filedOn')] ?? ''),
+    promoterPct: num(r[at('promoterPct')]),
+    fiiPct: num(r[at('fiiPct')]),
+    diiPct: num(r[at('diiPct')]),
+    mfPct: num(r[at('mfPct')]),
+  }));
+  const quarters = block.quarters ?? [...new Set(filings.map((f) => f.quarter))].sort();
+  return { quarters, filings };
+}
+
+/** Holdings (Phase 4B), the twin of pipeline/holdings_trail.py: the change over the last two quarters known on `asof`. */
+function holdingChange(
+  filings: readonly HoldingFiling[],
+  asof: string,
+  quarters: readonly string[],
+  group: 'holdInst' | 'holdPromoter',
+): number | null {
+  const known = new Map<string, HoldingFiling>();
+  for (const f of filings) {
+    if (!f.filedOn || f.filedOn > asof) continue; // no lookahead: broadcast on or before the as-of day
+    known.set(f.quarter, f);
+  }
+  if (known.size === 0) return null;
+  const qs = [...quarters].sort();
+  const keys = [...known.keys()].sort();
+  const latest = keys[keys.length - 1]!;
+  const i = qs.indexOf(latest);
+  if (i < 2) return null;
+  const base = qs[i - 2]!;
+  if (!known.has(base)) return null;
+  const val = (f: HoldingFiling) =>
+    group === 'holdInst' ? (f.fiiPct ?? 0) + (f.diiPct ?? 0) : (f.promoterPct ?? 0);
+  return Math.round((val(known.get(latest)!) - val(known.get(base)!)) * 1e6) / 1e6;
+}
+
+/** Per day: the code (A, D, N or MISSING) and the change in pp, for holdInst and holdPromoter (in that order). */
+export function holdSeries(
+  h: HoldingsInput | undefined,
+  days: readonly string[],
+  cfg: TrailCfg,
+): { codes: number[][]; pp: (number | null)[][] } {
+  const codes: number[][] = [];
+  const pp: (number | null)[][] = [];
+  for (const d of days) {
+    const row: number[] = [];
+    const prow: (number | null)[] = [];
+    for (const g of ['holdInst', 'holdPromoter'] as const) {
+      const ch = h ? holdingChange(h.filings, d, h.quarters, g) : null;
+      const t = cfg[g];
+      row.push(ch === null ? MISSING : ch > t.aboveA ? 1 : ch < t.belowD ? -1 : 0);
+      prow.push(ch);
+    }
+    codes.push(row);
+    pp.push(prow);
+  }
+  return { codes, pp };
 }
 
 function overall(codes: readonly number[], margin: number): number {
@@ -299,10 +412,12 @@ export function trailForRows(
   cfg: TrailCfg,
   asOfIndex?: number,
   deals: DealsByDate = {},
+  holdings?: HoldingsInput,
 ): TrailResult {
   const a = asOfIndex ?? days.length - 1;
   const { cs, elig } = buildCums(rows, days, deals);
   const dealFrom = dealFromIndex(days, cfg);
+  const hold = holdSeries(holdings, days, cfg);
   const { wk, ends, keys } = weekIndex(days);
   const lastW = wk[a]!;
   const firstW = lastW - cfg.stripWeeks + 1;
@@ -316,7 +431,7 @@ export function trailForRows(
       continue;
     }
     const e = Math.min(ends[wi]!, a);
-    const ind = indicators(cs, e, cfg.weekDays, cfg, dealFrom);
+    const ind = indicators(cs, e, cfg.weekDays, cfg, dealFrom, hold);
     const ov = overall(ind.codes, cfg.weekMargin);
     stripCodes.push(ov);
     stripDates.push(days[e]!);
@@ -334,7 +449,7 @@ export function trailForRows(
   const windows = {} as Record<WindowName, WindowRec | null>;
   for (const name of WINDOWS) {
     const wc = cfg.windows[name];
-    const ind = indicators(cs, a, wc.days, cfg, dealFrom);
+    const ind = indicators(cs, a, wc.days, cfg, dealFrom, hold);
     if (!ind.ok) {
       windows[name] = null;
       continue;
@@ -345,11 +460,13 @@ export function trailForRows(
     const enough = defined >= Math.ceil(wc.weeks / 2);
     const consA = enough ? (weeksSlice.filter((c) => c === 1).length / defined) * 100 : null;
     const consD = enough ? (weeksSlice.filter((c) => c === -1).length / defined) * 100 : null;
-    const rt = tally(indicators(cs, a, cfg.flipDays, cfg, dealFrom).codes);
+    const rt = tally(indicators(cs, a, cfg.flipDays, cfg, dealFrom, hold).codes);
     const leansA = t.A >= 2 && t.A > t.D;
     const leansD = t.D >= 2 && t.D > t.A;
-    const flip =
-      leansA && rt.D >= cfg.flipMinIndicators ? 'A→D' : leansD && rt.A >= cfg.flipMinIndicators ? 'D→A' : '';
+    // 07 6A: flipMinIndicators while fewer than fullIndicatorCount indicators exist, flipMinIndicatorsFull from then on
+    const flipMin =
+      INDICATORS.length >= cfg.fullIndicatorCount ? cfg.flipMinIndicatorsFull : cfg.flipMinIndicators;
+    const flip = leansA && rt.D >= flipMin ? 'A→D' : leansD && rt.A >= flipMin ? 'D→A' : '';
     let since: string | null = null;
     if (flip) {
       const opp = flip === 'A→D' ? -1 : 1;
@@ -375,6 +492,8 @@ export function trailForRows(
       since,
       ind.fii,
       ind.dii,
+      r(ind.hInst, 2),
+      r(ind.hProm, 2),
     ];
   }
   return {
@@ -406,7 +525,10 @@ export interface WindowView {
   /** Named deals over the window, Rs Cr (null before the deal history). */
   dealsFii: number | null;
   dealsDii: number | null;
-  /** Tally of the five codes. */
+  /** Holdings changes over the last two quarters, pp (null when a base quarter is not known on the as-of day). */
+  holdInstPp: number | null;
+  holdPromoterPp: number | null;
+  /** Tally of the codes. */
   A: number;
   D: number;
   N: number;
@@ -433,6 +555,8 @@ export function windowView(rec: WindowRec): WindowView {
     flipSince: rec[13],
     dealsFii: rec[14],
     dealsDii: rec[15],
+    holdInstPp: rec[16],
+    holdPromoterPp: rec[17],
     A: count('A'),
     D: count('D'),
     N: count('N'),

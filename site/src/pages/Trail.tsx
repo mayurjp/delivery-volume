@@ -13,6 +13,7 @@ import { useDark } from '../lib/theme';
 import {
   INDICATORS,
   WINDOWS,
+  holdingsOf,
   trailForRows,
   windowView,
   type TrailCfg,
@@ -38,7 +39,7 @@ import {
   sectorRotation,
   type TrailEntry,
 } from '../lib/trailView';
-import type { Deal, TrailDoc, TrailPerfRow } from '../types/data';
+import type { Deal, SymbolFile, TrailDoc, TrailPerfRow } from '../types/data';
 
 const CODE_CLASS: Record<string, string> = {
   A: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900',
@@ -58,6 +59,18 @@ const IND_SHORT: Record<string, string> = {
   tradeSizeTrend: 'Trade size trend',
   spikePersist: 'Spike persistence',
   dealsNet: 'Named deals',
+  holdInst: 'FII + DII holdings',
+  holdPromoter: 'Promoter holdings',
+};
+/** The order of the seven codes in a window's `codes` string (trail/latest.json, 07 6A). */
+const CODE_ORDER =
+  'Codes in order: delivery balance, delivery % trend, trade size trend, spike persistence, named deals, FII + DII holdings, promoter holdings';
+const STATUS_CLASS: Record<string, string> = {
+  NEW: 'bg-blue-600 text-white dark:bg-blue-400 dark:text-slate-900',
+  UP: 'bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100',
+  DOWN: 'bg-orange-100 text-orange-900 dark:bg-orange-900/50 dark:text-orange-100',
+  EXITED: 'bg-orange-600 text-white dark:bg-orange-400 dark:text-slate-900',
+  SAME: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
 };
 
 function CodeChip({ code }: { code: string }) {
@@ -99,6 +112,123 @@ function EvidenceNote() {
       study, delivery concentrated on up days came <em>before</em> down-runs, so these conventional readings
       may not hold; see the historical lines beside each list.
     </p>
+  );
+}
+
+const numOf = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+/**
+ * Stock mode holdings (07 6A, Phase 4B): quarterly FII, DII, MF and promoter bars, the change chips of the latest quarter
+ * and the named holders above 1% with their NEW / UP / DOWN / EXITED status. Descriptive only.
+ */
+function HoldingsCard({ file }: { file: SymbolFile }) {
+  const h = file.holdings;
+  const rows = h.rows;
+  if (rows.length === 0) {
+    return (
+      <section aria-label="Shareholding" className="card p-3" data-testid="holdings-card">
+        <h2 className="text-sm font-semibold">Shareholding, quarterly filings</h2>
+        <Empty>No shareholding filings stored for this stock yet.</Empty>
+      </section>
+    );
+  }
+  const at = (c: string) => h.columns.indexOf(c);
+  const quarters = [...rows].sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+  const last = quarters[quarters.length - 1]!;
+  const lastQ = String(last[0]);
+  const chips = [
+    { label: 'FII', v: numOf(last[at('fiiChgPp')]) },
+    { label: 'DII', v: numOf(last[at('diiChgPp')]) },
+    { label: 'MF', v: numOf(last[at('mfChgPp')]) },
+    { label: 'Promoter', v: numOf(last[at('promoterChgPp')]) },
+  ].filter((c): c is { label: string; v: number } => c.v !== null);
+  const bars = [
+    { key: 'fiiPct', label: 'FII', cls: 'bg-teal-600 dark:bg-teal-400' },
+    { key: 'diiPct', label: 'DII', cls: 'bg-indigo-600 dark:bg-indigo-400' },
+    { key: 'mfPct', label: 'MF', cls: 'bg-violet-600 dark:bg-violet-400' },
+    { key: 'promoterPct', label: 'Promoter', cls: 'bg-slate-700 dark:bg-slate-300' },
+  ];
+  const named = file.namedHolders.rows
+    .filter((r) => String(r[0]) === lastQ)
+    .map((r) => ({
+      holder: String(r[3]),
+      category: String(r[1]),
+      pct: numOf(r[6]),
+      chg: r[8] === null || r[8] === undefined ? null : String(r[8]),
+    }))
+    .sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1))
+    .slice(0, 12);
+  return (
+    <section aria-label="Shareholding" className="card min-w-0 p-3" data-testid="holdings-card">
+      <h2 className="text-sm font-semibold">Shareholding, quarterly filings</h2>
+      <p className="mb-2 text-xs text-slate-600 dark:text-slate-300">
+        Percent of shares by group, for the last four stored quarters. Changes are against the previous stored
+        quarter.
+      </p>
+      <ul className="space-y-2" data-testid="holdings-bars">
+        {quarters.slice(-4).map((q) => (
+          <li key={String(q[0])} className="text-xs">
+            <div className="mb-0.5 font-semibold">{fmtDate(String(q[0]))}</div>
+            <div className="grid gap-0.5">
+              {bars.map((b) => {
+                const v = numOf(q[at(b.key)]);
+                return (
+                  <div key={b.key} className="flex items-center gap-2">
+                    <span className="w-16 shrink-0 text-slate-600 dark:text-slate-300">{b.label}</span>
+                    <span
+                      className="relative h-3 flex-1 rounded bg-slate-100 dark:bg-slate-800"
+                      role="img"
+                      aria-label={`${b.label} ${fmtNum(v, 2)}%`}
+                    >
+                      <span
+                        className={`absolute inset-y-0 left-0 rounded ${b.cls}`}
+                        style={{ width: `${Math.max(0, Math.min(100, v ?? 0))}%` }}
+                      />
+                    </span>
+                    <span className="num w-14 shrink-0 text-right">{fmtNum(v, 2)}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </li>
+        ))}
+      </ul>
+      {chips.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2 text-xs" data-testid="holdings-chips">
+          {chips.map((c) => (
+            <span key={c.label} className="chip">
+              {c.label} {fmtPp(c.v, 1)}
+            </span>
+          ))}
+          <span className="self-center text-slate-500">change in {fmtDate(lastQ)} filing</span>
+        </div>
+      )}
+      <h3 className="mt-3 text-xs font-semibold">Named holders above 1%, {fmtDate(lastQ)}</h3>
+      {named.length === 0 ? (
+        <p className="text-xs text-slate-500">No named holder above 1% in this filing.</p>
+      ) : (
+        <ul
+          className="mt-1 divide-y divide-slate-100 text-xs dark:divide-slate-800"
+          data-testid="named-holders"
+        >
+          {named.map((n) => (
+            <li key={n.holder} className="flex items-center justify-between gap-2 py-1">
+              <span className="min-w-0 truncate">
+                {n.holder} <span className="text-slate-500">({n.category})</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="num">{fmtNum(n.pct, 2)}%</span>
+                {n.chg && (
+                  <span className={`rounded px-1.5 py-0.5 font-semibold ${STATUS_CLASS[n.chg] ?? ''}`}>
+                    {n.chg}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -192,6 +322,9 @@ function ListTable({
                 <th className="py-1 text-left font-medium">Stock</th>
                 <th className="text-left font-medium">Trail, 52 weeks</th>
                 <th className="font-medium">A / D / N</th>
+                <th className="font-medium" title={CODE_ORDER}>
+                  Codes
+                </th>
                 <th className="font-medium">{lean === 'D' ? 'D weeks' : 'A weeks'}</th>
                 <th className="font-medium">Balance</th>
                 <th className="font-medium">Deliv % trend</th>
@@ -218,6 +351,9 @@ function ListTable({
                     </td>
                     <td>
                       {v.A} / {v.D} / {v.N}
+                    </td>
+                    <td className="font-mono text-xs" title={CODE_ORDER} data-testid="window-codes">
+                      {v.codes}
                     </td>
                     <td>{lean === 'D' ? fmtPct(v.consD, 0) : fmtPct(v.consA, 0)}</td>
                     {valueCells(v)}
@@ -547,7 +683,7 @@ function TrailMarket() {
           />
 
           <section aria-label="Indicators" className="card min-w-0 p-3" data-testid="indicator-rows">
-            <h2 className="text-sm font-semibold">The four delivery footprints, {WINDOW_LABEL[win]}</h2>
+            <h2 className="text-sm font-semibold">The footprints, {WINDOW_LABEL[win]}</h2>
             <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
               {data.indicators.map((ind, j) => {
                 const counts = { A: 0, D: 0, N: 0 };
@@ -580,8 +716,7 @@ function TrailMarket() {
             <h2 className="text-sm font-semibold">Sector rotation, {WINDOW_LABEL[win]}</h2>
             <p className="mb-1 text-xs text-slate-600 dark:text-slate-300">
               Bars: the share of a sector&apos;s stocks leaning A minus the share leaning D. Grid: the same
-              measure for each week. Named FII vs DII deal flows and the holdings shift arrive in Phase 4 and
-              4B.
+              measure for each week.
             </p>
             {rot.length === 0 ? (
               <Empty>No sector has a computable trail in this selection.</Empty>
@@ -742,6 +877,7 @@ function TrailStock({ sym }: { sym: string }) {
             cfg,
             undefined,
             dealsByDate(data.data.file.dealFlows),
+            holdingsOf(data.data.file.holdings),
           )
         : null,
     [data.data, cfg, meta.tradingDays],
@@ -818,7 +954,7 @@ function TrailStock({ sym }: { sym: string }) {
           </section>
 
           <section aria-label="Footprints" className="card min-w-0 p-3" data-testid="stock-indicators">
-            <h2 className="text-sm font-semibold">The four delivery footprints</h2>
+            <h2 className="text-sm font-semibold">The footprints</h2>
             {!view ? (
               <p className="py-3 text-sm text-slate-500">Not enough history for this window yet.</p>
             ) : (
@@ -832,7 +968,13 @@ function TrailStock({ sym }: { sym: string }) {
                         ? fmtPp(view.delivPctTrend, 1)
                         : id === 'tradeSizeTrend'
                           ? fmtPctChg(view.tradeSizeTrend, 1)
-                          : `${view.spikeDays ?? '—'} spike days (${view.spikeUp ?? 0} up, ${view.spikeDn ?? 0} down)`;
+                          : id === 'holdInst'
+                            ? `${fmtPp(view.holdInstPp, 1)} over two quarters`
+                            : id === 'holdPromoter'
+                              ? `${fmtPp(view.holdPromoterPp, 1)} over two quarters`
+                              : id === 'dealsNet'
+                                ? `FII ${fmtCr(view.dealsFii)}, DII ${fmtCr(view.dealsDii)}`
+                                : `${view.spikeDays ?? '—'} spike days (${view.spikeUp ?? 0} up, ${view.spikeDn ?? 0} down)`;
                   const secV =
                     id === 'delivBal' && sector?.medianBal != null
                       ? `sector median ${fmtRatio(sector.medianBal, 2)}`
@@ -911,10 +1053,11 @@ function TrailStock({ sym }: { sym: string }) {
             )}
           </section>
 
+          {data.data && <HoldingsCard file={data.data.file} />}
           <section aria-label="Weekly timeline" className="card min-w-0 p-3" data-testid="timeline">
             <h2 className="mb-1 text-sm font-semibold">Weekly timeline</h2>
             <div className="max-h-[480px] overflow-auto">
-              <table className="num w-full min-w-[560px] text-sm">
+              <table className="num w-full min-w-[760px] text-sm">
                 <thead className="sticky top-0 bg-white text-xs text-slate-500 dark:bg-slate-900">
                   <tr className="text-right">
                     <th className="py-1 text-left font-medium">Week ending</th>

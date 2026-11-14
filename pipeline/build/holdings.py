@@ -125,6 +125,8 @@ class HoldingsBuild:
     complete: dict[str, bool] = field(default_factory=dict)
     promoter_names: list[str] = field(default_factory=list)
     entities: dict[str, tuple[str, str, str]] = field(default_factory=dict)  # entityId -> (name, type, category)
+    # sym -> the stored filings as holdings_trail reads them (quarter, filedOn, grouped %), for the trail (Phase 4B)
+    filings: dict[str, list[dict]] = field(default_factory=dict)
 
 
 def build_holdings(out: Path, uni_rows: list[dict], asof: date, root: Path | None = None,
@@ -213,8 +215,11 @@ def build_holdings(out: Path, uni_rows: list[dict], asof: date, root: Path | Non
         stock_rows = [[q] + next(r for r in qdocs[q] if r[0] == sym)[1:] for q in qs]
         latest_q = qs[-1]
         named = [[latest_q] + r[1:] for r in holder_rows[latest_q] if r[0] == sym]
+        result.filings[sym] = [{"quarter": r[0], "filedOn": r[1], "promoterPct": r[2], "fiiPct": r[3], "diiPct": r[4],
+                                "mfPct": r[5]} for r in stock_rows]
         result.by_sym[sym] = {
-            "holdings": {"columns": C.HOLDINGS_COLS, "rows": stock_rows},
+            # quarters: the store's quarter list, which the trail's base-quarter rule walks (holdings_trail)
+            "holdings": {"columns": C.HOLDINGS_COLS, "rows": stock_rows, "quarters": quarters},
             "namedHolders": {"columns": C.NAMED_HOLDER_COLS, "rows": named},
         }
     # disclosed holdings per entity: stocks where the entity is a named holder in the latest quarter

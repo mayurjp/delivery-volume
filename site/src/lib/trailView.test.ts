@@ -3,7 +3,9 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { TrailDoc, TrailPerfDoc, TrailPerfRow, UniverseRow } from '../types/data';
 import { rowsToObjects } from './dataClient';
+import { holdSeries, holdingsOf, type TrailCfg } from './trail';
 import {
+  HOLD_RISE_PP,
   buildInsights,
   filterEntries,
   historyLine,
@@ -203,12 +205,65 @@ describe('named deals in the trail views', () => {
     expect(ins!.numbers.dii).toBe(want.diiDeals);
   });
 
-  it('the list insights count indicators out of the five the trail computes', () => {
+  it('the list insights count indicators out of the seven the trail computes', () => {
     const texts = buildInsights(entries, bySym, ctx)
       .map((i) => i.text)
       .join(' ');
-    expect(texts).toContain('of 5');
-    expect(texts).not.toContain('of 4 ');
-    expect(texts).toContain('Holdings and F&O footprints arrive in Phase 4B and 5');
+    expect(texts).toContain('of 7');
+    expect(texts).not.toContain('of 5 ');
+    expect(texts).not.toContain('Phase 4B');
+  });
+});
+
+// ---- holdings in the trail views (Phase 4B) ---------------------------------------------------------------------------
+
+describe('holdings in the trail views', () => {
+  const win = '6M' as const;
+  const ctx = { win, universeLabel: 'Nifty 500', sectorLabel: null, perf, minN: 30 };
+  const cfg = doc.config as unknown as TrailCfg;
+
+  it('the holdings insight counts the stocks whose FII + DII holdings rose by more than 0.5 pp, as the window records say', () => {
+    const withHold = entries.filter((e) => e.w[win] && e.w[win]!.holdInstPp !== null);
+    const rose = withHold.filter((e) => e.w[win]!.holdInstPp! > HOLD_RISE_PP);
+    const ins = buildInsights(entries, bySym, ctx).find((i) => i.id === 'holdings');
+    if (withHold.length === 0) {
+      expect(ins).toBeUndefined();
+      return;
+    }
+    expect(ins).toBeDefined();
+    expect(ins!.numbers).toMatchObject({ count: rose.length, of: withHold.length });
+    expect(ins!.syms).toEqual(rose.map((e) => e.sym));
+    expect(ins!.text).toContain(
+      `rose by more than 0.5 pp in ${rose.length} Nifty 500 ${rose.length === 1 ? 'stock' : 'stocks'} (of ${withHold.length}`,
+    );
+  });
+
+  it('the holdings history line quotes the holdings indicator row, and says too few dates while the history is short', () => {
+    const line = historyLine(perf, 'indicator', 'holdInst:A', win);
+    expect(line.startsWith('Historically:')).toBe(true);
+    const fewDates = perf.map((r) => ({ ...r, n: 500, dates: 3 }));
+    expect(historyLine(fewDates, 'indicator', 'holdInst:A', win)).toContain('too few dates (3 month-ends)');
+  });
+
+  it('a stock with no holdings stored has every holdings code missing and no change', () => {
+    const days = ['2025-07-01', '2025-07-02'];
+    const none = holdSeries(holdingsOf(undefined), days, cfg);
+    expect(none.codes).toEqual([
+      [9, 9],
+      [9, 9],
+    ]);
+    expect(none.pp).toEqual([
+      [null, null],
+      [null, null],
+    ]);
+    const empty = holdingsOf({
+      columns: ['quarter', 'filedOn', 'promoterPct', 'fiiPct', 'diiPct', 'mfPct'],
+      rows: [],
+    });
+    expect(empty).toEqual({ quarters: [], filings: [] });
+    expect(holdSeries(empty, days, cfg).codes).toEqual([
+      [9, 9],
+      [9, 9],
+    ]);
   });
 });

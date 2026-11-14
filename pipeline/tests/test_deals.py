@@ -211,7 +211,7 @@ def test_deals_net_thresholds_and_missing_before_coverage():
         deals = {d: (amount / 63, 0.0) for d in days[-63:]}
         rec = T.trail_for_rows(rows, days, cfg, deals=deals)["windows"]["3M"]
         assert rec is not None and rec[0][4] == want, (amount, rec[0])
-        assert rec[-2] == pytest.approx(amount, abs=0.05)  # dealsFii cell
+        assert rec[T.WINDOW_COLS.index("dealsFii")] == pytest.approx(amount, abs=0.05)
     # no deal history configured: missing, never neutral
     rec = T.trail_for_rows(rows, days, {**cfg, "dealsFrom": None}, deals={})["windows"]["3M"]
     assert rec[0][4] == "-"

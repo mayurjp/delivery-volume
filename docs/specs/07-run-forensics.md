@@ -151,7 +151,7 @@ Controls: window (3M / 6M / 1Y), universe (default **Nifty 500**, with the liqui
 |-------|---------------------|
 | **3C** (new, right after 3B) | Trail **v1 with the delivery footprints only**: delivery balance, delivery % trend, trade size, spike persistence. Includes the market and stock modes, as-of snapshots, insights and the track record. Slots for the other indicators show "arrives in Phase 4 / 4B / 5". |
 | **4** | Named deals indicator, and the FII-vs-DII sector flows |
-| **4B** | Holdings indicators and named holders |
+| **4B** (wired, part 2) | Holdings indicators (`holdInst`, `holdPromoter`) and named holders: wired into the trail (DEVIATIONS #100 to #108). The stock-page Ownership section, the Institutions Holdings tab and the Screener columns are still to build |
 | **5** | The F&O indicator |
 | **5B** | Runs integration (runs shaded on the stock trail) and the final track-record polish |
 
@@ -270,3 +270,11 @@ Each of those phases' acceptance includes "the indicator is wired into the trail
 - **Sector rotation** gains the FII and DII deal flows. **Insights:** one deals template, "Via deals, FIIs net sold ₹X Cr in <sector> while DIIs bought ₹Y Cr over <window>", tested against the sector row (DEVIATIONS #81).
 - **Stock mode:** the named-deals card lists the window's deals with entities and the chip text (DEVIATIONS #82).
 - **Coverage:** the indicator is coded only inside the deal history (from 2025-11-03). The history before 2026-11-14 is incomplete on busy days (DEVIATIONS #87), so the track record for dealsNet is labelled with that limit.
+
+## Phase 4B as built, trail wiring (2026-11-14)
+
+- **Staged delivery, row 4B is wired:** `holdInst` and `holdPromoter` are the sixth and seventh indicators, after dealsNet. The window records carry `holdInstPp` and `holdPromoterPp`. The flip minimum is 3 (7 indicators). The insight and the track record include both.
+- **Thresholds:** `config/signals.json → smartMoney.holdInst` and `holdPromoter` (`aboveA` +0.5 pp, `belowD` −0.5 pp).
+- **Holdings are coded only from the filings broadcast on or before the day** (no lookahead), with the base two quarters earlier in the store's quarter list.
+- **Stock mode:** holdings bars for the last four quarters, the change chips of the latest quarter, and the named holders above 1% with their status. A stock with no holdings stored says so.
+

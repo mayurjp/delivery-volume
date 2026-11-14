@@ -158,6 +158,10 @@ export interface SymbolFile {
   corpActions: CorpAction[];
   /** Per date and category (FII, DII, Other), round trips excluded (03 5.5). */
   dealFlows: { columns: string[]; rows: unknown[][] };
+  /** Quarterly holdings (03 5.10): one row per stored quarter; `quarters` is the store's quarter list (07 6A). */
+  holdings: { columns: string[]; rows: unknown[][]; quarters?: string[] };
+  /** Named holders above 1% in the latest quarter, with NEW / UP / DOWN / SAME / EXITED status. */
+  namedHolders: { columns: string[]; rows: unknown[][] };
 }
 
 /** One timeframe block of market.json (weekly / monthly / quarterly): the same groups and fields as the daily block, per period. */

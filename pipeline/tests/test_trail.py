@@ -49,7 +49,7 @@ def window_codes(rows, w="3M"):
 
 def test_codes_on_a_synthetic_series():
     rec = window_codes(synth(DAYS))
-    assert rec[0] == "NNNN-" and 0.9 < rec[1] < 1.1  # balanced: neutral; no deal history: dealsNet missing
+    assert rec[0] == "NNNN---" and 0.9 < rec[1] < 1.1  # balanced: neutral; no deal history and no holdings: missing
     rec = window_codes(synth(DAYS, up_dv=lambda i: 3.0 if last_window(i) else 1.0))
     assert rec[0][0] == "A" and rec[1] > 1.2
     rec = window_codes(synth(DAYS, dn_dv=lambda i: 3.0 if last_window(i) else 1.0))
@@ -79,7 +79,7 @@ def test_spike_persistence_rules():
 
 def test_not_enough_history_is_missing_not_neutral():
     rec = T.trail_for_rows(synth(DAYS[:150]), DAYS[:150], CFG)["windows"]["3M"]
-    assert rec is not None and rec[0][1:] == "----"  # baseline short of 120 days; no deal history configured
+    assert rec is not None and rec[0][1:] == "------"  # baseline short of 120 days; no deal history or holdings
     assert T.trail_for_rows(synth(DAYS[:40]), DAYS[:40], CFG)["windows"]["3M"] is None
 
 
@@ -115,12 +115,31 @@ def _split(fu, fd, ft, lu, ld, lt):
 
 
 def test_flip_a_to_d_and_d_to_a_and_since():
+    # 7 indicators: a flip needs 3 opposite codes in the last 30 days. The split series gives 2 (named deals, delivery);
+    # a promoter fall of 2 pp (holdPromoter D, filed 2025-07-20, inside the 30 days) is the third, so the flip shows.
     rec = window_codes(_split(8, 1, 0.5, 1, 3, 4))
+    assert rec[0][0] == "A" and rec[12] is None, rec  # two opposite codes only: no flip
+    rec = window_codes_held(_split(8, 1, 0.5, 1, 3, 4), _promoter(60.0, 58.0))
     assert rec[0][0] == "A" and rec[12] == "A→D", rec
     assert rec[13] is not None and DAYS[N - 40] <= rec[13] <= DAYS[-1]  # since: the first week of the opposite run
-    rec = window_codes(_split(1, 8, 10, 3, 1, 0.5))
+    rec = window_codes_held(_split(1, 8, 10, 3, 1, 0.5), _promoter(50.0, 52.0))
     assert rec[0][0] == "D" and rec[12] == "D→A", rec
     assert window_codes(synth(DAYS, up_dv=lambda i: 3.0 if last_window(i) else 1.0))[12] is None  # no change of lean
+
+
+HOLD_QS = ["2024-12-31", "2025-03-31", "2025-06-30", "2025-09-30"]
+
+
+def _promoter(dec: float, jun: float) -> dict:
+    """Holdings with a promoter change from Dec-24 (filed Jan-25) to Jun-25 (filed 2025-07-20)."""
+    return {"quarters": HOLD_QS, "filings": [
+        {"quarter": "2024-12-31", "filedOn": "2025-01-20", "promoterPct": dec, "fiiPct": 10.0, "diiPct": 20.0, "mfPct": 0.0},
+        {"quarter": "2025-03-31", "filedOn": "2025-04-22", "promoterPct": dec, "fiiPct": 10.0, "diiPct": 20.0, "mfPct": 0.0},
+        {"quarter": "2025-06-30", "filedOn": "2025-07-20", "promoterPct": jun, "fiiPct": 10.0, "diiPct": 20.0, "mfPct": 0.0}]}
+
+
+def window_codes_held(rows, holdings, w="3M"):
+    return T.trail_for_rows(rows, DAYS, CFG, holdings=holdings)["windows"][w]
 
 
 def test_consistency_is_the_share_of_weeks_coded():
@@ -239,23 +258,47 @@ def build_trail_vectors() -> dict:
         "CCC": {d: [0.05, 0.0] for d in days[-200:]},  # tiny: N
         "DDD": {},  # covered, no deals: N
     }
+    # holdings (Phase 4B): AAA's June filing is broadcast on 2025-07-20, after the as-of day (2025-06-20), so the as-of
+    # holdInst is missing (no lookahead) and the latest is +2 pp (FII + DII 32 against 30). BBB: promoter 60 -> 58 (D)
+    # and FII + DII 30 -> 32 (A), so the window ties on A and D and the 3M flip shows once a third D (deals) is present.
+    holdings = {
+        "AAA": {"quarters": HOLD_Q, "filings": [
+            _hf("2024-12-31", "2025-01-20", 50.0, 10.0, 20.0), _hf("2025-03-31", "2025-04-22", 50.0, 10.0, 20.0),
+            _hf("2025-06-30", "2025-07-20", 50.0, 11.0, 21.0)]},
+        "BBB": {"quarters": HOLD_Q, "filings": [
+            _hf("2024-12-31", "2025-01-25", 60.0, 10.0, 20.0), _hf("2025-03-31", "2025-04-25", 60.0, 10.0, 20.0),
+            _hf("2025-06-30", "2025-07-25", 58.0, 11.0, 21.0)]},
+    }
     expected = {}
     for sym, rows in stocks.items():
         dl = {d: (v[0], v[1]) for d, v in deals[sym].items()}
-        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg, deals=dl),
-                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61, deals=dl)}
+        h = holdings.get(sym)
+        expected[sym] = {"latest": T.trail_for_rows(rows, days, cfg, deals=dl, holdings=h),
+                         "asOf": T.trail_for_rows(rows, days, cfg, a=n - 61, deals=dl, holdings=h)}
     return {"cfg": cfg, "tradingDays": days, "asOfIndex": n - 61, "stocks": stocks, "deals": deals,
-            "expected": json.loads(json.dumps(expected))}
+            "holdings": holdings, "expected": json.loads(json.dumps(expected))}
+
+
+HOLD_Q = ["2024-12-31", "2025-03-31", "2025-06-30", "2025-09-30"]
+
+
+def _hf(q: str, filed: str, promoter: float, fii: float, dii: float) -> dict:
+    """A holdings row as the symbol file stores it (grouped percentages, 2 dp)."""
+    return {"quarter": q, "filedOn": filed, "promoterPct": promoter, "fiiPct": fii, "diiPct": dii, "mfPct": 0.0}
 
 
 def test_trail_vectors_cover_the_cases_and_file_is_current():
     vec = build_trail_vectors()
     e = vec["expected"]
     assert e["AAA"]["latest"]["windows"]["6M"][0][0] == "A" and e["BBB"]["latest"]["windows"]["3M"][12] == "A→D"
-    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---N"
+    assert e["CCC"]["latest"]["windows"]["3M"][0][3] == "D" and e["DDD"]["latest"]["windows"]["1Y"][0][1:] == "---N--"
     assert e["AAA"]["latest"]["windows"]["3M"][0][4] == "A" and e["BBB"]["latest"]["windows"]["3M"][0][4] == "D"
     assert e["AAA"]["asOf"]["windows"]["1Y"][0][4] == "-"  # the as-of 1Y window starts before the deal history
     assert e["AAA"]["asOf"]["asOf"] == vec["tradingDays"][vec["asOfIndex"]]
+    # holdings: 7 codes; latest holdInst A (+2 pp) for AAA; as-of missing (filing broadcast after the as-of day)
+    assert e["AAA"]["latest"]["windows"]["6M"][0][5] == "A" and e["AAA"]["asOf"]["windows"]["6M"][0][5] == "-"
+    assert e["BBB"]["latest"]["windows"]["6M"][0][6] == "D" and e["BBB"]["latest"]["windows"]["6M"][0][5] == "A"
+    assert e["CCC"]["latest"]["windows"]["6M"][0][5:] == "--"
     text = json.dumps(vec, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
     if not TRAIL_VECTORS.exists() or TRAIL_VECTORS.read_text(encoding="utf-8") != text:
         TRAIL_VECTORS.write_text(text, encoding="utf-8", newline="\n")  # regenerate; commit the new file

@@ -19,7 +19,8 @@ import numpy as np
 
 from . import metrics
 
-INDICATORS = ["delivBal", "delivPctTrend", "tradeSizeTrend", "spikePersist", "dealsNet"]  # dealsNet: Phase 4 (07 6A)
+INDICATORS = ["delivBal", "delivPctTrend", "tradeSizeTrend", "spikePersist", "dealsNet", "holdInst", "holdPromoter"]
+# dealsNet: Phase 4; holdInst, holdPromoter: Phase 4B (07 6A). Order is the codes order in every record and vector.
 FLAG_LOWLIQ, FLAG_ETF, FLAG_NEWLISTING = 256, 512, 1024
 EXCLUDED = FLAG_LOWLIQ | FLAG_ETF | FLAG_NEWLISTING
 MISSING = 9  # code value of "not enough history"
@@ -35,10 +36,11 @@ DEFAULT_CFG = {
     "fullIndicatorCount": 6, "persistent": 0.6, "stripWeeks": 52, "listSize": 25,
     "forwardHorizons": [60, 120], "minN": 30, "trackUniverse": "NIFTY500",
     "dealsNet": {"aboveA": 10, "belowD": -10}, "dealsFrom": None,
+    "holdInst": {"aboveA": 0.5, "belowD": -0.5}, "holdPromoter": {"aboveA": 0.5, "belowD": -0.5},
 }
 # per-window record: the order of the cells in trail/latest.json rows
 WINDOW_COLS = ["codes", "delivBal", "delivPctTrend", "tradeSizeTrend", "spikeDays", "spikeUp", "spikeDn", "baseSpikeRate",
-               "upCr", "dnCr", "consA", "consD", "flip", "flipSince", "dealsFii", "dealsDii"]
+               "upCr", "dnCr", "consA", "consD", "flip", "flipSince", "dealsFii", "dealsDii", "holdInstPp", "holdPromoterPp"]
 
 
 def trail_cfg(signals: dict | None = None) -> dict:
@@ -57,7 +59,8 @@ def eligible(series, delivq, vol, trades, flags) -> np.ndarray:
 
 
 def build_cums(ti: np.ndarray, sj: np.ndarray, T: int, S: int, close, prev, dval, turn, trades, spike, elig,
-               deal_fii: np.ndarray | None = None, deal_dii: np.ndarray | None = None) -> dict:
+               deal_fii: np.ndarray | None = None, deal_dii: np.ndarray | None = None,
+               hold_codes: np.ndarray | None = None, hold_pp: np.ndarray | None = None) -> dict:
     """Cumulative matrices (T+1, S) of the eligible-day quantities. Row i = days 0..i-1, so a window (a, b] is C[b+1] - C[a+1].
     `deal_fii` / `deal_dii` (T, S) are the daily named-deal net values (Rs Cr, round trips excluded, not eligibility-gated);
     they are summed as DF / DD, zeros when absent."""
@@ -84,6 +87,9 @@ def build_cums(ti: np.ndarray, sj: np.ndarray, T: int, S: int, close, prev, dval
     el = np.zeros((T, S), dtype=bool)
     el[ti, sj] = e
     out["_elig"] = el
+    # holdings (Phase 4B): (T, S, 2) codes and pp, MISSING / NaN when no filing is known on the day (holdings_trail)
+    out["_hold"] = np.full((T, S, 2), MISSING, dtype=np.int8) if hold_codes is None else hold_codes
+    out["_holdPp"] = np.full((T, S, 2), np.nan) if hold_pp is None else hold_pp
     return out
 
 
@@ -119,6 +125,9 @@ def indicators(cs: dict, end, n: int, cfg: dict) -> dict:
     net = np.round(dfw + ddw, 2)
     dl = cfg["dealsNet"]
     c_deal = np.where(~deal_ok, MISSING, np.where(net > dl["aboveA"], 1, np.where(net < dl["belowD"], -1, 0)))
+    # holdings (Phase 4B): the as-of day's code and change, known filings only (no lookahead; holdings_trail)
+    hc = cs["_hold"][end]
+    hp = cs["_holdPp"][end]
     nan = np.nan
     with np.errstate(invalid="ignore", divide="ignore"):
         bal = np.where(ok_w & (dn > 0), up / dn, nan)
@@ -140,13 +149,14 @@ def indicators(cs: dict, end, n: int, cfg: dict) -> dict:
     thr = cfg["tradeSizeTrendPct"]
     c_ts = np.where(np.isnan(tst), MISSING, np.where(tst > thr, 1, np.where(tst < -thr, -1, 0)))
     c_sp = np.where(~ok_b, MISSING, np.where(spike_a, 1, np.where(spike_d, -1, 0)))
-    codes = np.stack([c_bal, c_dp, c_ts, c_sp, c_deal], axis=-1).astype(np.int8)
+    codes = np.stack([c_bal, c_dp, c_ts, c_sp, c_deal, hc[..., 0], hc[..., 1]], axis=-1).astype(np.int8)
     with np.errstate(invalid="ignore", divide="ignore"):
         brate = np.where(ok_b, spb / np.where(nb > 0, nb, 1) * 100, nan)
     return {"codes": codes, "bal": bal, "dp": dpt, "ts": tst, "fii": np.where(deal_ok, dfw, nan),
             "dii": np.where(deal_ok, ddw, nan), "spn": np.where(ok_w, spw, nan),
             "spu": np.where(ok_w, spu, nan), "spd": np.where(ok_w, spd, nan), "brate": brate,
-            "up": np.where(ok_w, up, nan), "dn": np.where(ok_w, dn, nan), "ok": ok_w}
+            "up": np.where(ok_w, up, nan), "dn": np.where(ok_w, dn, nan), "ok": ok_w,
+            "hInst": hp[..., 0], "hProm": hp[..., 1]}
 
 
 def overall(codes: np.ndarray, margin: int) -> np.ndarray:
@@ -212,8 +222,11 @@ def strip_codes(ind_w: dict, points: np.ndarray, days: list[str], a: int, cfg: d
 
 # ---- window metrics -------------------------------------------------------------------------------------------------
 
-def _flip_min(cfg: dict) -> int:
-    return cfg["flipMinIndicators"]  # 2 while fewer than 6 indicators exist (v1 has 4); then flipMinIndicatorsFull
+def _flip_min(cfg: dict, n_indicators: int = len(INDICATORS)) -> int:
+    """07 6A: 2 while fewer than 6 indicators exist, 3 from 6 on (holdings_trail.flip_min)."""
+    from .holdings_trail import flip_min
+
+    return flip_min(n_indicators, cfg)
 
 
 def window_metrics(cs: dict, a: int, strip: np.ndarray, strip_dates: list, wname: str, cfg: dict) -> dict:
@@ -260,7 +273,7 @@ def window_record(m: dict, i: int):
             None if math.isnan(m["consA"][i]) else int(round(m["consA"][i])),
             None if math.isnan(m["consD"][i]) else int(round(m["consD"][i])),
             str(m["flip"][i]) or None, m["since"][i] or None,
-            _r(ind["fii"][i], 2), _r(ind["dii"][i], 2)]
+            _r(ind["fii"][i], 2), _r(ind["dii"][i], 2), _r(ind["hInst"][i], 2), _r(ind["hProm"][i], 2)]
 
 
 def snapshot(cs: dict, days: list[str], a: int, ind_w: dict, points: np.ndarray, cfg: dict, syms: list[str],
@@ -290,9 +303,14 @@ def deal_from_index(days: list[str], cfg: dict) -> int:
     return next((i for i, d in enumerate(days) if d >= start), len(days))
 
 
-def stock_arrays(rows: list[dict], days: list[str], deals: dict | None = None, cfg: dict | None = None) -> tuple[dict, int]:
+def stock_arrays(rows: list[dict], days: list[str], deals: dict | None = None, cfg: dict | None = None,
+                 holdings: dict | None = None) -> tuple[dict, int]:
     """(cums, S=1) for one stock's symbol-file rows over the market calendar `days`. `deals` maps a date to
-    (FII net, DII net) in Rs Cr (round trips excluded), as published in the symbol file's dealFlows."""
+    (FII net, DII net) in Rs Cr (round trips excluded), as published in the symbol file's dealFlows. `holdings` is
+    {"quarters": [...], "filings": [...]} from the symbol file's holdings block (Phase 4B), or None."""
+    from .holdings_trail import hold_matrices
+
+    cfg = cfg or trail_cfg()
     pos = {d: i for i, d in enumerate(days)}
     keep = [r for r in rows if r["date"] in pos]
     ti = np.array([pos[r["date"]] for r in keep], dtype=np.int64)
@@ -311,19 +329,22 @@ def stock_arrays(rows: list[dict], days: list[str], deals: dict | None = None, c
             if d in pos:
                 dfii[pos[d], 0] = f_
                 ddii[pos[d], 0] = d_
+    hc = hp = None
+    if holdings is not None:
+        hc, hp = hold_matrices({"x": holdings["filings"]}, ["x"], days, holdings["quarters"], cfg)
     cs = build_cums(ti, np.zeros(len(ti), dtype=np.int64), len(days), 1, col("close"), col("prevClose"),
-                    col("delivValCr"), col("turnoverCr"), col("trades"), col("spike"), el, dfii, ddii)
-    cs["_dealFrom"] = deal_from_index(days, cfg or {})
+                    col("delivValCr"), col("turnoverCr"), col("trades"), col("spike"), el, dfii, ddii, hc, hp)
+    cs["_dealFrom"] = deal_from_index(days, cfg)
     return cs, 1
 
 
 def trail_for_rows(rows: list[dict], days: list[str], cfg: dict | None = None, a: int | None = None,
-                   deals: dict | None = None) -> dict:
+                   deals: dict | None = None, holdings: dict | None = None) -> dict:
     """ONE stock's trail at as-of index `a` (default: the latest day): the snapshot row (strip + three window records) and
     the weekly timeline of the last `stripWeeks` weeks. Python twin of trailForRows() in site/src/lib/trail.ts."""
     cfg = cfg or trail_cfg()
     a = len(days) - 1 if a is None else a
-    cs, _ = stock_arrays(rows, days, deals, cfg)
+    cs, _ = stock_arrays(rows, days, deals, cfg, holdings)
     ind_w, points = weekly_codes(cs, days, cfg, [a])
     strip, dates = strip_codes(ind_w, points, days, a, cfg)
     wm = {w: window_metrics(cs, a, strip, dates, w, cfg) for w in cfg["windows"]}

@@ -116,7 +116,8 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     validate("signal_perf_periods", pperf)
     outputs.dump(out / "stats" / "signal_perf_periods.json", pperf)
     tsize, tinfo = trail_build.write_trail(df, iso_days, uni, signals, out, pub_first, C.INDICES.index("NIFTY500"),
-                                           dealb.flows, dealb.first_date)
+                                           dealb.flows, dealb.first_date,
+                                           holdings={"filings": hold.filings, "quarters": hold.quarters})
     sizes["trail"] = tsize
     outputs.flush()
     lap(f"trail written ({tsize / 1e6:.1f} MB, {tinfo['asOf']} as-of snapshots, {tinfo['eligible']} stocks); build complete")

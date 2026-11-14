@@ -170,7 +170,7 @@ ROUTES.push(
     wait: 'h1:has-text("Smart Money Trail")',
     expect: async (p) => {
       await p.waitForSelector('[data-testid=list-flip]', { timeout: 25000 });
-      return (await p.locator('[data-testid=indicator-rows] li').count()) === 5;
+      return (await p.locator('[data-testid=indicator-rows] li').count()) === 7;
     },
   },
   {
@@ -185,8 +185,25 @@ ROUTES.push(
         n <= 5 &&
         (await p.locator('canvas').count()) >= 1 &&
         (await p.locator('[data-testid=sector-compare]').count()) === 1 &&
-        (await p.locator('section[aria-label="Named deals"]').count()) === 1
+        (await p.locator('section[aria-label="Named deals"]').count()) === 1 &&
+        /No shareholding filings stored for this stock yet/.test(
+          await p.locator('[data-testid=holdings-card]').innerText(),
+        )
       );
+    },
+  },
+  {
+    // a stock with holdings in the store (Phase 4B): bars per quarter, named holders with status, two holdings rows
+    path: '#/trail/AUROPHARMA',
+    wait: 'h1:has-text("AUROPHARMA")',
+    expect: async (p) => {
+      await p.waitForSelector('[data-testid=holdings-bars] li', { timeout: 25000 });
+      await p.waitForSelector('[data-testid=timeline] tbody tr', { timeout: 25000 });
+      const bars = await p.locator('[data-testid=holdings-bars] li').count();
+      const named = await p.locator('[data-testid=named-holders] li').count();
+      const chips = await p.locator('[data-testid=holdings-chips] .chip').count();
+      const foot = await p.locator('section[aria-label="Footprints"]').innerText();
+      return bars >= 1 && named >= 1 && chips >= 1 && foot.includes('FII + DII holdings') && foot.includes('Promoter holdings');
     },
   },
   { path: '#/trail/NOSUCHSYM', wait: 'h1:has-text("No stock found")', expect: async () => true },

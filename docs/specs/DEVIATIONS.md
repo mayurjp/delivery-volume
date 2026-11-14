@@ -145,3 +145,29 @@ the holdings insight template. These are the remaining 4B work.
 | 97 | 06 Phase 4B acceptance (entity page) | `deals/entities.json` includes **holder-only entities** (0 deals, zero values, the disclosed count and quarter filled). 150 holder entities are shown with 2,003 entity rows in total, of which 24 were already in deals. | So that a holder's disclosed holdings have an entity to appear on. |
 | 98 | 03 4 and 5.10 (store) | Store extracts are `store/shareholding/{quarter}/{fileKey}.json.gz` with `broadcastDate`, `recordId`, `revised`, `format` and the checks. Average 870 bytes per filing. The raw XBRL is never stored. | Per-filing size is small. |
 | 99 | 07 6A, 4B (local data) | 76 development extracts (19 companies x 4 quarters, from 80 allowed XBRL downloads) are stored in `store/shareholding` and published with the site, so the local build shows holdings for 19 of about 2,970 stocks. They are real filings, and the backfill will replace the coverage. Delete `store/shareholding` to publish without them. | The user asked for local development data. |
+
+## Phase 4B part 2 (2026-11-14), partial
+
+| # | Section | Deviation | Reason |
+|---|---------|-----------|--------|
+| 100 | 07 6 (holdInst) | `holdInst` is FII + DII change over the last two quarters, in pp. The spec's "FII + DII + MF" would count MF twice, because MF is inside DII (03 5.10). Thresholds are +/-0.5 pp, in `config/signals.json -> smartMoney.holdInst` and `holdPromoter`. | Avoids double counting. |
+| 101 | 07 6A (flip) | `flipMinIndicators` is a function of the indicator count (`holdings_trail.flip_min`): 2 below 6 indicators, 3 from 6 on. Tested for 5, 6 and 7. | Spec 07 6A v1 definitions. |
+
+## Phase 4B part 2: trail wiring (2026-11-14)
+
+Built here: `holdInst` and `holdPromoter` in the window metrics, the weekly codes, the tally, consistency, the strip, the
+flip and the track record (`stats/trail_perf.json`, rows `holdInst:A|D|N` and `holdPromoter:A|D|N`), in both twins
+(`pipeline/trail.py` and `site/src/lib/trail.ts`, shared vectors with holdings), the holdings insight, the stock-mode
+holdings card and the holdings rows of the trail page. Not built here: the stock-page Ownership section, the
+Institutions Holdings tab, the entity holdings card and the Screener columns (the next agent).
+
+| # | Section | Deviation | Reason |
+|---|---------|-----------|--------|
+| 102 | 07 6A (window record) | Each window record carries two extra cells, `holdInstPp` and `holdPromoterPp`: the change in pp over the last two quarters as known on the as-of day. The value is the same in every window, because holdings do not depend on the window length. The codes string is 7 characters (the delivery four, dealsNet, holdInst, holdPromoter). | The chips, the holdings insight and the "over two quarters" text need the number, not just the code. |
+| 103 | 07 6A (base quarter) | The base is "two steps earlier in the store's quarter list" (holdings_trail), not "six months earlier". The symbol file's holdings block carries that quarter list (`holdings.quarters`), so the browser applies the same rule. | Python and TypeScript must agree; a quarter with no filing in the whole store would otherwise shift the base. |
+| 104 | 07 6A (no lookahead) | A filing counts from its `filedOn` day (the broadcast date). The symbol file keeps one filing per quarter (the latest stored), so a revision broadcast before the as-of day is used, and the original is not visible after it. | The per-stock block has no separate revision history; DEVIATIONS #98 stores one extract per filing. |
+| 105 | 07 6A (flip) | Flip minimum is 3 with the seven indicators (`flipMinIndicatorsFull`, 2 below six). Tests use a promoter fall as the third opposite code. | Spec 07 6A v1 definitions; see DEVIATIONS #101. |
+| 106 | 07 6A (insight) | The holdings insight counts stocks whose FII + DII change is above +0.5 pp (`HOLD_RISE_PP`, equal to `holdInst.aboveA`) and names only the top sector. Its wording is "rose by more than 0.5 pp in N ... (of M with two quarters filed)". | The spec's example text, with the denominator added so the count is readable against the stocks that have holdings. |
+| 107 | 07 6A (stock mode) | The holdings card shows the **last four** stored quarters as bars, and the **top 12** named holders above 1% of the latest quarter. Holders carry the filing's status (NEW, UP, DOWN, SAME, EXITED). | Keeps the card short; the full list is in the store. |
+| 108 | 07 6A (local data) | Until the backfill lands, only 19 stocks have holdings, so the `holdInst` and `holdPromoter` track-record rows and most stock pages show "too few cases" or "not enough history" for these indicators. The cells are computed from the stored history only and are not extrapolated. | The backfill fills the coverage (DEVIATIONS #99). |
+
