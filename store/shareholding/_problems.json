@@ -1,0 +1,826 @@
+{
+ "count": 164,
+ "generated": "2026-11-14T21:02:41+00:00",
+ "items": [
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "360ONE"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "AIIL"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "ASTERDM"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "ATGL"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "public leaves exceed public total by 7.730 pp (double count?); named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "AXISBANK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "BAJAJHFL"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http 404",
+   "symbol": "CANBK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "public leaves exceed public total by 26.580 pp (double count?)",
+   "symbol": "CANFINHOME"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (49.50%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "CANHLIFE"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "CPPLUS"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "DABUR"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "FEDERALBNK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol GUJGASLTD",
+   "symbol": "GUJENERGY"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (52.43%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "HDFCAMC"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "HDFCBANK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol HEG",
+   "symbol": "HEGAM"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (53.01%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIAMC"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "ICICIBANK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (51.31%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIGI"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "ICICILIFE"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (49.25%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "IDBI"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'Bigshare Services Pvt. Ltd. Unclaimed Suspense Account': no shares/pct in PAC_Public15",
+   "symbol": "IDEA"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "IDFCFIRSTB"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'The Bank Of New York': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INDUSINDBK"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INFY"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol AKZOINDIA",
+   "symbol": "JSWDULUX"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "public leaves exceed public total by 43.960 pp (double count?)",
+   "symbol": "LICHSGFIN"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol LTIM",
+   "symbol": "LTM"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA (Shares held as Custodians against which Global Depository Receipts have been issued)': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "M&M"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "MFSL"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "OBEROIRLTY"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "PETRONET"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "PIRAMALFIN"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "public leaves exceed public total by 26.830 pp (double count?)",
+   "symbol": "PNBHOUSING"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'The Bank of New York Mellon for GDRs': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "RELIANCE"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (68.58%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBICARD"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "bank (55.34%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBILIFE"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SBIN"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "SUNDARMFIN"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http None",
+   "symbol": "TATACOMM"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "named holder 'Tata AIA Life Insurance Company Limited': no shares/pct in PAC_Public15",
+   "symbol": "TATAPOWER"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol SEQUENT",
+   "symbol": "VIYASH"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "xbrl http 404",
+   "symbol": "ZENSARTECH"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "360ONE"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "AIIL"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "APLAPOLLO"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'NOT APPLICABLE': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "ASHOKLEY"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "ASTERDM"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "ATGL"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "public leaves exceed public total by 7.710 pp (double count?); named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "AXISBANK"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "BAJAJHFL"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "public leaves exceed public total by 26.570 pp (double count?)",
+   "symbol": "CANFINHOME"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (49.50%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "CANHLIFE"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "CPPLUS"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "DABUR"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "FEDERALBNK"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http 404",
+   "symbol": "FIVESTAR"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "XBRL symbol GUJGASLTD",
+   "symbol": "GUJENERGY"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (52.43%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "HDFCAMC"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "HDFCBANK"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "XBRL symbol HEG",
+   "symbol": "HEGAM"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (53.00%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIAMC"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (51.26%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIGI"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "ICICILIFE"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (49.25%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "IDBI"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'Bigshare Services Pvt. Ltd. Unclaimed Suspense Account': no shares/pct in PAC_Public15",
+   "symbol": "IDEA"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "IDFCFIRSTB"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'The Bank Of New York': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INDUSINDBK"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INFY"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "IPCALAB"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "public leaves exceed public total by 43.940 pp (double count?)",
+   "symbol": "LICHSGFIN"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA (Shares held as Custodians against which Global Depository Receipts have been issued)': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "M&M"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "MFSL"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "OBEROIRLTY"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "PETRONET"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "PIRAMALFIN"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "public leaves exceed public total by 26.890 pp (double count?)",
+   "symbol": "PNBHOUSING"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'The Bank of New York Mellon for GDRs': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "RELIANCE"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (68.58%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBICARD"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "bank (55.33%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBILIFE"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SBIN"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "SUNDARMFIN"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "xbrl http None",
+   "symbol": "TATACOMM"
+  },
+  {
+   "quarter": "2026-03-31",
+   "reason": "named holder 'Tata AIA Life Insurance Company Limited': no shares/pct in PAC_Public15",
+   "symbol": "TATAPOWER"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "360ONE"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "AIIL"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "APLAPOLLO"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'NOT APPLICABLE': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "ASHOKLEY"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "ASTERDM"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "ATGL"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "public leaves exceed public total by 4.190 pp (double count?)",
+   "symbol": "AXISBANK"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "BAJAJHFL"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "public leaves exceed public total by 26.490 pp (double count?)",
+   "symbol": "CANFINHOME"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (49.50%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "CANHLIFE"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "CPPLUS"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "DABUR"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "FEDERALBNK"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (52.46%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "HDFCAMC"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "HDFCBANK"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "XBRL symbol HEG",
+   "symbol": "HEGAM"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (53.03%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIAMC"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (51.18%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIGI"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "ICICILIFE"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (49.25%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "IDBI"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'Bigshare Services Pvt. Ltd. Unclaimed Suspense Account': no shares/pct in PAC_Public15",
+   "symbol": "IDEA"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'The Bank Of New York': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INDUSINDBK"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INFY"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "IPCALAB"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "public leaves exceed public total by 43.970 pp (double count?)",
+   "symbol": "LICHSGFIN"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'JP MORGAN CHASE BANK NA': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "M&M"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "MFSL"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "OBEROIRLTY"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "PETRONET"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "PIRAMALFIN"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "public leaves exceed public total by 26.980 pp (double count?)",
+   "symbol": "PNBHOUSING"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'The Bank of New York Mellon for GDRs': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "RELIANCE"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (68.58%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBICARD"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "bank (55.33%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBILIFE"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SBIN"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "SUNDARMFIN"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http None",
+   "symbol": "TATACOMM"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "named holder 'Tata AIA Life Insurance Company Limited': no shares/pct in PAC_Public15",
+   "symbol": "TATAPOWER"
+  },
+  {
+   "quarter": "2026-06-30",
+   "reason": "xbrl http 404",
+   "symbol": "TIINDIA"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "360ONE"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "AIIL"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "APLAPOLLO"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'NOT APPLICABLE': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "ASHOKLEY"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "ASTERDM"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "ATGL"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "public leaves exceed public total by 4.320 pp (double count?)",
+   "symbol": "AXISBANK"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "BAJAJHFL"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "public leaves exceed public total by 26.020 pp (double count?)",
+   "symbol": "CANFINHOME"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (49.50%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "CANHLIFE"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "CPPLUS"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "DABUR"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder '1': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "FEDERALBNK"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (52.43%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "HDFCAMC"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "HDFCBANK"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (53.05%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIAMC"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (51.15%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "ICICIGI"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "ICICILIFE"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (49.25%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "IDBI"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "INDOMIM"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'The Bank Of New York': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INDUSINDBK"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'DEUTSCHE BANK TRUST COMPANY AMERICAS': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "INFY"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "IPCALAB"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "public leaves exceed public total by 43.400 pp (double count?)",
+   "symbol": "LICHSGFIN"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'JP MORGAN CHASE BANK, NA (Shares held as Custodians against which GDR have been issued)': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "M&M"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "MFSL"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "no total shares (ShareholdingPatternMember)",
+   "symbol": "MONEYVIEW"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "OBEROIRLTY"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "PETRONET"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "PIRAMALFIN"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "public leaves exceed public total by 27.160 pp (double count?)",
+   "symbol": "PNBHOUSING"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'The Bank of New York Mellon for GDRs': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "RELIANCE"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (68.58%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBICARD"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (55.57%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBIFUNDS"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "bank (55.31%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "SBILIFE"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'THE BANK OF NEW YORK MELLON': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SBIN"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "SUNDARMFIN"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "xbrl http None",
+   "symbol": "TATACOMM"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'Tata AIA Life Insurance Company Limited': no shares/pct in PAC_Public15",
+   "symbol": "TATAPOWER"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'Naivedya Agarwal': no shares/pct in PAC_Public15; named holder 'Shweta Agarwal': no shares/pct in PAC_Public16; named holder 'Varunn Mody': no shares/pct in PAC_Public17; named holder 'Viraj Didwania': no shares/pct in PAC_Public18",
+   "symbol": "VAML"
+  },
+  {
+   "quarter": "2026-09-30",
+   "reason": "named holder 'NAIVEDYA  AGARWAL': no shares/pct in PAC_Public15; named holder 'SHWETA ANKIT AGARWAL': no shares/pct in PAC_Public16; named holder 'VARUNN MODY': no shares/pct in PAC_Public17; named holder 'VIRAJ  DIDWANIA': no shares/pct in PAC_Public18",
+   "symbol": "VISL"
+  }
+ ]
+}

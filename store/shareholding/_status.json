@@ -1,0 +1,458 @@
+{
+ "coverage": {
+  "completeCompanies": 575,
+  "completeShare": 0.2405,
+  "meetsTarget": false,
+  "quarters": [
+   "2025-12-31",
+   "2026-03-31",
+   "2026-06-30",
+   "2026-09-30"
+  ],
+  "storedPerQuarter": {
+   "2025-12-31": 581,
+   "2026-03-31": 588,
+   "2026-06-30": 593,
+   "2026-09-30": 606
+  },
+  "target": 0.95,
+  "universe": 2391
+ },
+ "generated": "2026-11-14T21:02:41+00:00",
+ "lastRun": {
+  "cap": 2500,
+  "capped": true,
+  "invalid": 70,
+  "listingCalls": 3,
+  "mode": "backfill",
+  "notInUniverse": 925,
+  "problems": 164,
+  "quarters": [
+   "2025-12-31",
+   "2026-03-31",
+   "2026-06-30",
+   "2026-09-30"
+  ],
+  "requests": 2500,
+  "skipped": 76,
+  "smeDropped": 0,
+  "stored": 2292,
+  "xbrl": 2362
+ },
+ "missingCount": {
+  "2025-12-31": 1810,
+  "2026-03-31": 1803,
+  "2026-06-30": 1798,
+  "2026-09-30": 1785
+ },
+ "missingSample": {
+  "2025-12-31": [
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "JPL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "VAML"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "CANBK"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "SBIFUNDS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MCX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "IDFCFIRSTB"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "BAJAJHFL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "DABUR"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ICICILIFE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "OBEROIRLTY"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ATGL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "INDOMIM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ASTERDM"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ABBOTINDIA"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "TATACOMM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PIRAMALFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "CPPLUS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "AIIL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PETRONET"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "MFSL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "SUNDARMFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "360ONE"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "DHOOTTRANS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ZETWERK"
+   }
+  ],
+  "2026-03-31": [
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "JPL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "VAML"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "SBIFUNDS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MCX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "IDFCFIRSTB"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "BAJAJHFL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "DABUR"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ICICILIFE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "OBEROIRLTY"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ATGL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "INDOMIM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ASTERDM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "APLAPOLLO"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ABBOTINDIA"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "TATACOMM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PIRAMALFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "CPPLUS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "AIIL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PETRONET"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "MFSL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "SUNDARMFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "360ONE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "IPCALAB"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "DHOOTTRANS"
+   }
+  ],
+  "2026-06-30": [
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "JPL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "SBIFUNDS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MCX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "BAJAJHFL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "DABUR"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ICICILIFE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "OBEROIRLTY"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ATGL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "INDOMIM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ASTERDM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "APLAPOLLO"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ABBOTINDIA"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "TATACOMM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PIRAMALFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "CPPLUS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "AIIL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PETRONET"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "MFSL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "SUNDARMFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "360ONE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "IPCALAB"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "TIINDIA"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "DHOOTTRANS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ZETWERK"
+   }
+  ],
+  "2026-09-30": [
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "JPL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MCX"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "BAJAJHFL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "DABUR"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ICICILIFE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "OBEROIRLTY"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ATGL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "INDOMIM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "ASTERDM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "APLAPOLLO"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ALKEM"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ABBOTINDIA"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "TATACOMM"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PIRAMALFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "CPPLUS"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "AIIL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "PETRONET"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "MFSL"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "SUNDARMFIN"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "360ONE"
+   },
+   {
+    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "symbol": "IPCALAB"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ZETWERK"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "BAYERCROP"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "BONFIG"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "EDELALTS"
+   }
+  ]
+ }
+}
