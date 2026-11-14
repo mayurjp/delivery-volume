@@ -14,7 +14,7 @@ concurrency:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,7 +27,7 @@ jobs:
       # The Python test exports the shared range-maths vectors; the committed copy must be current so the
       # Vitest run in the site job checks the same numbers.
       - name: Shared vectors are up to date
-        run: git diff --exit-code site/src/lib/vectors.json
+        run: git diff --exit-code site/src/lib/vectors.json site/src/lib/periodVectors.json
 
   site:
     runs-on: ubuntu-latest

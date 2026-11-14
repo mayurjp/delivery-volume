@@ -11,7 +11,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { COLUMN_BY_KEY, type ColumnSpec, type RowLike, type ScreenRow } from '../lib/columns';
 import { EtfBadge, FlagIcons, AppLink, SignalBadge } from './ui';
-import { FLAG } from '../types/data';
+import { FLAG, type Bucket, type SignalCode } from '../types/data';
 
 const ROW_H = 36;
 
@@ -35,9 +35,15 @@ interface Props<R extends RowLike> {
   onSortingChange: OnChangeFn<SortingState>;
   extra?: ExtraColumn<R>[];
   height?: number;
+  /** Replaces the daily "Historically" line of the signal badge tooltip (weekly and monthly views). */
+  signalHistory?: (signal: SignalCode, bucket: Bucket | null) => string | undefined;
 }
 
-function cell<R extends RowLike>(spec: ColumnSpec<R>, r: R): ReactNode {
+function cell<R extends RowLike>(
+  spec: ColumnSpec<R>,
+  r: R,
+  signalHistory?: (signal: SignalCode, bucket: Bucket | null) => string | undefined,
+): ReactNode {
   switch (spec.kind) {
     case 'sym':
       return (
@@ -52,15 +58,21 @@ function cell<R extends RowLike>(spec: ColumnSpec<R>, r: R): ReactNode {
         </span>
       );
     case 'signal':
-      return <SignalBadge signal={r.signal ?? null} bucket={r.bucket ?? null} plain />;
+      return (
+        <SignalBadge
+          signal={r.signal ?? null}
+          bucket={r.bucket ?? null}
+          plain
+          history={r.signal ? signalHistory?.(r.signal, r.bucket ?? null) : undefined}
+        />
+      );
     case 'flags':
       return <FlagIcons flags={r.flags ?? 0} plain />;
     case 'warn':
-      return r.caWarn ? (
+      return spec.fmt(r) ? (
         <span
           role="img"
-          aria-label="Corporate action in range"
-          title="Corporate action in range: price return not adjusted"
+          aria-label={spec.cellTip?.(r) ?? 'Corporate action in range: price return not adjusted'}
           className="text-amber-600 dark:text-amber-400"
         >
           ⚠
@@ -82,6 +94,7 @@ export default function DataTable<R extends RowLike>({
   onSortingChange,
   extra = [],
   height = 560,
+  signalHistory,
 }: Props<R>) {
   const reg = (registry ?? COLUMN_BY_KEY) as ReadonlyMap<string, ColumnSpec<R>>;
   const helper = useMemo(() => createColumnHelper<R>(), []);
@@ -189,9 +202,10 @@ export default function DataTable<R extends RowLike>({
                     <div
                       key={c.id}
                       style={{ width: c.column.getSize() }}
+                      title={spec?.cellTip?.(r)}
                       className={`num shrink-0 truncate px-2 ${spec?.align === 'right' ? 'text-right' : ''} ${spec?.tone?.(r) ?? ''} ${i === 0 ? 'sticky left-0 z-10 bg-white dark:bg-slate-900' : ''}`}
                     >
-                      {spec ? cell(spec, r) : meta.extra?.render(r)}
+                      {spec ? cell(spec, r, signalHistory) : meta.extra?.render(r)}
                     </div>
                   );
                 })}

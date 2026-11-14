@@ -1,10 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { DailyRow, CumRow, Market, Meta, SymbolRow, SymbolFile, UniverseRow } from '../types/data';
+import type {
+  CumRow,
+  DailyRow,
+  Market,
+  Meta,
+  PeriodInfo,
+  PeriodSnapshot,
+  PeriodsDoc,
+  SignalPerfPeriodRow,
+  SymbolFile,
+  SymbolRow,
+  UniverseRow,
+} from '../types/data';
 import { dataClient } from './dataClient';
 import { activeFilterCount, defaultFilters, type Filters } from './filters';
 import { readJson, writeJson } from './storage';
 import { indexPerf, type PerfIndex } from './signalPerf';
+import { parseTimeframe, writeTimeframe, type TimeframeState } from './timeframe';
 import { hasFilterParams, parseDate, parseFilters, writeFilters } from './urlState';
 
 export interface Async<T> {
@@ -49,6 +62,12 @@ export const useCum = (date: string | null): Async<CumRow[]> =>
   useAsync(date ? `cum:${date}` : null, () => dataClient.cum(date as string));
 export const useSymbol = (fileKey: string | null): Async<{ file: SymbolFile; rows: SymbolRow[] }> =>
   useAsync(fileKey ? `symbol:${fileKey}` : null, () => dataClient.symbol(fileKey as string));
+
+export const usePeriods = (): Async<PeriodsDoc> => useAsync('periods', () => dataClient.periods());
+export const usePeriodSnapshot = (tf: 'w' | 'm', info: PeriodInfo | null): Async<PeriodSnapshot> =>
+  useAsync(info ? `period:${tf}:${info.key}` : null, () => dataClient.periodSnapshot(tf, info as PeriodInfo));
+export const usePeriodSignalPerf = (): Async<SignalPerfPeriodRow[]> =>
+  useAsync('signalPerfPeriods', () => dataClient.signalPerfPeriods());
 
 // ---- app-wide context: meta + universe are loaded once before any page renders --------------------------------------
 
@@ -133,4 +152,23 @@ export function useGlobalState(): GlobalState {
     [params, setParams, meta.latestDate],
   );
   return { filters, defaults, activeCount: activeFilterCount(filters, defaults), date, setFilters, setDate };
+}
+
+// ---- the timeframe (08 sections 1 and 5A), kept in the URL next to the filters and the date ------------------------------
+
+export interface TimeframeHook {
+  state: TimeframeState;
+  /** Replaces the timeframe keys of the URL (tf, n, from, to, base, bfrom, bto); everything else is kept. */
+  setState: (s: TimeframeState) => void;
+}
+
+export function useTimeframe(): TimeframeHook {
+  const [params, setParams] = useSearchParams();
+  const paramString = params.toString();
+  const state = useMemo(() => parseTimeframe(new URLSearchParams(paramString)), [paramString]);
+  const setState = useCallback(
+    (s: TimeframeState) => setParams(writeTimeframe(new URLSearchParams(paramString), s)),
+    [paramString, setParams],
+  );
+  return { state, setState };
 }

@@ -29,6 +29,10 @@ Show this small note under the Universe and Market cap filters: "Uses current in
 
 Filtering is a pure function, `applyFilters(rows, universe, filters)`, in `src/lib/filters.ts`, with unit tests.
 
+## 2b. Timeframe (Phase 3B, 08)
+
+A segmented switch `D | W | M | Q | Custom` sits next to the date control and is stored as `tf=d|w|m|q|c|r` (`tf=c&n=10`: N-day bars; `tf=r&from=..&to=..&base=prev`: a date range). The date control becomes a week, month or quarter picker, which simply sets the global date `d` to the last trading day of the period. Screener, Stock, Compare, Heatmaps and Stats read it; the Dashboard, Learn and Watchlist stay daily. Weekly and monthly Screener and treemap views read the `weekly/` and `monthly/` snapshots; quarterly, custom-N and custom-range views come from `cum/` ranges; Stock pages aggregate on the client with `aggregatePeriods` / `aggregateRange` (`lib/aggregate.ts`). Columns that a day's file does not carry (slim days, 07 section 8) show a dash with a tooltip.
+
 ## 3. Date controls
 
 - **Day mode** (default): a single trading-day picker. Only dates in `meta.tradingDays` are enabled. Defaults to `latestDate`. Add previous/next-day arrows.
@@ -225,7 +229,7 @@ Static content written from 04 §0, §4 and §8:
 
 - On start, fetch `meta.json` with `cache: 'no-store'`. Fetch every other file with `?v=<meta.generatedAt>` and the default cache, so each deploy busts the cache while files are reused within a deploy.
 - Keep an in-memory LRU cache of 40 files. Deduplicate concurrent requests for the same URL.
-- Hooks: `useMeta`, `useUniverse`, `useDaily(date)`, `useCum(date)`, `useSymbol(sym)`, `useMarket`, `useInstitutional(kind)`, `useDeals(year)`, `useEntities`.
+- Hooks: `usePeriods`, `usePeriodSnapshot`, `useTimeframe`, `useMeta`, `useUniverse`, `useDaily(date)`, `useCum(date)`, `useSymbol(sym)`, `useMarket`, `useInstitutional(kind)`, `useDeals(year)`, `useEntities`.
 - Convert `{columns, rows}` into typed row objects once per file. Memoise.
 - Range maths: `computeRange(cumA0, cumA1, cumB0, cumB1)` in `src/lib/metrics.ts`, a pure function tested against the shared vectors (04 intro).
 - Initial dashboard load: `meta`, `universe`, `daily/latest`, `market` and `institutional/cash`. Target ≤ 600 KB gzipped of data.

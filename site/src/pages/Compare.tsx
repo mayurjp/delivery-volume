@@ -6,17 +6,37 @@ import { deliveryClass, palette, priceClass } from '../charts/theme';
 import RangeControls from '../components/RangeControls';
 import { AppLink, Empty, ErrorBox, EtfBadge, Skeleton } from '../components/ui';
 import { applyRangeFilters } from '../lib/filters';
-import { fmtDate, fmtPctChg, fmtPp } from '../lib/format';
+import { fmtDate, fmtNum, fmtPctChg, fmtPp, fmtRatio } from '../lib/format';
 import { useApp, useGlobalState } from '../lib/hooks';
-import type { RangeScreenRow } from '../lib/range';
+import { metricValue, type RangeMetric as Metric, type RangeScreenRow } from '../lib/range';
 import { SIGNAL_LABEL } from '../lib/signals';
 import { useDark } from '../lib/theme';
-import { useRangeRows, useRangeState } from '../lib/useRange';
+import { useEffectiveRange, useRangeRows } from '../lib/useRange';
 import { useWatchlist } from '../lib/watchlist';
 import type { SignalCode } from '../types/data';
 
 const CODES: SignalCode[] = ['ACC', 'DIS', 'SPU', 'SPD'];
 const TOP = 25;
+
+const METRICS: { id: Metric; label: string }[] = [
+  { id: 'val', label: 'Delivery value' },
+  { id: 'pct', label: 'Delivery %' },
+  { id: 'bal', label: 'Delivery balance' },
+  { id: 'ats', label: 'Avg trade size' },
+];
+const HEAD: Record<Metric, string> = {
+  val: 'Deliv value',
+  pct: 'Deliv %',
+  bal: 'Balance chg',
+  ats: 'Trade size',
+};
+
+function fmtMetric(v: number | null, m: Metric): string {
+  if (m === 'val') return fmtPctChg(v, 0);
+  if (m === 'pct') return fmtPp(v);
+  if (m === 'bal') return v === null ? '�' : `${v > 0 ? '+' : ''}${fmtNum(v, 2)}`;
+  return fmtRatio(v, 2);
+}
 
 function RankTable({
   title,
@@ -25,24 +45,36 @@ function RankTable({
 }: {
   title: string;
   rows: readonly RangeScreenRow[];
-  metric: 'val' | 'pct';
+  metric: Metric;
 }) {
   return (
     <section aria-label={title} className="card min-w-0 p-3">
       <h2 className="mb-1 text-sm font-semibold">{title}</h2>
       <div className="overflow-x-auto">
-        <table className="num w-full min-w-[300px] text-sm">
+        <table className="num w-full min-w-[420px] text-sm">
           <thead className="text-xs text-slate-500">
             <tr className="text-right">
               <th className="py-1 text-left font-medium">Symbol</th>
-              <th className="font-medium">{metric === 'val' ? 'Deliv value' : 'Deliv %'}</th>
+              <th className="font-medium">{HEAD[metric]}</th>
               <th className="font-medium">Return</th>
+              <th
+                className="font-medium"
+                title="Delivery value on up days divided by delivery value on down days, in the range"
+              >
+                Balance
+              </th>
+              <th
+                className="font-medium"
+                title="Average trade size in the range relative to the baseline (turnover per trade)"
+              >
+                Size vs base
+              </th>
               <th className="pl-2 text-left font-medium">Signal</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
-              const v = metric === 'val' ? r.delivValChgPct : r.delivPctChgPp;
+              const v = metricValue(r, metric);
               return (
                 <tr key={r.sym} className="border-t border-slate-100 text-right dark:border-slate-800">
                   <td className="py-1 text-left">
@@ -64,8 +96,10 @@ function RankTable({
                       </span>
                     )}
                   </td>
-                  <td className={deliveryClass(v)}>{metric === 'val' ? fmtPctChg(v, 0) : fmtPp(v)}</td>
+                  <td className={deliveryClass(v)}>{fmtMetric(v, metric)}</td>
                   <td className={priceClass(r.ret)}>{fmtPctChg(r.ret, 1)}</td>
+                  <td>{r.delivBalanceR === null ? '�' : fmtNum(r.delivBalanceR, 2)}</td>
+                  <td>{fmtRatio(r.tradeSizeRatio, 2)}</td>
                   <td className="pl-2 text-left text-xs">{r.signal ? SIGNAL_LABEL[r.signal] : ''}</td>
                 </tr>
               );
@@ -84,9 +118,10 @@ export default function Compare() {
   const [params, setParams] = useSearchParams();
   const nav = useNavigate();
   const dark = useDark();
-  const state = useRangeState();
-  const res = useRangeRows(state.resolved);
-  const metric: 'val' | 'pct' = params.get('cm') === 'pct' ? 'pct' : 'val';
+  const state = useEffectiveRange();
+  const res = useRangeRows(state.resolved, !state.pending);
+  const cm = params.get('cm');
+  const metric: Metric = METRICS.some((m) => m.id === cm) ? (cm as Metric) : 'val';
   const sig = CODES.includes(params.get('sg') as SignalCode) ? (params.get('sg') as SignalCode) : null;
   const showExcluded = params.get('ex') === '1';
   const set = (k: string, v: string | null) => {
@@ -109,10 +144,12 @@ export default function Compare() {
     return c;
   }, [ranked]);
   const shown = useMemo(() => (sig ? ranked.filter((r) => r.signal === sig) : ranked), [ranked, sig]);
-  const key = metric === 'val' ? 'delivValChgPct' : 'delivPctChgPp';
   const sorted = useMemo(
-    () => shown.filter((r) => r[key] !== null).sort((a, b) => (b[key] as number) - (a[key] as number)),
-    [shown, key],
+    () =>
+      shown
+        .filter((r) => metricValue(r, metric) !== null)
+        .sort((a, b) => (metricValue(b, metric) as number) - (metricValue(a, metric) as number)),
+    [shown, metric],
   );
   const up = sorted.slice(0, TOP);
   const down = sorted.slice(-TOP).reverse();
@@ -150,12 +187,26 @@ export default function Compare() {
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Period Compare</h1>
       <p className="text-sm text-slate-600 dark:text-slate-300">
-        How delivery in a date range compares with a baseline period, per stock. Value-based fields only; the
-        range ends on the date picked at the top ({fmtDate(state.resolved.range.b)}).
+        How delivery in a date range compares with a baseline period, per stock. Value-based fields only;
+        delivery balance is delivery value on up days over down days. The range ends on the date picked at the
+        top ({fmtDate(state.resolved.range.b)}).
       </p>
-      <RangeControls state={state} />
+      {state.fromTimeframe ? (
+        <section aria-label="Range from the timeframe" className="card space-y-1 p-3">
+          <p className="text-sm font-medium" data-testid="tf-range-note">
+            Range set by the timeframe control
+          </p>
+          <p className="text-sm" data-testid="range-text">
+            {state.pending ? 'Resolving the range�' : state.resolved.text}
+          </p>
+        </section>
+      ) : (
+        <RangeControls state={state} quick />
+      )}
 
-      {res.error ? (
+      {state.pending ? (
+        <Skeleton height={44} />
+      ) : res.error ? (
         <ErrorBox message={res.error} />
       ) : res.loading ? (
         <>
@@ -171,15 +222,15 @@ export default function Compare() {
         <>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <div role="group" aria-label="Rank by" className="flex gap-1">
-              {(['val', 'pct'] as const).map((m) => (
+              {METRICS.map((m) => (
                 <button
-                  key={m}
+                  key={m.id}
                   type="button"
-                  aria-pressed={metric === m}
-                  className={`chip ${metric === m ? 'bg-blue-600 text-white' : ''}`}
-                  onClick={() => set('cm', m === 'val' ? null : m)}
+                  aria-pressed={metric === m.id}
+                  className={`chip ${metric === m.id ? 'bg-blue-600 text-white' : ''}`}
+                  onClick={() => set('cm', m.id === 'val' ? null : m.id)}
                 >
-                  {m === 'val' ? 'Delivery value' : 'Delivery %'}
+                  {m.label}
                 </button>
               ))}
             </div>

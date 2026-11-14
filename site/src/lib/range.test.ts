@@ -8,7 +8,9 @@ import {
   corpActionSyms,
   DEFAULT_RANGE,
   fetchRangeCums,
+  metricValue,
   parseRange,
+  QUICK_COMPARES,
   rangeSignal,
   resolveRange,
   writeRange,
@@ -50,6 +52,57 @@ describe('resolveRange', () => {
     const p = writeRange(new URLSearchParams(), { ...DEFAULT_RANGE, preset: '3M', baseline: '50' });
     expect(p.toString()).toBe('r=3M&bl=50');
     expect(parseRange(p)).toMatchObject({ preset: '3M', baseline: '50' });
+  });
+});
+
+describe('week and month presets, long baselines and quick comparisons', () => {
+  const LONG = Array.from({ length: 300 }, (_, i) =>
+    new Date(Date.UTC(2025, 0, 1 + i)).toISOString().slice(0, 10),
+  );
+  it('4W is 20 trading days and 12W is 60', () => {
+    expect(resolveRange({ ...DEFAULT_RANGE, preset: '4W' }, LONG[299]!, LONG).range.days).toBe(20);
+    expect(resolveRange({ ...DEFAULT_RANGE, preset: '12W' }, LONG[299]!, LONG).range.days).toBe(60);
+  });
+  it('prior 60 / 126 baselines take that many days before the range', () => {
+    const r = resolveRange({ ...DEFAULT_RANGE, preset: '4W', baseline: '60' }, LONG[299]!, LONG);
+    expect(r.baseline!.days).toBe(60);
+    expect(r.baseline!.b).toBe(r.range.prevA);
+    const r2 = resolveRange({ ...DEFAULT_RANGE, preset: '3M', baseline: '126' }, LONG[299]!, LONG);
+    expect(r2.range.days).toBe(63);
+    expect(r2.baseline!.days).toBe(126);
+  });
+  it('1Y has a full baseline once there are 504+ days (none with 252)', () => {
+    expect(resolveRange({ ...DEFAULT_RANGE, preset: '1Y' }, LONG[251]!, LONG).baseline).toBeNull();
+    const D = Array.from({ length: 744 }, (_, i) =>
+      new Date(Date.UTC(2023, 0, 1 + i)).toISOString().slice(0, 10),
+    );
+    const r = resolveRange({ ...DEFAULT_RANGE, preset: '1Y' }, D[743]!, D);
+    expect(r.range.days).toBe(252);
+    expect(r.baseline!.days).toBe(252);
+  });
+  it('round-trips the new presets, baselines and both quick comparisons through the URL', () => {
+    for (const spec of [
+      { ...DEFAULT_RANGE, preset: '12W' as const, baseline: '126' as const },
+      ...QUICK_COMPARES.map((q) => ({ ...DEFAULT_RANGE, preset: q.preset, baseline: q.baseline })),
+    ]) {
+      expect(parseRange(writeRange(new URLSearchParams(), spec))).toMatchObject({
+        preset: spec.preset,
+        baseline: spec.baseline,
+      });
+    }
+    expect(
+      writeRange(new URLSearchParams(), { ...DEFAULT_RANGE, preset: '4W', baseline: '60' }).toString(),
+    ).toBe('r=4W&bl=60');
+  });
+  it('keeps old URLs valid and ignores unknown values', () => {
+    expect(parseRange(new URLSearchParams('r=3M&bl=50'))).toMatchObject({ preset: '3M', baseline: '50' });
+    expect(parseRange(new URLSearchParams('r=7W&bl=99'))).toMatchObject({ preset: '1M', baseline: 'p' });
+  });
+  it('quick comparisons say what they compare', () => {
+    expect(QUICK_COMPARES.map((q) => q.label)).toEqual([
+      'Last 4 weeks vs previous 12 weeks',
+      'Last 3 months vs previous 6 months',
+    ]);
   });
 });
 
@@ -128,5 +181,23 @@ describe('corporate-action warning on real backfilled data', () => {
     const h = rows.find((x) => x.sym === 'HDFCAMC')!;
     expect(h.caWarn).toBe(true);
     expect(rows.find((x) => x.sym === 'RELIANCE')!.caWarn).toBe(false);
+  });
+});
+
+describe('metricValue (Compare ranking)', () => {
+  const row = {
+    delivValChgPct: 12,
+    delivPctChgPp: -2,
+    delivBalanceR: 1.5,
+    delivBalanceB: 1.2,
+    tradeSizeRatio: 1.1,
+  };
+  it('picks the field per metric and needs both balances for the balance change', () => {
+    const r = row as never;
+    expect(metricValue(r, 'val')).toBe(12);
+    expect(metricValue(r, 'pct')).toBe(-2);
+    expect(metricValue(r, 'bal')).toBeCloseTo(0.3);
+    expect(metricValue(r, 'ats')).toBe(1.1);
+    expect(metricValue({ ...row, delivBalanceB: null } as never, 'bal')).toBeNull();
   });
 });

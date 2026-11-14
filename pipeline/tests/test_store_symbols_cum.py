@@ -65,7 +65,7 @@ def test_cumulative_range_sums_equal_direct_sums(tmp_path):
     """Range sum X(b) - X(prev(a)) from cum files equals the direct sum over daily rows (incl. mid-range listing)."""
     rng = np.random.default_rng(7)
     days = [date(2026, 1, 1) + timedelta(days=i) for i in range(40)]
-    syms = ["AAA", "BBB", "LATE", "GAP"]
+    syms = ["AAA", "BBB", "LATE", "GAP", "SPLT"]
     rows = []
     for di, d in enumerate(days):
         for s in syms:
@@ -75,7 +75,10 @@ def test_cumulative_range_sums_equal_direct_sums(tmp_path):
                 continue  # did not trade for a few days -> carried forward
             q = float(rng.integers(100, 5000))
             vwap = float(rng.uniform(10, 500))
-            rows.append(dict(sym=s, date=d.isoformat(), close=vwap, valid=True, delivQty=q, vol=q * 2,
+            if s == "SPLT" and di >= 20:  # a 1:2 split inside most ranges: quantities double, prices halve, values are unchanged
+                vwap, q = vwap / 2, q * 2
+            rows.append(dict(sym=s, date=d.isoformat(), close=vwap, prevClose=vwap * float(rng.uniform(0.95, 1.05)),
+                             valid=True, delivQty=q, vol=q * 2, trades=int(q // 10),
                              delivValCr=q * vwap / 1e7, turnoverCr=q * 2 * vwap / 1e7))
     df = pd.DataFrame(rows)
     outputs.write_cum(df, days, syms, 60, tmp_path)
@@ -97,5 +100,12 @@ def test_cumulative_range_sums_equal_direct_sums(tmp_path):
             assert abs(got - direct["delivValCr"].sum()) < 0.01 * (b - a + 1)  # daily/cum rounded to 2 dp
             pv = ca["cDays"] if ca else 0
             assert (cb["cDays"] - pv if cb else 0) == len(direct)
+            # 08 section 5A: delivery value on up and down days and trades, for delivBalance / avgTradeSize of any range
+            up = direct[direct["close"] > direct["prevClose"]]["delivValCr"].sum()
+            dn = direct[direct["close"] < direct["prevClose"]]["delivValCr"].sum()
+            for col, want in (("cDelivValUpCr", up), ("cDelivValDnCr", dn)):
+                got = (cb[col] - (ca[col] if ca else 0.0)) if cb else 0.0
+                assert abs(got - want) < 0.01 * (b - a + 1)
+            assert (cb["cTrades"] - (ca["cTrades"] if ca else 0) if cb else 0) == direct["trades"].sum()
     assert "LATE" not in cum(5)  # absent before listing
     assert cum(12)["GAP"]["lastTradeDate"] == days[9].isoformat()  # carried forward with last values

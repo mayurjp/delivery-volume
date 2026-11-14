@@ -21,75 +21,91 @@
     "cTurnoverCr",
     "cDelivQty",
     "cVol",
-    "cDays"
+    "cDays",
+    "cDelivValUpCr",
+    "cDelivValDnCr",
+    "cTrades"
    ]
   },
   "rows": {
    "type": "array",
    "items": {
-    "$ref": "#/$defs/row"
+    "type": "array",
+    "minItems": 11,
+    "maxItems": 11,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    ]
    }
   },
   "date": {
    "type": "string",
    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-  }
- },
- "$defs": {
-  "row": {
-   "type": "array",
-   "minItems": 8,
-   "maxItems": 8,
-   "prefixItems": [
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    }
-   ]
   }
  }
 }

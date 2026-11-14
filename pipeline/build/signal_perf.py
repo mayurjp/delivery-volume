@@ -19,6 +19,17 @@ MIN_N = 30
 EXCLUDED_FLAGS = C.FLAG["lowLiquidity"] | C.FLAG["t2t"] | C.FLAG["etf"]
 ADJ_THRESHOLD = 0.03
 
+
+def adjustment_matrix(close: np.ndarray, prev: np.ndarray) -> np.ndarray:
+    """True on a day whose forward windows must be dropped: prevClose(t) differs from close(t-1) by more than 3% (04 section 6)
+    OR close(t) / close(t-1) is at most 0.78 or at least 1.8, a one-day move beyond the 20% circuit band. NSE's prevClose
+    is RAW on a split/bonus ex-date, so the prevClose rule alone misses almost every split; this also drops the windows
+    around a genuine crash of more than 22%, which is the safe direction."""
+    prev_c = np.vstack([np.full((1, close.shape[1]), np.nan), close[:-1]])
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ratio = close / prev_c
+        return (np.abs(prev / prev_c - 1) > ADJ_THRESHOLD) | (ratio <= 0.78) | (ratio >= 1.8)
+
 # F&O and deals combinations arrive with Phases 4/5 (their data is not in the build yet).
 EVENTS = [
     ("ACC", "Up on heavy delivery (ACC)"), ("DIS", "Down on heavy delivery (DIS)"),
@@ -66,9 +77,7 @@ def compute(df: pd.DataFrame, days: list[str], uni: pd.DataFrame, n200_bit: int)
     prev = np.full((T, len(syms)), np.nan)
     close[ti_all, sj_all] = df["close"].to_numpy(float)
     prev[ti_all, sj_all] = df["prevClose"].to_numpy(float)
-    prev_c = np.vstack([np.full((1, len(syms)), np.nan), close[:-1]])
-    with np.errstate(invalid="ignore", divide="ignore"):
-        adj = np.abs(prev / prev_c - 1) > ADJ_THRESHOLD
+    adj = adjustment_matrix(close, prev)
     adj_cum = np.cumsum(np.nan_to_num(adj, nan=0).astype(int), axis=0)
 
     flags = df["flags"].fillna(0).astype(np.int64)

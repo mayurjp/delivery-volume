@@ -1,5 +1,6 @@
 import type { Bucket } from '../types/data';
 import { defaultFilters, type Filters } from './filters';
+import { TF_KEYS } from './timeframe';
 
 /**
  * Filter and date state <-> URL query params (05 section 1), e.g. ?u=NIFTY200&b=L,M&sec=Financial%20Services&d=2026-11-13.
@@ -66,10 +67,10 @@ export function parseDate(p: URLSearchParams, tradingDays: readonly string[], la
   return d && ISO.test(d) && tradingDays.includes(d) ? d : latest;
 }
 
-/** Query string carried between pages: the filter params and the date. */
+/** Query string carried between pages: the filter params, the timeframe and the date. */
 export function carryParams(p: URLSearchParams): string {
   const q = new URLSearchParams();
-  for (const k of [...FILTER_KEYS, 'd']) {
+  for (const k of [...FILTER_KEYS, ...TF_KEYS, 'd']) {
     const v = p.get(k);
     if (v !== null) q.set(k, v);
   }

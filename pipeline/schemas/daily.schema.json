@@ -45,247 +45,214 @@
     "delivPctPctile",
     "streak",
     "signal",
-    "flags",
-    "futOi",
-    "futOiChgPct",
-    "buildup",
-    "pcr"
+    "flags"
    ]
   },
   "rows": {
    "type": "array",
    "items": {
-    "$ref": "#/$defs/row"
+    "type": "array",
+    "minItems": 32,
+    "maxItems": 32,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    ]
    }
   },
   "date": {
    "type": "string",
    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-  }
- },
- "$defs": {
-  "row": {
-   "type": "array",
-   "minItems": 36,
-   "maxItems": 36,
-   "prefixItems": [
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    }
-   ]
   }
  }
 }

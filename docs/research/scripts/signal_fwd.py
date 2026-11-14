@@ -2,7 +2,8 @@
 
 Usage: python -I signal_fwd.py <site/public/data/daily dir>
 Excess return = stock's forward return minus the median forward return of all liquid stocks that day.
-Windows that cross a price adjustment (split/bonus: prevClose(t) != close(t-1) by >3%) are dropped.
+Windows that cross a price adjustment are dropped: prevClose(t) != close(t-1) by >3%, or a one-day close ratio <= 0.78 or
+>= 1.8 (NSE's PREV_CLOSE is raw on a split/bonus ex-date, so the first rule alone catches almost no splits).
 """
 import json
 import sys
@@ -17,8 +18,8 @@ for f in sorted(d.glob("20*.json")):
     doc = json.loads(f.read_text(encoding="utf-8"))
     df = pd.DataFrame(doc["rows"], columns=doc["columns"])
     df["date"] = doc["date"]
-    frames.append(df[["date", "sym", "series", "close", "prevClose", "ret1", "spike", "clv",
-                      "delivPctDiff", "signal", "flags"]])
+    frames.append(df.reindex(columns=["date", "sym", "series", "close", "prevClose", "ret1", "spike", "clv",
+                      "delivPctDiff", "signal", "flags"]))
 df = pd.concat(frames, ignore_index=True)
 days = sorted(df["date"].unique())
 di = {x: i for i, x in enumerate(days)}
@@ -33,7 +34,8 @@ P = np.full((T, len(syms)), np.nan)
 C[df["t"], df["sym"].map(si)] = df["close"]
 P[df["t"], df["sym"].map(si)] = df["prevClose"]
 prev_c = np.vstack([np.full((1, len(syms)), np.nan), C[:-1]])
-adj = np.abs(P / prev_c - 1) > 0.03          # price adjustment between t-1 and t
+adj = (np.abs(P / prev_c - 1) > 0.03) | (C / prev_c <= 0.78) | (C / prev_c >= 1.8)  # price adjustment between t-1 and t
+# splits/bonuses: NSE's PREV_CLOSE is RAW on an ex-date, so also drop windows around a one-day close ratio <= 0.78 or >= 1.8
 adj = np.nan_to_num(adj, nan=0).astype(int)
 adj_cum = np.cumsum(adj, axis=0)
 

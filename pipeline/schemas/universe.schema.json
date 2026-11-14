@@ -31,92 +31,87 @@
   "rows": {
    "type": "array",
    "items": {
-    "$ref": "#/$defs/row"
+    "type": "array",
+    "minItems": 13,
+    "maxItems": 13,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "array"
+      ]
+     },
+     {
+      "type": [
+       "boolean"
+      ]
+     },
+     {
+      "type": [
+       "boolean"
+      ]
+     }
+    ]
    }
-  }
- },
- "$defs": {
-  "row": {
-   "type": "array",
-   "minItems": 13,
-   "maxItems": 13,
-   "prefixItems": [
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "array"
-     ]
-    },
-    {
-     "type": [
-      "boolean"
-     ]
-    },
-    {
-     "type": [
-      "boolean"
-     ]
-    }
-   ]
   }
  }
 }

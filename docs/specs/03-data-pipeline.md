@@ -145,7 +145,7 @@ There is one row per symbol in the latest day's universe. Symbols with no trade 
 
 ### 5.3 `daily/{YYYY-MM-DD}.json`, one per trading day
 
-Each file has one row per universe symbol that traded that day, plus t2t-series rows (flagged). Target size: ≤ 250 KB gzipped.
+Each file has one row per universe symbol that traded that day, plus t2t-series rows (flagged). Target size: ≤ 250 KB gzipped. **Only the newest `publish.dailyFullTradingDays` (260) days carry every column; older days carry the slim set** `meta.publish.dailySlimColumns` (07 §8). The F&O columns are not published until Phase 5 (DEVIATIONS #55).
 
 | Column | Meaning (formulas in 04) |
 |--------|--------------------------|
@@ -186,18 +186,26 @@ There is one row per universe symbol. A symbol that did not trade that day is **
 
 ```json
 { "schemaVersion": 1, "date": "2026-11-13",
-  "columns": ["sym","lastClose","lastTradeDate","cDelivValCr","cTurnoverCr","cDelivQty","cVol","cDays"],
-  "rows": [["RELIANCE", 1450.2, "2026-11-13", 912345.67, 2012345.12, 812345678, 1712345678, 253]] }
+  "columns": ["sym","lastClose","lastTradeDate","cDelivValCr","cTurnoverCr","cDelivQty","cVol","cDays","cDelivValUpCr","cDelivValDnCr","cTrades"],
+  "rows": [["RELIANCE", 1450.2, "2026-11-13", 912345.67, 2012345.12, 812345678, 1712345678, 253, 450123.4, 430222.1, 9123456]] }
 ```
 
 - Every sum starts at the first store date and includes **valid delivery days only** (04 §1). `cDays` counts those days.
+- `cDelivValUpCr` / `cDelivValDnCr` are the delivery value on days the close was above / below `prevClose`; `cTrades` sums the trades. They give `delivBalance` (up ÷ down) and `avgTradeSize` (turnover ÷ trades) for any range (08 §5A).
 - For range R = [a, b], the sum is `X(b) − X(prev(a))`, where `prev(a)` is the trading day before `a`. If `a` is the first store date, or the symbol is absent from `cum/prev(a)`, treat the prior sum as 0 and flag the row `listedDuringRange`.
+
+### 5.4b Timeframe files (Phase 3B, 08)
+
+- `periods.json`: `{config, weekly[], monthly[], quarterly[]}`; each entry `{key,start,end,tradingDays,partial,daysIn,daysExpected,stocks,file?}` (start/end = first/last trading day). `config` holds the baselines, thresholds and liquidity floors the client's `aggregatePeriods` needs.
+- `weekly/{weekEnd}.json`, `monthly/{YYYY-MM}.json`: slim columnar snapshots, columns `sym,days,open,high,low,close,prevClose,vwap,vol,turnoverCr,trades,delivQty,delivPct,delivValCr,ret,clv,avgTradeSize,delivBalance,delivValAvgN,delivPctAvgN,turnoverAvgCr,spike,delivPctDiff,relTurnover,tradeSizeRatio,delivPctZ,delivPctPctile,streak,signal,flags,adjusted`. No quarterly files.
+- `market.json` gains `weekly`, `monthly`, `quarterly` blocks `{keys,ends,partial,groups,indexClose}`.
+- `stats/signal_perf_periods.json`: forward excess returns after weekly / monthly signals (entry = close of the first trading day after the period; horizons 20 and 60 trading days for weekly, 63 and 126 for monthly).
 
 ### 5.5 `symbols/{f}.json`: full history of one stock
 
 ```json
 { "schemaVersion": 1, "sym": "RELIANCE", "name": "...", "sector": "...", "idx": 1023, "bucket": "L",
-  "columns": ["date","series","open","high","low","close","vwap","vol","turnoverCr","trades","delivQty","delivPct","delivValCr","delivPctAvg20","spike","signal","flags","futOi","futOiChgPct","buildup","pcr"],
+  "columns": ["date","series","open","high","low","close","prevClose","vwap","vol","turnoverCr","trades","delivQty","delivPct","delivValCr","delivPctAvg20","spike","signal","flags"],  // + futOi, futOiChgPct, buildup, pcr from Phase 5
   "rows": [ ... ],
   "deals": [{"date":"2026-11-13","type":"block","client":"...","entityId":"...","side":"BUY","qty":4200000,"price":246.75,"valueCr":103.64,"roundTrip":false}],
   "corpActions": [{"exDate":"2026-08-14","kind":"DIVIDEND","purpose":"DIVIDEND - RS 5.5 PER SHARE"}],
@@ -300,7 +308,7 @@ Columns `sym, exDate, kind, purpose`: every SPLIT and BONUS ex-date in the store
 - "Prior N" windows exclude the current day: `series.shift(1).rolling(N, min_periods=ceil(N * minPeriodsFraction))`.
 - Value-weighted averages are ratios of sums, never averages of ratios.
 - Put every formula in `pipeline/metrics.py` and give each a unit test with hand-computed expected values.
-- `build` rebuilds everything from `store/` every run. It must finish in under 3 minutes for 2 years of data on a GitHub runner. Vectorise with pandas `groupby` and do not loop over rows in Python.
+- `build` rebuilds everything from `store/` every run. It must finish in **under 6 minutes for 3 years of data on a GitHub runner** (it was 3 minutes for 1 year; updated in Phase 3B). Text columns are plain `object` (pandas 3's str dtype is slow to group without pyarrow), group keys are integer codes, and table validation checks cell types with a column scan instead of per-cell jsonschema. Vectorise with pandas `groupby` and do not loop over rows in Python.
 
 ## 7. Scheduling and deployment
 

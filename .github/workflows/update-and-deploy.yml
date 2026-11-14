@@ -79,7 +79,7 @@ jobs:
   build:
     needs: update
     runs-on: ubuntu-latest
-    timeout-minutes: 25 # the pipeline build takes 1.5-3 minutes, the site build under 1
+    timeout-minutes: 40 # the pipeline build targets 6 minutes on a runner (3 years of data), the site build under 2
     steps:
       # check out the branch tip, so the data commit made by the update job is included
       - uses: actions/checkout@v4

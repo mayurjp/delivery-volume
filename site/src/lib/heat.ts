@@ -1,3 +1,7 @@
+import type { Market } from '../types/data';
+import { marketSeries } from './marketBars';
+import { periodLabel, type TfKind, type TimeframeState } from './timeframe';
+
 /** Pure helpers for heat maps, quadrant scatter and statistics (05 sections P3, P4, P8). */
 
 export type ColorMetric = 'spike' | 'diff' | 'ret';
@@ -181,4 +185,102 @@ export function gridDeviation(
   const win = series.slice(lo).filter((v): v is number => v !== null);
   const m = win.length ? win.reduce((s, x) => s + x, 0) / win.length : null;
   return series.slice(from).map((v) => (v === null || m === null ? null : v - m));
+}
+
+// ---- group x period grid (08 section 5) ------------------------------------------------------------------------------
+
+/** How many columns the group grid shows: 20 weeks, 12 months, 8 quarters, 20 N-day bars; 20 or 60 days for d and r. */
+export function gridColumnCount(tf: TfKind, win: 20 | 60 = 20): number {
+  switch (tf) {
+    case 'w':
+      return 20;
+    case 'm':
+      return 12;
+    case 'q':
+      return 8;
+    case 'c':
+      return 20;
+    default:
+      return win;
+  }
+}
+
+/** Number of trailing periods whose mean is the colour reference of a group (its own normal). */
+export function gridBase(tf: TfKind): number {
+  switch (tf) {
+    case 'w':
+      return 40;
+    case 'm':
+      return 24;
+    case 'q':
+      return 12;
+    case 'c':
+      return 40;
+    default:
+      return 60;
+  }
+}
+
+/** Word for the column unit, plural. */
+export const GRID_UNIT: Record<TfKind, string> = {
+  d: 'days',
+  w: 'weeks',
+  m: 'months',
+  q: 'quarters',
+  c: 'bars',
+  r: 'days',
+};
+
+/** Axis label of one column; a period still in progress carries a star. */
+export function gridColumnLabel(tf: TfKind, key: string, end: string, partial: boolean): string {
+  const base = tf === 'w' || tf === 'm' || tf === 'q' ? periodLabel(tf, { key, end }) : end;
+  return partial ? `${base}*` : base;
+}
+
+export interface GroupGrid {
+  rows: string[];
+  dates: string[];
+  /** Column labels for periods (absent for daily columns, which use the date). */
+  labels?: string[];
+  cells: [number, number, number | null][];
+  /** True when the last column is a period still in progress. */
+  lastPartial: boolean;
+}
+
+/**
+ * The group x period grid: groups whose key starts with `prefix`, the last gridColumnCount columns of
+ * marketSeries(market, group, tf), coloured by delivPctW minus the group's own mean over the trailing gridBase periods (pp).
+ */
+export function buildGroupGrid(
+  market: Market,
+  prefix: string,
+  tf: TimeframeState,
+  win: 20 | 60 = 20,
+): GroupGrid {
+  const keys = Object.keys(market.groups).filter((k) => k.startsWith(prefix));
+  const count = gridColumnCount(tf.tf, win);
+  const base = gridBase(tf.tf);
+  const rows: string[] = [];
+  let dates: string[] = [];
+  let labels: string[] | undefined;
+  let lastPartial = false;
+  const cells: GroupGrid['cells'] = [];
+  for (const k of keys) {
+    const s = marketSeries(market, k, tf);
+    if (!s) continue;
+    const from = Math.max(0, s.ends.length - count);
+    if (rows.length === 0) {
+      dates = s.ends.slice(from);
+      if (tf.tf !== 'd' && tf.tf !== 'r') {
+        labels = dates.map((e, i) =>
+          gridColumnLabel(tf.tf, s.keys[from + i]!, e, s.partial[from + i] ?? false),
+        );
+      }
+      lastPartial = s.partial[s.partial.length - 1] ?? false;
+    }
+    const yi = rows.length;
+    rows.push(k.slice(prefix.length));
+    gridDeviation(s.group.delivPctW, from, base).forEach((v, xi) => cells.push([xi, yi, v]));
+  }
+  return { rows, dates, labels, cells, lastPartial };
 }

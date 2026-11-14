@@ -75,6 +75,18 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_merge_history(args: argparse.Namespace) -> int:
+    from . import merge_history
+
+    staging = args.staging if args.staging.is_absolute() else config.ROOT / args.staging
+    res = merge_history.merge(staging, STORE_DIR)
+    print(f"merge-history: moved {res['moved']} files {res['perKind']}, {res['alreadyThere']} already in store, "
+          f"{len(res['conflicts'])} conflicts; store now has {res['tradingDays']} trading days")
+    for c in res["conflicts"]:
+        print("  CONFLICT (left in staging):", c)
+    return 1 if res["conflicts"] else 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     days = store.list_dates("cm_delivery")
     last = days[-30:]
@@ -112,4 +124,4 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def dispatch(args: argparse.Namespace) -> int:
     return {"fetch": cmd_fetch, "backfill": cmd_backfill, "update": cmd_update, "collect": cmd_collect, "backfill-deals": cmd_backfill_deals, "build": cmd_build,
-            "status": cmd_status}[args.cmd](args)
+            "merge-history": cmd_merge_history, "status": cmd_status}[args.cmd](args)

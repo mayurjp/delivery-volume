@@ -3,7 +3,13 @@ import type {
   DailyRow,
   Market,
   Meta,
+  PeriodInfo,
+  PeriodSnapshot,
+  PeriodSnapshotRow,
+  PeriodsDoc,
   SignalPerfDoc,
+  SignalPerfPeriodRow,
+  SignalPerfPeriodsDoc,
   SignalPerfRow,
   SplitBonusRow,
   SymbolFile,
@@ -19,6 +25,58 @@ import type {
  */
 
 export const LRU_SIZE = 40;
+
+/** Every daily column. daily/ files older than publish.dailyFullTradingDays (and the F&O columns, until Phase 5) lack some of them. */
+export const DAILY_KEYS: readonly (keyof DailyRow)[] = [
+  'sym',
+  'series',
+  'open',
+  'high',
+  'low',
+  'close',
+  'prevClose',
+  'vwap',
+  'vol',
+  'turnoverCr',
+  'trades',
+  'delivQty',
+  'delivPct',
+  'delivValCr',
+  'delivValAvg5',
+  'delivValAvg20',
+  'delivValAvg50',
+  'delivPctAvg20',
+  'volAvg20',
+  'turnoverAvg20Cr',
+  'tradeSizeRatio',
+  'spike',
+  'delivPctDiff',
+  'relVol',
+  'ret1',
+  'clv',
+  'vwapGap',
+  'delivPctZ60',
+  'delivPctPctile',
+  'streak',
+  'signal',
+  'flags',
+  'futOi',
+  'futOiChgPct',
+  'buildup',
+  'pcr',
+];
+
+/** A column that a given day's file does not carry reads as null, so the UI shows "—" (with a tooltip for slim days). */
+export function fillMissing<T extends object>(
+  rows: T[],
+  columns: readonly string[],
+  all: readonly string[],
+): T[] {
+  const missing = all.filter((k) => !columns.includes(k));
+  if (missing.length === 0) return rows;
+  for (const r of rows) for (const k of missing) (r as Record<string, unknown>)[k] = null;
+  return rows;
+}
 
 export type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -116,7 +174,56 @@ export class DataClient {
   }
 
   daily(date: string, latest: string): Promise<DailyRow[]> {
-    return this.table<DailyRow>(date === latest ? 'daily/latest.json' : `daily/${date}.json`);
+    const path = date === latest ? 'daily/latest.json' : `daily/${date}.json`;
+    return this.cached(path, async () => {
+      const doc = await this.fetchData<Table>(path);
+      return fillMissing(rowsToObjects<DailyRow>(doc), doc.columns, DAILY_KEYS);
+    });
+  }
+
+  /** periods.json: the weeks, months and quarters, and the aggregation config the client uses (08 section 4). */
+  periods(): Promise<PeriodsDoc> {
+    return this.getJson<PeriodsDoc>('periods.json');
+  }
+
+  /** One weekly/ or monthly/ snapshot (slim columns). */
+  periodSnapshot(tf: 'w' | 'm', info: PeriodInfo): Promise<PeriodSnapshot> {
+    const path = info.file ?? (tf === 'w' ? `weekly/${info.end}.json` : `monthly/${info.key}.json`);
+    return this.cached(path, async () => {
+      const doc = await this.fetchData<
+        Table & {
+          tf: 'w' | 'm';
+          key: string;
+          start: string;
+          end: string;
+          partial: boolean;
+          daysIn: number;
+          daysExpected: number;
+        }
+      >(path);
+      return {
+        info: {
+          tf,
+          key: doc.key,
+          start: doc.start,
+          end: doc.end,
+          partial: doc.partial,
+          daysIn: doc.daysIn,
+          daysExpected: doc.daysExpected,
+        },
+        rows: rowsToObjects<PeriodSnapshotRow>(doc),
+      };
+    });
+  }
+
+  signalPerfPeriodsDoc(): Promise<SignalPerfPeriodsDoc> {
+    return this.getJson<SignalPerfPeriodsDoc>('stats/signal_perf_periods.json');
+  }
+
+  signalPerfPeriods(): Promise<SignalPerfPeriodRow[]> {
+    return this.cached('signalPerfPeriods:rows', async () =>
+      rowsToObjects<SignalPerfPeriodRow>(await this.signalPerfPeriodsDoc()),
+    );
   }
 
   cum(date: string): Promise<CumRow[]> {

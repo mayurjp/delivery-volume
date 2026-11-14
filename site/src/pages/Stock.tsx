@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { calendarOption, stockChartOption } from '../charts/options';
+import { barHolding, barSpecOf, baselineLabel, periodChartOption, periodTitle } from '../charts/periods';
+import { FootprintCard, PeriodSummary, rangeSpanText } from '../components/PeriodPanels';
+import { aggregatePeriods, aggregateRange } from '../lib/aggregate';
+import { dataClient } from '../lib/dataClient';
+import { footprintRows, priorWindow } from '../lib/footprint';
+import { periodSignalHistory } from '../lib/signalPerf';
 import EChart from '../charts/EChart';
 import { deliveryClass, palette, priceClass } from '../charts/theme';
 import { AppLink, Empty, ErrorBox, EtfBadge, FlagIcons, SignalBadge, Skeleton, Tip } from '../components/ui';
@@ -17,11 +23,11 @@ import {
   fmtRatio,
   fmtSigned,
 } from '../lib/format';
-import { useApp, useDaily, useSymbol } from '../lib/hooks';
+import { useApp, useAsync, useDaily, useGlobalState, useSymbol, useTimeframe } from '../lib/hooks';
 import { stockStats } from '../lib/metrics';
 import { useDark } from '../lib/theme';
 import { toggleWatch, useWatchlist } from '../lib/watchlist';
-import type { Bucket, UniverseRow } from '../types/data';
+import type { Bucket, SignalCode, UniverseRow } from '../types/data';
 
 const WINDOWS: { label: string; n: number }[] = [
   { label: '1M', n: 21 },
@@ -183,6 +189,15 @@ export default function Stock() {
   const dark = useDark();
   const mobile = useMobile();
   const [win, setWin] = useState(126);
+  const { meta } = useApp();
+  const { state: tfState } = useTimeframe();
+  const { date: globalDate } = useGlobalState();
+  const spec = useMemo(() => barSpecOf(tfState), [tfState]);
+  const custom = tfState.tf === 'r';
+  const periodsDoc = useAsync(tfState.tf !== 'd' ? 'periods' : null, () => dataClient.periods());
+  const periodPerf = useAsync(tfState.tf === 'w' || tfState.tf === 'm' ? 'signalPerfPeriods' : null, () =>
+    dataClient.signalPerfPeriods(),
+  );
 
   useEffect(() => {
     if (u) document.title = `${u.sym} – Delivery Volume`;
@@ -196,6 +211,55 @@ export default function Stock() {
   const chart = useMemo(
     () => (data.data ? stockChartOption(data.data.rows, data.data.file.corpActions, pal, mobile) : null),
     [data.data, pal, mobile],
+  );
+  const periodRows = useMemo(
+    () =>
+      spec && data.data && periodsDoc.data && u
+        ? aggregatePeriods(data.data.rows, spec, meta.tradingDays, periodsDoc.data.config, { etf: u.etf })
+        : null,
+    [spec, data.data, periodsDoc.data, meta.tradingDays, u],
+  );
+  const periodChart = useMemo(
+    () =>
+      spec && periodRows && periodRows.length > 0 && periodsDoc.data
+        ? periodChartOption(periodRows, spec, pal, { mobile, cfg: periodsDoc.data.config })
+        : null,
+    [spec, periodRows, periodsDoc.data, pal, mobile],
+  );
+  const summaryRow = useMemo(
+    () => (periodRows ? barHolding(periodRows, globalDate) : null),
+    [periodRows, globalDate],
+  );
+  // custom range: one aggregate over from..to and the equal-length window before it
+  const rangeInfo = useMemo(() => {
+    if (!custom || !rows || !tfState.from || !tfState.to) return null;
+    const lo = tfState.from <= tfState.to ? tfState.from : tfState.to;
+    const hi = tfState.from <= tfState.to ? tfState.to : tfState.from;
+    const cur = aggregateRange(rows, lo, hi);
+    const pw = priorWindow(meta.tradingDays, lo, hi);
+    const prev = pw ? aggregateRange(rows, pw.a, pw.b) : null;
+    return { lo, hi, cur, pw, prev };
+  }, [custom, rows, tfState.from, tfState.to, meta.tradingDays]);
+  const rangeChart = useMemo(
+    () =>
+      rangeInfo?.cur && periodsDoc.data
+        ? periodChartOption([rangeInfo.cur], { kind: 'n', n: rangeInfo.cur.daysIn }, pal, {
+            mobile,
+            cfg: periodsDoc.data.config,
+            zoom: { start: 0, end: 100 },
+          })
+        : null,
+    [rangeInfo, periodsDoc.data, pal, mobile],
+  );
+  const dailyHighlighted = useMemo(
+    () =>
+      data.data && rangeInfo
+        ? stockChartOption(data.data.rows, data.data.file.corpActions, pal, mobile, {
+            a: rangeInfo.lo,
+            b: rangeInfo.hi,
+          })
+        : null,
+    [data.data, rangeInfo, pal, mobile],
   );
   const cal = useMemo(() => (rows ? calendarOption(rows, pal) : null), [rows, pal]);
   const stats = useMemo(() => (rows ? stockStats(rows, win) : null), [rows, win]);
@@ -212,25 +276,126 @@ export default function Stock() {
     <div className="space-y-3">
       <Header u={u} rows={data.data} />
 
-      <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
-        <h2 className="mb-1 text-sm font-semibold">Price, delivered volume and delivery %</h2>
-        {chart ? (
-          <EChart
-            option={chart}
-            height={mobile ? 460 : 540}
-            ariaLabel={`${u.sym} candlestick, delivered volume and delivery percent`}
-          />
+      {spec ? (
+        !periodsDoc.data ? (
+          <Skeleton height={540} />
         ) : (
-          <Skeleton height={mobile ? 460 : 540} />
-        )}
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          {mobile
-            ? 'Drag the slider to zoom; tap the chart for values.'
-            : 'Ctrl + scroll to zoom, drag to pan; hover for values.'}{' '}
-          Dashed vertical lines mark corporate-action ex-dates. Volume is in shares and not adjusted for
-          splits or bonuses; compare delivery value and delivery %, not raw quantity, across such dates.
-        </p>
-      </section>
+          <>
+            {summaryRow && (
+              <PeriodSummary
+                row={summaryRow}
+                title={periodTitle(spec, summaryRow)}
+                baseline={baselineLabel(spec, periodsDoc.data.config)}
+                bucket={u.bucket}
+                history={
+                  tfState.tf === 'w' || tfState.tf === 'm'
+                    ? (periodSignalHistory(
+                        periodPerf.data,
+                        tfState.tf,
+                        (summaryRow.signal as SignalCode | null) ?? null,
+                        u.bucket,
+                      ) ?? '')
+                    : ''
+                }
+              />
+            )}
+            <section aria-label="Price, volume and delivery chart by period" className="card min-w-0 p-3">
+              <h2 className="mb-1 text-sm font-semibold">
+                Price, delivered volume and delivery % by{' '}
+                {tfState.tf === 'w'
+                  ? 'week'
+                  : tfState.tf === 'm'
+                    ? 'month'
+                    : tfState.tf === 'q'
+                      ? 'quarter'
+                      : `${tfState.n}-day bar`}
+              </h2>
+              {periodRows && periodRows.length === 0 ? (
+                <Empty>Not enough history yet</Empty>
+              ) : periodChart ? (
+                <EChart
+                  option={periodChart}
+                  height={mobile ? 540 : 620}
+                  ariaLabel={`${u.sym} candlestick, delivered volume, delivery percent, spike and delivery balance per bar`}
+                />
+              ) : (
+                <Skeleton height={mobile ? 540 : 620} />
+              )}
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Each bar is one period; a faded bar is still in progress. Prices are in the basis of the
+                period end, so a split does not break the candles (a warning marker sits on those bars);
+                volume and delivered quantity are plain sums. Bottom pane: spike (delivery value vs the
+                baseline) and delivery balance (delivery value on up days / down days, capped at 10), both as
+                ratios where 1 is normal or equal. Drag the slider or Ctrl + scroll to zoom.
+              </p>
+            </section>
+          </>
+        )
+      ) : custom ? (
+        <>
+          {!tfState.from || !tfState.to ? (
+            <section className="card p-3">
+              <Empty>Pick a start and end date in the timeframe control to see a custom range.</Empty>
+            </section>
+          ) : !rows || !periodsDoc.data ? (
+            <Skeleton height={320} />
+          ) : !rangeInfo?.cur ? (
+            <section className="card p-3">
+              <Empty>Not enough history yet: no trading day in this range</Empty>
+            </section>
+          ) : (
+            <>
+              <FootprintCard
+                rows={footprintRows(rangeInfo.cur, rangeInfo.prev)}
+                rangeText={rangeSpanText(rangeInfo.lo, rangeInfo.hi, rangeInfo.cur.daysIn)}
+                prevText={
+                  rangeInfo.pw ? rangeSpanText(rangeInfo.pw.a, rangeInfo.pw.b, rangeInfo.pw.days) : null
+                }
+              />
+              <section aria-label="The range as one bar" className="card min-w-0 p-3">
+                <h2 className="mb-1 text-sm font-semibold">The range as one bar</h2>
+                {rangeChart && (
+                  <EChart
+                    option={rangeChart}
+                    height={mobile ? 420 : 460}
+                    ariaLabel={`${u.sym} the custom range as one bar`}
+                  />
+                )}
+              </section>
+              <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
+                <h2 className="mb-1 text-sm font-semibold">Daily bars, range shaded</h2>
+                {dailyHighlighted && (
+                  <EChart
+                    option={dailyHighlighted}
+                    height={mobile ? 460 : 540}
+                    ariaLabel={`${u.sym} daily chart with the custom range shaded`}
+                  />
+                )}
+              </section>
+            </>
+          )}
+        </>
+      ) : (
+        <section aria-label="Price, volume and delivery chart" className="card min-w-0 p-3">
+          <h2 className="mb-1 text-sm font-semibold">Price, delivered volume and delivery %</h2>
+          {chart ? (
+            <EChart
+              option={chart}
+              height={mobile ? 460 : 540}
+              ariaLabel={`${u.sym} candlestick, delivered volume and delivery percent`}
+            />
+          ) : (
+            <Skeleton height={mobile ? 460 : 540} />
+          )}
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {mobile
+              ? 'Drag the slider to zoom; tap the chart for values.'
+              : 'Ctrl + scroll to zoom, drag to pan; hover for values.'}{' '}
+            Dashed vertical lines mark corporate-action ex-dates. Volume is in shares and not adjusted for
+            splits or bonuses; compare delivery value and delivery %, not raw quantity, across such dates.
+          </p>
+        </section>
+      )}
 
       <section aria-label="Delivery statistics" className="card p-3">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

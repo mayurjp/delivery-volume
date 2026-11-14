@@ -6,7 +6,10 @@
   "schemaVersion",
   "dates",
   "groups",
-  "indexClose"
+  "indexClose",
+  "weekly",
+  "monthly",
+  "quarterly"
  ],
  "properties": {
   "schemaVersion": {
@@ -120,6 +123,36 @@
      ]
     }
    }
+  },
+  "weekly": {
+   "type": "object",
+   "required": [
+    "keys",
+    "ends",
+    "partial",
+    "groups",
+    "indexClose"
+   ]
+  },
+  "monthly": {
+   "type": "object",
+   "required": [
+    "keys",
+    "ends",
+    "partial",
+    "groups",
+    "indexClose"
+   ]
+  },
+  "quarterly": {
+   "type": "object",
+   "required": [
+    "keys",
+    "ends",
+    "partial",
+    "groups",
+    "indexClose"
+   ]
   }
  }
 }

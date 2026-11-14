@@ -22,41 +22,36 @@
   "rows": {
    "type": "array",
    "items": {
-    "$ref": "#/$defs/row"
+    "type": "array",
+    "minItems": 4,
+    "maxItems": 4,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    ]
    }
-  }
- },
- "$defs": {
-  "row": {
-   "type": "array",
-   "minItems": 4,
-   "maxItems": 4,
-   "prefixItems": [
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    }
-   ]
   }
  }
 }

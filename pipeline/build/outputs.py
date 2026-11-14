@@ -12,11 +12,12 @@ import numpy as np
 import pandas as pd
 
 from .. import calendar as cal_mod
-from .. import store
+from .. import metrics, store
 from ..etf import detect_etf
 from ..sources.base import parse_dmy_mon
 from ..symbols import file_key
 from . import columns as C
+from .loader import resolve_alias
 from .schema import validate
 
 CA_FLAG_KINDS = {"DIVIDEND", "BONUS", "SPLIT", "RIGHTS", "BUYBACK"}
@@ -83,13 +84,19 @@ _POOL = ThreadPoolExecutor(max_workers=8)  # file creation is I/O bound (slow on
 _PENDING: list = []
 
 
+_DIRS: set[Path] = set()
+
+
 def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write(text)
 
 
 def dump(path: Path, obj: dict) -> int:
     text = json.dumps(obj, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    if path.parent not in _DIRS:  # one mkdir per folder, not one per file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _DIRS.add(path.parent)
     _PENDING.append(_POOL.submit(_write, path, text))
     return len(text)
 
@@ -126,7 +133,7 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
     has_eq = set(df.loc[df["series"] == "EQ", "sym"])
     syms = sorted(s for s, li in last_idx.items() if s in has_eq and (T - 1 - li) <= carry)
     u = pd.DataFrame({"sym": syms})
-    latest = df.sort_values("date").groupby("sym").tail(1).set_index("sym")
+    latest = df.groupby("sym", sort=False).tail(1).set_index("sym")  # df is sorted by (sym, date)
     u["lastClose"] = u["sym"].map(latest["close"])
 
     # market cap: S4 mcap on the latest day; otherwise the most recent issueSize x latest close (flagged)
@@ -134,7 +141,7 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
     if mcap_latest is not None:
         m = mcap_latest[mcap_latest["series"].isin(("EQ", "BE", "BZ"))].drop_duplicates("symbol", keep="first")
         if alias:
-            m = m.assign(symbol=m["symbol"].replace(alias)).drop_duplicates("symbol")
+            m = m.assign(symbol=resolve_alias(m["symbol"], alias)).drop_duplicates("symbol")
         mc = m.set_index("symbol")["mcapRs"]
     u["mcapCr"] = u["sym"].map(mc) / 1e7
     u["mcapEstimated"] = False
@@ -142,15 +149,15 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
     if miss.any() and len(mcap_hist):
         h = mcap_hist.copy()
         if alias:
-            h["symbol"] = h["symbol"].replace(alias)
+            h["symbol"] = resolve_alias(h["symbol"], alias)
         issue = h.sort_values("date").dropna(subset=["issueSize"]).groupby("symbol").tail(1).set_index("symbol")
         est = u["sym"].map(issue["issueSize"]) * u["lastClose"] / 1e7
         u.loc[miss, "mcapCr"] = est[miss]
         u.loc[miss & est.notna(), "mcapEstimated"] = True
     # ETFs (flagged, DEVIATIONS #32) never take a market-cap rank or bucket, so real companies keep correct ranks
-    mcap_syms = set(mcap_hist["symbol"].replace(alias) if alias else mcap_hist["symbol"])
+    mcap_syms = set(resolve_alias(mcap_hist["symbol"], alias) if alias else mcap_hist["symbol"])
     if mcap_latest is not None:
-        mcap_syms |= set(mcap_latest["symbol"].replace(alias) if alias else mcap_latest["symbol"])
+        mcap_syms |= set(resolve_alias(mcap_latest["symbol"], alias) if alias else mcap_latest["symbol"])
     eq_syms = sorted(set(u["sym"]) & has_eq)
     etf_syms = detect_etf(eq_syms, pr_etf or set(), set(eq_list["SYMBOL"]) if len(eq_list) else set(), mcap_syms)
     u["etf"] = u["sym"].isin(etf_syms)
@@ -185,8 +192,42 @@ def build_universe_frame(df: pd.DataFrame, days: list[date], settings: dict, mca
 
 # ---- flags ---------------------------------------------------------------------------------------------------------
 
+def detected_adjustments(df: pd.DataFrame, ca_first: str | None) -> pd.DataFrame:
+    """Price adjustments detected from the prices themselves (metrics.adjustment_events) on days
+    BEFORE the first stored S4 corporate-action file (`ca_first`), where no corporate-action data exists. Columns sym,
+    date (the ex-date), ratio, dayIdx-free. df must be sorted by (sym, date)."""
+    ev, r = metrics.adjustment_events(df["sym"].to_numpy(dtype=object), df["close"].to_numpy(dtype="float64"))
+    if ca_first is not None:
+        ev = ev & (df["date"].to_numpy(dtype=object) < ca_first)
+    return pd.DataFrame({"sym": df["sym"].to_numpy(dtype=object)[ev], "date": df["date"].to_numpy(dtype=object)[ev],
+                         "ratio": r[ev]})
+
+
+def own_hl52_breaks(df: pd.DataFrame, n_days: int, window: int = 250, min_obs: int = 200) -> tuple[np.ndarray, np.ndarray]:
+    """New 52-week high / low flags from our own split-adjusted prices, for days without an S13 file (before it was
+    stored). high(t) (adjusted to the latest basis) above the max adjusted high of the prior `window` trading days;
+    needs `window` days of market history before t and `min_obs` of the stock's own days inside the window, else no
+    flag. df must be sorted by (sym, date) and carry dayIdx."""
+    sym = df["sym"].to_numpy(dtype=object)
+    A = metrics.price_adjustment(sym, df["close"].to_numpy(dtype="float64"))
+    codes, _ = pd.factorize(sym)
+    ti = df["dayIdx"].to_numpy()
+    n = int(codes.max()) + 1 if len(codes) else 0
+    out = []
+    for col, fn in (("high", "max"), ("low", "min")):
+        val = df[col].to_numpy(dtype="float64") * A
+        M = np.full((n_days, n), np.nan)
+        M[ti, codes] = val
+        prior = getattr(pd.DataFrame(M).rolling(window, min_periods=min_obs), fn)().shift(1).to_numpy()
+        ref = prior[ti, codes]
+        with np.errstate(invalid="ignore"):
+            brk = (val > ref) if fn == "max" else (val < ref)
+        out.append(brk & (ti >= window) & ~np.isnan(ref))
+    return out[0], out[1]
+
+
 def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.DataFrame, ban: pd.DataFrame,
-              hl: pd.DataFrame, etf: set[str] | frozenset[str] = frozenset()) -> pd.DataFrame:
+              hl: pd.DataFrame, etf: set[str] | frozenset[str] = frozenset(), ca_first: str | None = None) -> pd.DataFrame:
     iso = np.array([d.isoformat() for d in days])
     T = len(iso)
     df = df.copy()
@@ -194,8 +235,10 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
     flags = np.zeros(len(df), dtype=np.int64)
     flags += np.where(df["series"].isin(("BE", "BZ")), C.FLAG["t2t"], 0)
 
-    # corporate action ex-date within +-2 trading days
+    # corporate action ex-date within +-2 trading days. From the S4 files where they exist; for the days before the first
+    # S4 file, the price-adjustment events detected from the prices (splits/bonuses/rights only: no dividends)
     ca = corp[corp["kind"].isin(CA_FLAG_KINDS)]
+    pairs = []
     if len(ca):
         ex_idx = np.searchsorted(iso, ca["exDate"].to_numpy())
         last = days[-1]
@@ -205,7 +248,13 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
             near = np.array([(e - last).days <= 3 for e in ex_dates])
             keep = ~future | near
             ca, ex_idx = ca[keep], ex_idx[keep]
-        pairs = [pd.DataFrame({"sym": ca["sym"].to_numpy(), "dayIdx": ex_idx + off}) for off in range(-2, 3)]
+        pairs += [pd.DataFrame({"sym": ca["sym"].to_numpy(), "dayIdx": ex_idx + off}) for off in range(-2, 3)]
+    has_prices = {"close", "prevClose", "high", "low"} <= set(df.columns)
+    adj = detected_adjustments(df, ca_first) if has_prices else pd.DataFrame(columns=["sym", "date", "ratio"])
+    if len(adj):
+        ai = np.searchsorted(iso, adj["date"].to_numpy())
+        pairs += [pd.DataFrame({"sym": adj["sym"].to_numpy(), "dayIdx": ai + off}) for off in range(-2, 3)]
+    if pairs:
         target = pd.MultiIndex.from_frame(pd.concat(pairs, ignore_index=True).drop_duplicates())
         hit = pd.MultiIndex.from_frame(df[["sym", "dayIdx"]]).isin(target)
         flags += np.where(hit, C.FLAG["corpAction"], 0)
@@ -217,10 +266,16 @@ def add_flags(df: pd.DataFrame, days: list[date], corp: pd.DataFrame, bands: pd.
 
     flags += np.where(member(bands), C.FLAG["bandHit"], 0)
     flags += np.where(member(ban), C.FLAG["fnoBan"], 0)
+    # 52-week high/low: the S13 rule on days with an S13 file; our own adjusted 250-day rule on the days without one
+    hi = lo = np.zeros(len(df), dtype=bool)
     if len(hl):
         m = df[["sym", "date", "high", "low"]].merge(hl, on=["sym", "date"], how="left")
         hi, lo = hl52_breaks(m["high"], m["low"], m["high52"], m["low52"])
-        flags += np.where(hi, C.FLAG["high52"], 0) + np.where(lo, C.FLAG["low52"], 0)
+    has_s13 = df["date"].isin(set(hl["date"])).to_numpy() if len(hl) else np.zeros(len(df), dtype=bool)
+    if has_prices and not has_s13.all():
+        ohi, olo = own_hl52_breaks(df, T)
+        hi, lo = np.where(has_s13, hi, ohi), np.where(has_s13, lo, olo)
+    flags += np.where(hi, C.FLAG["high52"], 0) + np.where(lo, C.FLAG["low52"], 0)
     flags += np.where(df["lowLiquidity"], C.FLAG["lowLiquidity"], 0)
     flags += np.where(df["newListing"], C.FLAG["newListing"], 0)
     flags += np.where(df["sym"].isin(etf), C.FLAG["etf"], 0)
@@ -238,17 +293,22 @@ def hl52_breaks(high, low, high52, low52) -> tuple[np.ndarray, np.ndarray]:
 
 # ---- writers -------------------------------------------------------------------------------------------------------
 
-def write_daily(df: pd.DataFrame, days: list[date], out: Path) -> int:
+def write_daily(df: pd.DataFrame, days: list[date], out: Path, full_days: int | None = None) -> int:
+    """daily/{date}.json. The newest `full_days` trading days carry every column; older days the slim set (07 section 8)."""
     dd = df.sort_values(["date", "sym"], kind="stable")
     bounds = dd["date"].to_numpy()
-    ft = FastTable(dd, C.DAILY)
+    full_from = len(days) - full_days if full_days else 0
+    ft_full = FastTable(dd, C.DAILY)
+    ft_slim = FastTable(dd, C.daily_slim_cols())
     total = 0
-    for d in days:
+    for i, d in enumerate(days):
         iso = d.isoformat()
         a = np.searchsorted(bounds, iso, "left")
         b = np.searchsorted(bounds, iso, "right")
-        doc = {"schemaVersion": 1, "date": iso, "columns": C.names(C.DAILY), "rows": ft.rows(a, b)}
-        validate("daily", doc)
+        slim = i < full_from
+        doc = {"schemaVersion": 1, "date": iso, "columns": C.DAILY_SLIM if slim else C.names(C.DAILY),
+               "rows": (ft_slim if slim else ft_full).rows(a, b)}
+        validate("daily_slim" if slim else "daily", doc)
         total += dump(out / "daily" / f"{iso}.json", doc)
         if d == days[-1]:
             dump(out / "daily" / "latest.json", doc)
@@ -270,13 +330,18 @@ def write_cum(df: pd.DataFrame, days: list[date], syms: list[str], carry: int, o
     idx_mat = np.where(traded, np.arange(T)[:, None], np.nan)
     last_idx = pd.DataFrame(idx_mat).ffill().to_numpy()
 
-    v = r[r["valid"]]
+    v = r[r["valid"]].copy()
     vs, vd = v["sym"].map(pos).to_numpy(), v["date"].map(d_idx).to_numpy()
+    # delivery value on up days and down days (close above / below prevClose) and trades: the building blocks of
+    # delivBalance and avgTradeSize for any range (08 section 5A)
+    v["delivValUpCr"] = v["delivValCr"].where(v["close"] > v["prevClose"], 0.0)
+    v["delivValDnCr"] = v["delivValCr"].where(v["close"] < v["prevClose"], 0.0)
     mats = {}
     for name, col in (("cDelivValCr", "delivValCr"), ("cTurnoverCr", "turnoverCr"), ("cDelivQty", "delivQty"),
-                      ("cVol", "vol")):
+                      ("cVol", "vol"), ("cDelivValUpCr", "delivValUpCr"), ("cDelivValDnCr", "delivValDnCr"),
+                      ("cTrades", "trades")):
         a = np.zeros((T, m))
-        a[vd, vs] = v[col].to_numpy()
+        a[vd, vs] = np.nan_to_num(v[col].to_numpy(dtype="float64", na_value=np.nan))
         mats[name] = np.cumsum(a, axis=0)
     a = np.zeros((T, m))
     a[vd, vs] = 1
@@ -330,12 +395,9 @@ def write_symbols(df: pd.DataFrame, uni: pd.DataFrame, corp: pd.DataFrame, out: 
     return total
 
 
-def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_close: pd.DataFrame) -> dict:
-    iso = [d.isoformat() for d in days]
-    v = df[df["valid"] & df["sym"].isin(set(uni["sym"]))].copy()
-    stocks = uni[~uni["etf"]]  # DEVIATIONS #36: every group except ETF is stocks-only
-    v["isSpike2"] = (v["spike"] >= 2) & ~v["lowLiquidity"] & ~v["newListing"]
-    v["isAdv"], v["isDec"], v["isUnch"] = v["ret1"] > 0, v["ret1"] < 0, v["ret1"] == 0
+def market_group_members(uni: pd.DataFrame) -> dict[str, set]:
+    """Group name -> member symbols (stocks only except ETF, DEVIATIONS #36)."""
+    stocks = uni[~uni["etf"]]
     groups: dict[str, set] = {"ALL": set(stocks["sym"])}
     mask = stocks["idx"].to_numpy()
     for bit, key in enumerate(C.INDICES):
@@ -348,16 +410,23 @@ def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_clos
         groups[f"MC:{b}"] = set(g["sym"])
     if uni["etf"].any():
         groups["ETF"] = set(uni.loc[uni["etf"], "sym"])
+    return groups
+
+
+def market_aggregate(v: pd.DataFrame, groups: dict[str, set], key_col: str, keys: list) -> dict:
+    """Per group and per key (a date or a period index): turnover and delivery value sums, value-weighted delivery %,
+    median stock delivery %, advances/declines, count of 2x spikes. v: valid rows with sym, turnoverCr, delivValCr,
+    delivPct, ret1, isSpike2 and `key_col`."""
+    v = v.assign(isAdv=v["ret1"] > 0, isDec=v["ret1"] < 0, isUnch=v["ret1"] == 0)
     out = {}
     for name, members in groups.items():
-        g = v[v["sym"].isin(members)]
-        by = g.groupby("date")
+        by = v[v["sym"].isin(members)].groupby(key_col)
         agg = pd.DataFrame({
             "turnoverCr": by["turnoverCr"].sum(), "delivValCr": by["delivValCr"].sum(),
             "medianDelivPct": by["delivPct"].median(),
             "adv": by["isAdv"].sum(), "dec": by["isDec"].sum(), "unch": by["isUnch"].sum(),
             "spikeCount2x": by["isSpike2"].sum(),
-        }).reindex(iso)
+        }).reindex(keys)
         agg["delivPctW"] = agg["delivValCr"] / agg["turnoverCr"].where(agg["turnoverCr"] > 0) * 100
         out[name] = {
             "turnoverCr": col_list(agg["turnoverCr"], "f", 2), "delivValCr": col_list(agg["delivValCr"], "f", 2),
@@ -365,18 +434,37 @@ def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_clos
             "adv": col_list(agg["adv"], "i", None), "dec": col_list(agg["dec"], "i", None),
             "unch": col_list(agg["unch"], "i", None), "spikeCount2x": col_list(agg["spikeCount2x"], "i", None),
         }
-    index_close = {}
+    return out
+
+
+def index_close_series(idx_close: pd.DataFrame, dates: list[str]) -> dict:
+    out = {}
     for name in C.INDEX_CLOSE_NAMES:
         s = idx_close[idx_close["Index Name"] == name].drop_duplicates("date").set_index("date")["close"]
-        index_close[name] = col_list(s.reindex(iso), "f", 2)
-    return {"schemaVersion": 1, "dates": iso, "groups": out, "indexClose": index_close}
+        out[name] = col_list(s.reindex(dates), "f", 2)
+    return out
 
 
-def build_split_bonus(corp: pd.DataFrame) -> dict:
-    """Split and bonus ex-dates, for the range view's corporate-action warning (DEVIATIONS #39)."""
-    c = corp[corp["kind"].isin(("SPLIT", "BONUS"))].sort_values(["exDate", "sym"])
-    return {"schemaVersion": 1, "columns": ["sym", "exDate", "kind", "purpose"],
-            "rows": [[r.sym, r.exDate, r.kind, r.purpose] for r in c.itertuples()]}
+def build_market(df: pd.DataFrame, days: list[date], uni: pd.DataFrame, idx_close: pd.DataFrame) -> dict:
+    iso = [d.isoformat() for d in days]
+    v = df[df["valid"] & df["sym"].isin(set(uni["sym"]))].copy()
+    v["isSpike2"] = (v["spike"] >= 2) & ~v["lowLiquidity"] & ~v["newListing"]
+    groups = market_group_members(uni)
+    return {"schemaVersion": 1, "dates": iso, "groups": market_aggregate(v, groups, "date", iso),
+            "indexClose": index_close_series(idx_close, iso)}
+
+
+def build_split_bonus(corp: pd.DataFrame, adj: pd.DataFrame | None = None) -> dict:
+    """Split and bonus ex-dates, for the range view's corporate-action warning (DEVIATIONS #39). Days before the first
+    stored S4 file have no corporate-action data: there the price-adjustment events detected from the prices stand in
+    (kind ADJ, "split or bonus, detected from the prices")."""
+    c = corp[corp["kind"].isin(("SPLIT", "BONUS"))]
+    rows = [[r.sym, r.exDate, r.kind, r.purpose] for r in c.itertuples()]
+    if adj is not None and len(adj):
+        rows += [[r.sym, r.date, "ADJ", f"Price adjusted by {r.ratio:.4g}x (split or bonus, detected from the prices)"]
+                 for r in adj.itertuples()]
+    rows.sort(key=lambda r: (r[1], r[0]))
+    return {"schemaVersion": 1, "columns": ["sym", "exDate", "kind", "purpose"], "rows": rows}
 
 
 def source_status(days: list[date], root: Path | None = None) -> dict:
@@ -386,8 +474,10 @@ def source_status(days: list[date], root: Path | None = None) -> dict:
     for key, (kind, ext) in spec.items():
         have = set(store.list_dates(kind, ext, root=root))
         mine = sorted(have & set(days))
+        first = min(have) if have else None
+        # a source that starts later than the 3-year S1/S12 history has no gaps before its first stored day
         out[key] = {"latest": mine[-1].isoformat() if mine else None,
-                    "gaps": [d.isoformat() for d in days if d not in have]}
+                    "gaps": [d.isoformat() for d in days if d not in have and first is not None and d >= first]}
     base = root or store.STORE_DIR
     s8 = sorted(json.loads(ln)["date"] for f in (base / "fii_dii_cash").glob("*.jsonl")
                 for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip())
@@ -404,6 +494,7 @@ def source_status(days: list[date], root: Path | None = None) -> dict:
 
 
 def build_meta(days: list[date], uni: pd.DataFrame, asof: str | None, settings: dict, root: Path | None = None) -> dict:
+    full = settings.get("publish", {}).get("dailyFullTradingDays", len(days))
     sectors = sorted(s for s in uni["sector"].unique() if s != "Unclassified")
     return {
         "schemaVersion": 1,
@@ -414,4 +505,7 @@ def build_meta(days: list[date], uni: pd.DataFrame, asof: str | None, settings: 
         "sources": source_status(days, root),
         "settings": {"minTurnoverAvg20Cr": settings["liquidity"]["minTurnoverAvg20Cr"],
                      "minBaseDelivValCr": settings["liquidity"]["minBaseDelivValCr"]},
+        # daily/ files of days before dailyFullFrom carry only dailySlimColumns (07 section 8)
+        "publish": {"dailyFullTradingDays": full, "dailyFullFrom": days[max(0, len(days) - full)].isoformat(),
+                    "dailySlimColumns": C.DAILY_SLIM},
     }

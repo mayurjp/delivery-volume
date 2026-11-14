@@ -8,25 +8,39 @@ import RangeControls from '../components/RangeControls';
 import { Empty, ErrorBox, Skeleton } from '../components/ui';
 import { dataClient } from '../lib/dataClient';
 import { applyFilters, applyRangeFilters } from '../lib/filters';
-import { useApp, useDaily, useGlobalState, useMarket, useSymbol } from '../lib/hooks';
 import {
+  useApp,
+  useDaily,
+  useGlobalState,
+  useMarket,
+  usePeriods,
+  usePeriodSnapshot,
+  useSymbol,
+  useTimeframe,
+} from '../lib/hooks';
+import { partialText } from '../lib/aggregate';
+import { periodRowToDaily } from '../lib/periodAdapter';
+import { periodFor, periodLabel, periodsOf } from '../lib/timeframe';
+import {
+  buildGroupGrid,
   buildTree,
   COLOR_METRICS,
-  gridDeviation,
+  GRID_UNIT,
+  gridColumnCount,
   SIZE_METRICS,
   type ColorMetric,
   type HeatItem,
   type SizeMetric,
 } from '../lib/heat';
 import { useDark } from '../lib/theme';
-import { useRangeRows, useRangeState } from '../lib/useRange';
+import { useEffectiveRange, useRangeRows } from '../lib/useRange';
 import { useWatchlist } from '../lib/watchlist';
 import { fmtDate } from '../lib/format';
 
 type Tab = 'tree' | 'grid' | 'cal';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'tree', label: 'Treemap' },
-  { id: 'grid', label: 'Grid (group × day)' },
+  { id: 'grid', label: 'Grid (group × period)' },
   { id: 'cal', label: 'Calendar' },
 ];
 
@@ -51,16 +65,30 @@ export function ScaleLegend({ metric, p }: { metric: ColorMetric; p: Palette }) 
   );
 }
 
-function Treemap({ range }: { range: boolean }) {
+function Treemap({ legacyRange }: { legacyRange: boolean }) {
   const { meta, bySym } = useApp();
   const { filters, date } = useGlobalState();
   const watch = useWatchlist();
   const nav = useNavigate();
   const dark = useDark();
   const [params, setParams] = useSearchParams();
-  const state = useRangeState();
-  const daily = useDaily(range ? null : date, meta.latestDate);
-  const rng = useRangeRows(state.resolved, range);
+  const { state: tfs } = useTimeframe();
+  const state = useEffectiveRange();
+  const periods = usePeriods();
+  // tf=d: day, or the legacy Range toggle; tf=w / m: the period snapshot; tf=q / c / r: a range from cum/
+  const periodTf = tfs.tf === 'w' || tfs.tf === 'm' ? tfs.tf : null;
+  const range = periodTf === null && (state.fromTimeframe || legacyRange);
+  const info = useMemo(
+    () => (periodTf && periods.data ? periodFor(periodsOf(periods.data, periodTf), date) : null),
+    [periodTf, periods.data, date],
+  );
+  const daily = useDaily(range || periodTf ? null : date, meta.latestDate);
+  const snap = usePeriodSnapshot(periodTf ?? 'w', info);
+  const rng = useRangeRows(state.resolved, range && !state.pending);
+  const dayRows = useMemo(
+    () => (periodTf ? (snap.data?.rows ?? []).map(periodRowToDaily) : (daily.data ?? [])),
+    [periodTf, snap.data, daily.data],
+  );
   const size = (
     SIZE_METRICS.some((s) => s.id === params.get('sz')) ? params.get('sz') : 'turnover'
   ) as SizeMetric;
@@ -80,7 +108,7 @@ function Treemap({ range }: { range: boolean }) {
   const items: HeatItem[] = useMemo(() => {
     const out: HeatItem[] = [];
     if (!range) {
-      for (const r of applyFilters(daily.data ?? [], bySym, f, ctx)) {
+      for (const r of applyFilters(dayRows, bySym, f, ctx)) {
         const u = bySym.get(r.sym)!;
         const sz = size === 'turnover' ? r.turnoverCr : size === 'mcap' ? u.mcapCr : r.delivValCr;
         const value = color === 'spike' ? r.spike : color === 'diff' ? r.delivPctDiff : r.ret1;
@@ -118,7 +146,7 @@ function Treemap({ range }: { range: boolean }) {
       }
     }
     return out;
-  }, [range, daily.data, rng.data, bySym, f, ctx, size, color]);
+  }, [range, dayRows, rng.data, bySym, f, ctx, size, color]);
 
   const pal = palette(dark);
   const tree = useMemo(() => buildTree(items, color), [items, color]);
@@ -133,11 +161,34 @@ function Treemap({ range }: { range: boolean }) {
     return () => cancelAnimationFrame(id);
   }, [option]);
 
-  const loading = range ? rng.loading : daily.loading;
-  const error = range ? rng.error : daily.error;
+  const loading = range
+    ? rng.loading || state.pending
+    : periodTf
+      ? snap.loading || periods.loading
+      : daily.loading;
+  const error = range ? rng.error : periodTf ? (snap.error ?? periods.error) : daily.error;
+  const partial = info && periodTf ? partialText(info) : null;
   return (
     <div className="space-y-2">
-      {range && <RangeControls state={state} />}
+      {range &&
+        (state.fromTimeframe ? (
+          <p className="text-sm" data-testid="range-text">
+            <span className="font-medium">Range set by the timeframe control. </span>
+            {state.pending ? 'Resolving the range…' : state.resolved.text}
+          </p>
+        ) : (
+          <RangeControls state={state} />
+        ))}
+      {periodTf && info && (
+        <p className="text-sm" data-testid="period-label">
+          <span className="font-medium">{periodLabel(periodTf, info)}</span>
+          {partial && <span className="ml-2 text-amber-700 dark:text-amber-400">{partial}</span>}
+          <span className="text-slate-500 dark:text-slate-400">
+            . Colour and size use the {periodTf === 'w' ? 'week' : 'month'}'s own figures; the period holds
+            the date picked at the top.
+          </span>
+        </p>
+      )}
       <div className="flex flex-wrap items-end gap-3 text-sm">
         <label className="flex flex-col gap-0.5">
           <span className="text-xs text-slate-500">Size</span>
@@ -192,6 +243,7 @@ function Treemap({ range }: { range: boolean }) {
         {items.length.toLocaleString('en-IN')} stocks{ms !== null ? `, drawn in ${ms} ms` : ''}. Tap a sector
         to zoom in, tap a stock to open it. ETFs are not shown.{' '}
         {range ? 'Range mode: colour compares the range with its baseline.' : ''}
+        {periodTf ? ' Price change is the return over the period.' : ''}
       </p>
     </div>
   );
@@ -238,6 +290,8 @@ function useStockHistories(syms: readonly string[], enabled: boolean) {
 
 function GridTab() {
   const { meta, universe } = useApp();
+  const { state: tfs } = useTimeframe();
+  const dailyCols = tfs.tf === 'd' || tfs.tf === 'r';
   const { filters } = useGlobalState();
   const market = useMarket();
   const dark = useDark();
@@ -249,7 +303,8 @@ function GridTab() {
     () => (bit >= 0 ? universe.filter((u) => (u.idx & (2 ** bit)) !== 0 && !u.etf).map((u) => u.sym) : []),
     [bit, universe],
   );
-  const stocksOk = bit >= 0 && members.length <= 50;
+  // the per-stock row view reads daily data, so it exists for daily columns only (tf=d and tf=r)
+  const stocksOk = dailyCols && bit >= 0 && members.length <= 50;
   const requested = (params.get('gr') ?? 'sector') as RowMode;
   const mode: RowMode = requested === 'stocks' && !stocksOk ? 'sector' : requested;
   const set = (k: string, v: string | null) => {
@@ -275,16 +330,8 @@ function GridTab() {
     const m = market.data;
     if (!m) return null;
     const prefix = mode === 'sector' ? 'SEC:' : mode === 'index' ? 'IDX:' : 'MC:';
-    const keys = Object.keys(m.groups).filter((k) => k.startsWith(prefix));
-    const from = Math.max(0, m.dates.length - win);
-    const dates = m.dates.slice(from);
-    const cells: GridData['cells'] = [];
-    const names = keys.map((k) => k.slice(prefix.length));
-    keys.forEach((k, yi) => {
-      gridDeviation(m.groups[k]!.delivPctW, from, 60).forEach((v, xi) => cells.push([xi, yi, v]));
-    });
-    return { rows: names, dates, cells };
-  }, [mode, market.data, win, meta.tradingDays, members, hist]);
+    return buildGroupGrid(m, prefix, tfs, win);
+  }, [mode, market.data, win, meta.tradingDays, members, hist, tfs]);
 
   const pp = mode !== 'stocks';
   const option = useMemo(
@@ -314,7 +361,12 @@ function GridTab() {
             </button>
           ))}
         </div>
-        <div role="group" aria-label="Days" className="flex gap-1">
+        {!dailyCols && (
+          <span className="text-slate-500 dark:text-slate-400" data-testid="grid-window">
+            Last {gridColumnCount(tfs.tf)} {GRID_UNIT[tfs.tf]}
+          </span>
+        )}
+        <div role="group" aria-label="Days" className={dailyCols ? 'flex gap-1' : 'hidden'}>
           {[20, 60].map((n) => (
             <button
               key={n}
@@ -335,13 +387,15 @@ function GridTab() {
       ) : data!.rows.length === 0 ? (
         <Empty>{mode === 'stocks' ? 'Loading stock histories…' : 'No groups.'}</Empty>
       ) : (
-        <EChart option={option} height={h} ariaLabel="Heat grid of groups by day" />
+        <EChart option={option} height={h} ariaLabel="Heat grid of groups by period" />
       )}
       <p className="text-xs text-slate-500 dark:text-slate-400">
         {pp
-          ? 'Colour is the group’s value-weighted delivery % minus its own 60-day mean, in percentage points (blue above, orange below). Groups are stocks only; ETFs are excluded.'
+          ? `Colour is the group's value-weighted delivery % minus its own mean over the previous ${dailyCols ? '60 days' : 'periods'}, in percentage points (blue above, orange below). Groups are stocks only; ETFs are excluded.${dailyCols ? '' : ' Columns marked * are still in progress.'}`
           : 'Colour is each stock’s delivery spike (delivery value vs its prior 20-day average, log scale).'}{' '}
-        {!stocksOk && 'Pick an index with 50 or fewer stocks in the filters to get a per-stock view.'}
+        {dailyCols
+          ? !stocksOk && 'Pick an index with 50 or fewer stocks in the filters to get a per-stock view.'
+          : 'The per-stock view is daily only: switch the timeframe to D to use it.'}
       </p>
     </div>
   );
@@ -415,7 +469,8 @@ export default function Heatmap() {
   const { date } = useGlobalState();
   const [params, setParams] = useSearchParams();
   const tab = (TABS.some((t) => t.id === params.get('t')) ? params.get('t') : 'tree') as Tab;
-  const range = tab === 'tree' && params.get('rng') === '1';
+  const { state: tfs } = useTimeframe();
+  const legacyRange = tab === 'tree' && tfs.tf === 'd' && params.get('rng') === '1';
   const set = (k: string, v: string | null) => {
     const n = new URLSearchParams(params);
     if (v) n.set(k, v);
@@ -427,7 +482,7 @@ export default function Heatmap() {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">Heatmaps</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          {fmtDate(range ? meta.latestDate : date)}
+          {tfs.tf === 'd' ? fmtDate(legacyRange ? meta.latestDate : date) : ''}
         </p>
       </div>
       <div role="tablist" aria-label="Heatmap type" className="flex flex-wrap gap-1">
@@ -443,14 +498,14 @@ export default function Heatmap() {
             {t.label}
           </button>
         ))}
-        {tab === 'tree' && (
+        {tab === 'tree' && tfs.tf === 'd' && (
           <span role="group" aria-label="Mode" className="ml-2 flex gap-1">
             {(['Day', 'Range'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
-                aria-pressed={range === (m === 'Range')}
-                className={`chip ${range === (m === 'Range') ? 'bg-blue-600 text-white' : ''}`}
+                aria-pressed={legacyRange === (m === 'Range')}
+                className={`chip ${legacyRange === (m === 'Range') ? 'bg-blue-600 text-white' : ''}`}
                 onClick={() => set('rng', m === 'Range' ? '1' : null)}
               >
                 {m}
@@ -459,7 +514,7 @@ export default function Heatmap() {
           </span>
         )}
       </div>
-      {tab === 'tree' && <Treemap range={range} />}
+      {tab === 'tree' && <Treemap legacyRange={legacyRange} />}
       {tab === 'grid' && <GridTab />}
       {tab === 'cal' && <CalendarTab />}
     </div>

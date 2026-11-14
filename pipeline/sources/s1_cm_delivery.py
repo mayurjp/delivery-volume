@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import io
 from datetime import date
 
+import numpy as np
 import pandas as pd
 
 from .base import EXCLUDED_SERIES, Parsed, SourceSpec, decode, num, parse_dmy_mon, read_csv_text, tokens
@@ -66,6 +68,27 @@ def parse_stored(body: bytes, d: date) -> pd.DataFrame:
     if p.errors:
         raise ValueError("; ".join(p.errors))
     return p.data
+
+
+def parse_stored_fast(body: bytes, d: date, series: tuple[str, ...] | None = None) -> pd.DataFrame:
+    """Fast parse of an already validated stored file for `build` (same values as `parse_stored`, minus the validation
+    checks). Numeric columns go straight through the C parser ('-' is NaN, never 0). The text columns are plain
+    `object` (pandas 3's default str dtype is several times slower to group, compare and sort without pyarrow)."""
+    df = pd.read_csv(io.BytesIO(body), skipinitialspace=True, na_values=["-"], keep_default_na=False,
+                     dtype={"SYMBOL": object, "SERIES": object, " SERIES": object, " DATE1": object, "DATE1": object},
+                     usecols=lambda c: c.strip() != "DATE1")
+    df.columns = [c.strip() for c in df.columns]
+    if list(df.columns) != [c for c in EXPECTED_HEADER if c != "DATE1"]:
+        raise ValueError(f"schema_mismatch: header {list(df.columns)}")
+    df["SERIES"] = df["SERIES"].str.strip()
+    df = df[df["SERIES"].isin(series)] if series is not None else df[~df["SERIES"].isin(EXCLUDED_SERIES)]
+    df["SYMBOL"] = df["SYMBOL"].str.strip()
+    for c in NUMERIC:
+        if not pd.api.types.is_numeric_dtype(df[c]):
+            df[c] = num(df[c].astype(str))
+    df = df.rename(columns=RENAME).reset_index(drop=True)
+    df["date"] = np.full(len(df), d.isoformat(), dtype=object)
+    return df
 
 
 SPEC = SourceSpec("S1", "cm_delivery", "Security-wise delivery (sec_bhavdata_full)", "csv",

@@ -1,4 +1,5 @@
 import type { SortingState } from '@tanstack/react-table';
+import type { DailyRow } from '../types/data';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DataTable, { type ExtraColumn } from '../components/DataTable';
@@ -9,6 +10,7 @@ import {
   COLUMNS,
   COLUMN_BY_KEY,
   DEFAULT_COLUMNS,
+  PERIOD_ONLY_COLUMNS,
   OLD_COLS_KEY,
   migrateColumns,
   toCsv,
@@ -16,22 +18,43 @@ import {
   type ScreenRow,
 } from '../lib/columns';
 import { DEFAULT_RANGE_COLUMNS, RANGE_COLUMNS, RANGE_COLUMN_BY_KEY } from '../lib/rangeColumns';
-import { applyRangeFilters } from '../lib/filters';
+import { applyFilters, applyRangeFilters } from '../lib/filters';
 import { useRangeRows, useRangeState } from '../lib/useRange';
-import type { RangeScreenRow } from '../lib/range';
-import { PERF_DISCLAIMER, historyLine, type PerfIndex } from '../lib/signalPerf';
+import { resolveRange, type RangeScreenRow } from '../lib/range';
+import { PERF_DISCLAIMER, historyLine, periodHistoryLine, periodSignalHistory } from '../lib/signalPerf';
+import { PERIOD_MISSING, periodRowToDaily } from '../lib/periodAdapter';
+import { partialText } from '../lib/aggregate';
+import { periodFor, periodLabel, periodsOf, tfToRangeSpec } from '../lib/timeframe';
+import {
+  PERIOD_DEFAULT_COLUMNS,
+  PERIOD_PRESET_EVENT,
+  WATCH_NOTE,
+  dayColumnList,
+  isSlimDay,
+  labelIn,
+  periodColumnList,
+  presetReason,
+  registryOf,
+  screenerView,
+  slimMissingKeys,
+  slimReason,
+  watchParams,
+  PERIOD_MISSING_REASON,
+  type WatchTf,
+} from '../lib/screenerTf';
 import { dataClient } from '../lib/dataClient';
 import { fmtDate } from '../lib/format';
-import { applyFilters } from '../lib/filters';
-import { saveLastFilters, useApp, useDaily, useGlobalState, useSignalPerf } from '../lib/hooks';
 import {
-  DAILY_WATCH_NOTE,
-  PRESET_BY_ID,
-  PRESET_EVENT,
-  PRESET_GROUPS,
-  dailyWatchParams,
-  runPreset,
-} from '../lib/presets';
+  saveLastFilters,
+  useApp,
+  useAsync,
+  useDaily,
+  useGlobalState,
+  usePeriodSnapshot,
+  useSignalPerf,
+  useTimeframe,
+} from '../lib/hooks';
+import { PRESET_BY_ID, PRESET_EVENT, PRESET_GROUPS, runPreset } from '../lib/presets';
 import { parseFilters } from '../lib/urlState';
 import { readJson, writeJson } from '../lib/storage';
 import { useWatchlist } from '../lib/watchlist';
@@ -76,20 +99,25 @@ function useColumns(): [string[], (c: string[]) => void] {
   ];
 }
 
-function useRangeColumns(): [string[], (c: string[]) => void] {
-  const [cols, setCols] = useState<string[]>(
-    () =>
-      validCols(readJson<unknown>(RANGE_COLS_KEY, null), (k) => RANGE_COLUMN_BY_KEY.has(k)) ??
-      DEFAULT_RANGE_COLUMNS,
-  );
+function usePersistedColumns(
+  key: string,
+  has: (k: string) => boolean,
+  fallback: string[],
+): [string[], (c: string[]) => void] {
+  const [cols, setCols] = useState<string[]>(() => validCols(readJson<unknown>(key, null), has) ?? fallback);
   return [
     cols,
     (c) => {
       setCols(c);
-      writeJson(RANGE_COLS_KEY, c);
+      writeJson(key, c);
     },
   ];
 }
+
+const PERIOD_ONLY_KEYS = new Set(PERIOD_ONLY_COLUMNS.map((c) => c.key as string));
+const hasPeriodCol = (k: string) => COLUMN_BY_KEY.has(k) || PERIOD_ONLY_KEYS.has(k);
+const hasRangeCol = (k: string) => RANGE_COLUMN_BY_KEY.has(k);
+const PERIOD_COLS_KEY = 'dv.cols.period';
 
 function useSparks(syms: readonly string[], enabled: boolean): Map<string, (number | null)[]> {
   const { bySym } = useApp();
@@ -123,47 +151,123 @@ function useSparks(syms: readonly string[], enabled: boolean): Map<string, (numb
   return map;
 }
 
-function PresetHistory({ id, perf }: { id: string; perf: PerfIndex | null }) {
-  const m = PRESET_EVENT[id];
-  const line = m ? historyLine(perf, m.event, m.group ?? 'ALL') : undefined;
+function PresetHistory({ id, line }: { id: string; line: string }) {
   return (
     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" data-testid={`history-${id}`}>
-      {line ??
-        (m
-          ? 'Historically: not enough history for this list yet.'
-          : 'Historically: a ranking, not an event, so no follow-through is measured.')}
+      {line}
     </p>
   );
 }
 
+const RANKING_LINE = 'Historically: a ranking, not an event, so no follow-through is measured.';
+const LOADING_LINE = 'Historically: loading the weekly and monthly history.';
+
 export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'watchlist' }) {
   const { meta, bySym } = useApp();
   const { filters, defaults, date, activeCount } = useGlobalState();
+  const { state: tfState } = useTimeframe();
   const watch = useWatchlist();
   const [params, setParams] = useSearchParams();
   const watchlistMode = mode === 'watchlist';
-  const rangeMode = !watchlistMode && params.get('rng') === '1';
-  const daily = useDaily(rangeMode ? null : date, meta.latestDate);
-  const rangeState = useRangeState();
-  const rangeRows = useRangeRows(rangeState.resolved, rangeMode);
+  const view = screenerView(tfState.tf, params.get('rng') === '1', watchlistMode);
+  const rangeish = view === 'range' || view === 'rangeTf';
+  const periodTf = view === 'period' ? (tfState.tf as 'w' | 'm') : null;
+
+  const periods = useAsync(view === 'period' || tfState.tf === 'q' ? 'periods' : null, () =>
+    dataClient.periods(),
+  );
+  const info = periodTf && periods.data ? periodFor(periodsOf(periods.data, periodTf), date) : null;
+  const snap = usePeriodSnapshot(periodTf ?? 'w', info);
+  const daily = useDaily(view === 'day' ? date : null, meta.latestDate);
+
+  const legacyRange = useRangeState();
+  const tfSpec = useMemo(
+    () =>
+      view === 'rangeTf'
+        ? tfToRangeSpec(tfState, date, meta.tradingDays, periods.data?.quarterly ?? [])
+        : null,
+    [view, tfState, date, meta.tradingDays, periods.data],
+  );
+  const tfResolved = useMemo(
+    () => (tfSpec ? resolveRange(tfSpec, date, meta.tradingDays) : null),
+    [tfSpec, date, meta.tradingDays],
+  );
+  const resolved = view === 'rangeTf' ? tfResolved : legacyRange.resolved;
+  const rangeRows = useRangeRows(resolved ?? legacyRange.resolved, rangeish && resolved !== null);
+
   const perf = useSignalPerf();
+  const periodPerf = useAsync(view === 'period' ? 'signalPerfPeriods' : null, () =>
+    dataClient.signalPerfPeriods(),
+  );
   const [dayCols, setDayCols] = useColumns();
-  const [rangeCols, setRangeCols] = useRangeColumns();
+  const [periodCols, setPeriodCols] = usePersistedColumns(
+    PERIOD_COLS_KEY,
+    hasPeriodCol,
+    PERIOD_DEFAULT_COLUMNS,
+  );
+  const [rangeCols, setRangeCols] = usePersistedColumns(RANGE_COLS_KEY, hasRangeCol, DEFAULT_RANGE_COLUMNS);
   const [chooser, setChooser] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const cols = rangeMode ? rangeCols : dayCols;
-  const setCols = rangeMode ? setRangeCols : setDayCols;
+  const cols = rangeish ? rangeCols : view === 'period' ? periodCols : dayCols;
+  const setCols = rangeish ? setRangeCols : view === 'period' ? setPeriodCols : setDayCols;
   const showExcluded = params.get('ex') === '1';
 
+  // slim days: columns a day before dailyFullFrom does not carry
+  const slim = view === 'day' && isSlimDay(date, meta.publish);
+  const slimMissing = useMemo(() => slimMissingKeys(meta.publish), [meta.publish]);
+  const slimWhy = slimReason(meta.publish.dailyFullFrom);
+  const periodWindows = useMemo(() => {
+    const c = periods.data?.config.periods[periodTf ?? 'w'];
+    const m = periodTf === 'm';
+    return { base: c?.base ?? (m ? 6 : 10), long: c?.long ?? (m ? 24 : 52) };
+  }, [periods.data, periodTf]);
+  const columnList = useMemo(
+    () =>
+      view === 'period' && periodTf
+        ? periodColumnList(periodTf, periodWindows)
+        : slim
+          ? dayColumnList(slimMissing, slimWhy)
+          : COLUMNS,
+    [view, periodTf, periodWindows, slim, slimMissing, slimWhy],
+  );
+  const dayRegistry = useMemo(() => registryOf(columnList), [columnList]);
+  const chooserList = (rangeish ? RANGE_COLUMNS : columnList) as readonly {
+    key: string;
+    label: string;
+    tip: string;
+  }[];
+  const defaultCols = rangeish
+    ? DEFAULT_RANGE_COLUMNS
+    : view === 'period'
+      ? PERIOD_DEFAULT_COLUMNS
+      : DEFAULT_COLUMNS;
+
+  // presets that need columns the data does not carry are disabled with a reason
+  const presetMissing = useMemo<ReadonlySet<string>>(
+    () =>
+      view === 'period'
+        ? new Set<string>(PERIOD_MISSING as readonly string[])
+        : slim
+          ? slimMissing
+          : new Set<string>(),
+    [view, slim, slimMissing],
+  );
+  const labelOf = useMemo(() => labelIn(COLUMNS), []);
+  const reasonOf = (id: string) =>
+    presetReason(id, presetMissing, labelOf, view === 'period' ? PERIOD_MISSING_REASON : slimWhy);
+
   const presetId = params.get('p');
-  const preset = presetId && !rangeMode ? PRESET_BY_ID.get(presetId) : undefined;
+  const presetAny =
+    presetId && (view === 'day' || view === 'period') ? PRESET_BY_ID.get(presetId) : undefined;
+  const blockedReason = presetAny ? reasonOf(presetAny.id) : null;
+  const preset = presetAny && !blockedReason ? presetAny : undefined;
   const q = params.get('q') ?? '';
   const explicit = parseSort(params.get('s'), (id) =>
-    (rangeMode ? RANGE_COLUMN_BY_KEY : COLUMN_BY_KEY).has(id),
+    rangeish ? RANGE_COLUMN_BY_KEY.has(id) : dayRegistry.has(id),
   );
   const sorting: SortingState =
     explicit ??
-    (rangeMode
+    (rangeish
       ? [{ id: 'delivValChgPct', desc: true }]
       : preset
         ? [{ id: preset.sort as string, desc: preset.dir === 'desc' }]
@@ -179,10 +283,12 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
 
   const needle = q.trim().toLowerCase();
   const ctx = useMemo(() => ({ indices: meta.indices, watchlist: new Set(watch) }), [meta.indices, watch]);
+  const periodRows = useMemo(() => snap.data?.rows.map(periodRowToDaily) ?? null, [snap.data]);
+  const source: DailyRow[] | null = view === 'day' ? daily.data : view === 'period' ? periodRows : null;
   const rows: ScreenRow[] = useMemo(() => {
-    if (!daily.data) return [];
+    if (!source) return [];
     const eff = watchlistMode ? { ...filters, u: 'WATCHLIST' } : filters;
-    let list = applyFilters(daily.data, bySym, eff, ctx);
+    let list = applyFilters(source, bySym, eff, ctx);
     if (preset) list = runPreset(preset, list, bySym);
     return list
       .map((r) => {
@@ -200,16 +306,16 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
       .filter(
         (r) => !needle || r.sym.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle),
       );
-  }, [daily.data, filters, bySym, ctx, preset, needle, watchlistMode]);
+  }, [source, filters, bySym, ctx, preset, needle, watchlistMode]);
 
   const rRows: RangeScreenRow[] = useMemo(() => {
-    if (!rangeRows.data) return [];
+    if (!rangeRows.data || !rangeish) return [];
     return applyRangeFilters(rangeRows.data, bySym, filters, ctx).filter(
       (r) =>
         (showExcluded || !r.excluded) &&
         (!needle || r.sym.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle)),
     );
-  }, [rangeRows.data, bySym, filters, ctx, showExcluded, needle]);
+  }, [rangeRows.data, rangeish, bySym, filters, ctx, showExcluded, needle]);
 
   const sparks = useSparks(watchlistMode ? rows.map((r) => r.sym) : [], watchlistMode);
   const extra: ExtraColumn[] = useMemo(
@@ -234,13 +340,14 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     [watchlistMode, sparks],
   );
 
+  const range = resolved?.range;
   const download = () => {
-    const registry = (rangeMode ? RANGE_COLUMN_BY_KEY : COLUMN_BY_KEY) as unknown as ReadonlyMap<
+    const registry = (rangeish ? RANGE_COLUMN_BY_KEY : dayRegistry) as unknown as ReadonlyMap<
       string,
       ColumnSpec<Record<string, unknown>>
     >;
     const specs = cols.map((c) => registry.get(c)!).filter(Boolean);
-    const sorted = [...(rangeMode ? rRows : rows)] as unknown as Record<string, unknown>[];
+    const sorted = [...(rangeish ? rRows : rows)] as unknown as Record<string, unknown>[];
     const [s0] = sorting;
     if (s0) {
       sorted.sort((a, b) => {
@@ -255,36 +362,59 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
     const blob = new Blob([toCsv(sorted, specs)], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = rangeMode
-      ? `delivery-range-${rangeState.resolved.range.a}_${rangeState.resolved.range.b}.csv`
-      : `delivery-${watchlistMode ? 'watchlist' : 'screener'}-${date}.csv`;
+    a.download = rangeish
+      ? `delivery-range-${range?.a ?? 'x'}_${range?.b ?? 'x'}.csv`
+      : view === 'period'
+        ? `delivery-${periodTf === 'w' ? 'weekly' : 'monthly'}-${info?.key ?? date}.csv`
+        : `delivery-${watchlistMode ? 'watchlist' : 'screener'}-${date}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
 
-  const applyWatch = () => {
-    const next = dailyWatchParams(params, defaults.minTurn);
+  const applyWatch = (tf: WatchTf) => {
+    const next = watchParams(params, defaults.minTurn, tf);
     saveLastFilters(parseFilters(next, defaults.minTurn, meta.indices), defaults.minTurn);
     setParams(next);
   };
 
-  const count = rangeMode ? rRows.length : rows.length;
-  const active = rangeMode ? rangeRows : daily;
+  const count = rangeish ? rRows.length : rows.length;
+  const active: { error: string | null; loading: boolean } = rangeish
+    ? {
+        error: rangeRows.error ?? periods.error,
+        loading: resolved ? rangeRows.loading : periods.loading,
+      }
+    : view === 'period'
+      ? { error: periods.error ?? snap.error, loading: periods.loading || snap.loading }
+      : daily;
   const onSort = (u: SortingState | ((o: SortingState) => SortingState)) => {
     const next = typeof u === 'function' ? u(sorting) : u;
     setParam('s', next.length ? serializeSort(next) : null);
+  };
+
+  const presetLine = (id: string): string => {
+    if (view === 'period' && periodTf) {
+      const m = PERIOD_PRESET_EVENT[id];
+      if (!m) return RANKING_LINE;
+      return periodHistoryLine(periodPerf.data, periodTf, m.event, m.group ?? 'ALL') ?? LOADING_LINE;
+    }
+    const m = PRESET_EVENT[id];
+    const line = m ? historyLine(perf.data, m.event, m.group ?? 'ALL') : undefined;
+    return line ?? (m ? 'Historically: not enough history for this list yet.' : RANKING_LINE);
   };
 
   const presetBlock = (id: string) => {
     const p = PRESET_BY_ID.get(id);
     if (!p) return null;
     const on = preset?.id === id;
+    const why = reasonOf(id);
     return (
       <div key={id} className="min-w-0">
         <button
           type="button"
           aria-pressed={on}
-          className={`chip whitespace-nowrap ${on ? 'bg-blue-600 text-white' : ''}`}
+          disabled={why !== null}
+          title={why ?? undefined}
+          className={`chip whitespace-nowrap ${on ? 'bg-blue-600 text-white' : ''} ${why ? 'cursor-not-allowed opacity-50' : ''}`}
           onClick={() => {
             const n = new URLSearchParams(params);
             n.set('p', id);
@@ -294,38 +424,63 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
         >
           {p.label}
         </button>
-        <PresetHistory id={id} perf={perf.data} />
+        {why ? (
+          <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400" data-testid={`unavailable-${id}`}>
+            Not available here. {why}
+          </p>
+        ) : (
+          <PresetHistory id={id} line={presetLine(id)} />
+        )}
       </div>
     );
   };
+
+  const periodHeader =
+    view === 'period' && periodTf && info
+      ? `${periodLabel(periodTf, info)}${info.partial ? ` · ${partialText(info)}` : ''}`
+      : null;
+  const quarter = tfState.tf === 'q' && periods.data ? periodFor(periods.data.quarterly, date) : null;
+  const rangeLead =
+    tfState.tf === 'q'
+      ? quarter
+        ? `${periodLabel('q', quarter)}${quarter.partial ? `, ${partialText(quarter)}` : ''}. `
+        : ''
+      : tfState.tf === 'c'
+        ? `Last ${tfState.n} trading days against the ${tfState.n} before. `
+        : tfState.tf === 'r'
+          ? 'Custom range. '
+          : '';
+  const watchTf: WatchTf = view === 'period' ? (tfState.tf as 'w' | 'm') : 'd';
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">{watchlistMode ? 'Watchlist' : 'Screener'}</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {rangeMode
-            ? `${fmtDate(rangeState.resolved.range.a)} to ${fmtDate(rangeState.resolved.range.b)}`
-            : fmtDate(date)}{' '}
+        <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="screener-heading">
+          {rangeish
+            ? range
+              ? `${fmtDate(range.a)} to ${fmtDate(range.b)}`
+              : 'No range set'
+            : (periodHeader ?? fmtDate(date))}{' '}
           &middot; {count.toLocaleString('en-IN')} stocks
           {activeCount > 0 ? ` (${activeCount} filter${activeCount > 1 ? 's' : ''} active)` : ''}
         </p>
       </div>
 
-      {!watchlistMode && (
+      {!watchlistMode && tfState.tf === 'd' && (
         <div role="group" aria-label="Mode" className="flex gap-1">
           <button
             type="button"
-            aria-pressed={!rangeMode}
-            className={`chip ${!rangeMode ? 'bg-blue-600 text-white' : ''}`}
+            aria-pressed={view !== 'range'}
+            className={`chip ${view !== 'range' ? 'bg-blue-600 text-white' : ''}`}
             onClick={() => setParam('rng', null)}
           >
             Day
           </button>
           <button
             type="button"
-            aria-pressed={rangeMode}
-            className={`chip ${rangeMode ? 'bg-blue-600 text-white' : ''}`}
+            aria-pressed={view === 'range'}
+            className={`chip ${view === 'range' ? 'bg-blue-600 text-white' : ''}`}
             onClick={() => setParam('rng', '1')}
           >
             Range
@@ -333,59 +488,93 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
         </div>
       )}
 
-      {rangeMode && <RangeControls state={rangeState} />}
+      {view === 'range' && <RangeControls state={legacyRange} />}
 
-      {!watchlistMode && !rangeMode && (
+      {view === 'rangeTf' && (
+        <p className="text-sm text-slate-600 dark:text-slate-300" data-testid="range-words">
+          {resolved
+            ? `${rangeLead}${resolved.text}.`
+            : tfState.tf === 'r'
+              ? 'Pick a start and end date in the timeframe control to compute a custom range.'
+              : 'Loading the range.'}
+        </p>
+      )}
+
+      {slim && (
+        <p className="text-xs text-amber-700 dark:text-amber-400" data-testid="slim-note">
+          {fmtDate(date)} is before {fmtDate(meta.publish.dailyFullFrom)}: only the slim column set is
+          published for this day. Other columns show a dash.
+        </p>
+      )}
+
+      {!watchlistMode && view !== 'range' && (
         <div className="space-y-3">
-          <div>
-            <button
-              type="button"
-              className="btn border-blue-700 bg-blue-600 font-semibold text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700"
-              onClick={applyWatch}
-              data-testid="daily-watch"
-            >
-              Daily delivery watch
-            </button>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{DAILY_WATCH_NOTE}</p>
+          <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+            {(['d', 'w', 'm'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                className="btn !border-blue-700 !bg-blue-600 font-semibold !text-white hover:!bg-blue-700 dark:!border-blue-500 dark:!bg-blue-600 dark:hover:!bg-blue-700"
+                onClick={() => applyWatch(t)}
+                data-testid={`${t === 'd' ? 'daily' : t === 'w' ? 'weekly' : 'monthly'}-watch`}
+              >
+                {t === 'd' ? 'Daily' : t === 'w' ? 'Weekly' : 'Monthly'} delivery watch
+              </button>
+            ))}
           </div>
-          <div role="group" aria-label="Presets" className="space-y-2">
-            <button
-              type="button"
-              className={`chip ${!preset ? 'bg-blue-600 text-white' : ''}`}
-              onClick={() => setParam('p', null)}
-            >
-              All stocks
-            </button>
-            <div className="grid gap-3 md:grid-cols-3">
-              {PRESET_GROUPS.filter((g) => !g.collapsed).map((g) => (
-                <div key={g.id} role="group" aria-label={g.label} className="min-w-0 space-y-1.5">
-                  <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {g.label}
-                  </h2>
-                  {g.ids.map(presetBlock)}
-                </div>
-              ))}
+          <p className="text-xs text-slate-600 dark:text-slate-300">{WATCH_NOTE[watchTf]}</p>
+          {view !== 'rangeTf' && (
+            <div role="group" aria-label="Presets" className="space-y-2">
+              <button
+                type="button"
+                className={`chip ${!preset ? 'bg-blue-600 text-white' : ''}`}
+                onClick={() => setParam('p', null)}
+              >
+                All stocks
+              </button>
+              {blockedReason && presetAny && (
+                <p className="text-xs text-amber-700 dark:text-amber-400" data-testid="blocked-preset">
+                  The list &ldquo;{presetAny.label}&rdquo; is not available here, so all stocks are shown.{' '}
+                  {blockedReason}
+                </p>
+              )}
+              <div className="grid gap-3 md:grid-cols-3">
+                {PRESET_GROUPS.filter((g) => !g.collapsed).map((g) => (
+                  <div key={g.id} role="group" aria-label={g.label} className="min-w-0 space-y-1.5">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      {g.label}
+                    </h2>
+                    {g.ids.map(presetBlock)}
+                  </div>
+                ))}
+              </div>
+              {PRESET_GROUPS.filter((g) => g.collapsed).map((g) => {
+                const open = moreOpen || (!!preset && g.ids.includes(preset.id));
+                return (
+                  <div key={g.id} role="group" aria-label={g.label}>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold uppercase tracking-wide text-slate-500 underline dark:text-slate-400"
+                      aria-expanded={open}
+                      onClick={() => setMoreOpen((o) => !o)}
+                    >
+                      {g.label} {open ? '▾' : '▸'}
+                    </button>
+                    {open && (
+                      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5">{g.ids.map(presetBlock)}</div>
+                    )}
+                  </div>
+                );
+              })}
+              <p className="text-xs text-slate-500 dark:text-slate-400">{PERF_DISCLAIMER}</p>
+              {view === 'period' && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Weekly and monthly history cells with fewer than 30 events are hidden; monthly cells are
+                  often thin.
+                </p>
+              )}
             </div>
-            {PRESET_GROUPS.filter((g) => g.collapsed).map((g) => {
-              const open = moreOpen || (!!preset && g.ids.includes(preset.id));
-              return (
-                <div key={g.id} role="group" aria-label={g.label}>
-                  <button
-                    type="button"
-                    className="text-xs font-semibold uppercase tracking-wide text-slate-500 underline dark:text-slate-400"
-                    aria-expanded={open}
-                    onClick={() => setMoreOpen((o) => !o)}
-                  >
-                    {g.label} {open ? '▾' : '▸'}
-                  </button>
-                  {open && (
-                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1.5">{g.ids.map(presetBlock)}</div>
-                  )}
-                </div>
-              );
-            })}
-            <p className="text-xs text-slate-500 dark:text-slate-400">{PERF_DISCLAIMER}</p>
-          </div>
+          )}
         </div>
       )}
 
@@ -398,7 +587,7 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           onChange={(e) => setParam('q', e.target.value)}
           className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
         />
-        {rangeMode && (
+        {rangeish && (
           <label className="flex items-center gap-1.5 text-sm">
             <input
               type="checkbox"
@@ -414,27 +603,21 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           </button>
           {chooser && (
             <div className="card absolute right-0 top-full z-40 mt-1 max-h-72 w-60 max-w-[85vw] space-y-1 overflow-y-auto p-2 text-sm shadow-lg">
-              <button
-                type="button"
-                className="text-xs underline"
-                onClick={() => setCols(rangeMode ? DEFAULT_RANGE_COLUMNS : DEFAULT_COLUMNS)}
-              >
+              <button type="button" className="text-xs underline" onClick={() => setCols(defaultCols)}>
                 Reset to default
               </button>
-              {(rangeMode ? RANGE_COLUMNS : COLUMNS).map((c) => (
-                <label key={c.key as string} className="flex items-center gap-1.5" title={c.tip}>
+              {chooserList.map((c) => (
+                <label key={c.key} className="flex items-center gap-1.5" title={c.tip}>
                   <input
                     type="checkbox"
-                    checked={cols.includes(c.key as string)}
+                    checked={cols.includes(c.key)}
                     disabled={c.key === 'sym'}
                     onChange={() => {
-                      const k = c.key as string;
+                      const k = c.key;
                       setCols(
                         cols.includes(k)
                           ? cols.filter((x) => x !== k)
-                          : (rangeMode ? RANGE_COLUMNS : COLUMNS)
-                              .map((x) => x.key as string)
-                              .filter((x) => x === k || cols.includes(x)),
+                          : chooserList.map((x) => x.key).filter((x) => x === k || cols.includes(x)),
                       );
                     }}
                   />
@@ -453,13 +636,15 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
         <ErrorBox message={active.error} />
       ) : active.loading ? (
         <Skeleton height={560} />
+      ) : rangeish && !resolved ? (
+        <Empty>Set a start and end date to compute this range.</Empty>
       ) : count === 0 ? (
         <Empty>
           {watchlistMode && watch.length === 0
             ? 'Your watchlist is empty. Open a stock and tap the star to add it.'
             : 'No stocks match the current filters.'}
         </Empty>
-      ) : rangeMode ? (
+      ) : rangeish ? (
         <DataTable<RangeScreenRow>
           rows={rRows}
           columns={cols}
@@ -469,13 +654,29 @@ export default function Screener({ mode = 'screener' }: { mode?: 'screener' | 'w
           onSortingChange={onSort}
         />
       ) : (
-        <DataTable rows={rows} columns={cols} sorting={sorting} onSortingChange={onSort} extra={extra} />
+        <DataTable
+          rows={rows}
+          columns={cols}
+          registry={dayRegistry}
+          sorting={sorting}
+          onSortingChange={onSort}
+          extra={extra}
+          signalHistory={
+            periodTf
+              ? (signal, bucket) =>
+                  periodSignalHistory(periodPerf.data, periodTf, signal, bucket) ?? LOADING_LINE
+              : undefined
+          }
+        />
       )}
       <p className="text-xs text-slate-500 dark:text-slate-400">
         Click a column header to sort; shift-click adds a second sort. Signals describe what happened over the
         period and do not predict anything.
-        {rangeMode
-          ? ' A ⚠ marks a split or bonus ex-date inside the range: the price return is not adjusted. "Hide event-driven rows" does not apply in Range mode.'
+        {rangeish
+          ? ' A ⚠ marks a split or bonus ex-date inside the range: the price return is not adjusted. "Hide event-driven rows" does not apply to ranges.'
+          : ''}
+        {view === 'period'
+          ? ' A ⚠ marks a period with a split or bonus: its prices are split-adjusted, while quantities are plain sums. The minimum-turnover filter reads the average turnover of the prior periods.'
           : ''}
         {watchlistMode
           ? ' Global filters apply to the watchlist too (for example the minimum turnover).'

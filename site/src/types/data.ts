@@ -17,6 +17,8 @@ export interface Meta {
   constituentsAsOf: string | null;
   sources: Record<string, SourceFreshness>;
   settings: { minTurnoverAvg20Cr: number; minBaseDelivValCr: number };
+  /** 07 section 8: daily/ files of days before dailyFullFrom carry only dailySlimColumns. */
+  publish: { dailyFullTradingDays: number; dailyFullFrom: string; dailySlimColumns: string[] };
 }
 
 export interface Table {
@@ -94,6 +96,10 @@ export interface CumRow {
   cDelivQty: number;
   cVol: number;
   cDays: number;
+  /** Delivery value on up days and down days (close above / below prevClose) and trades: delivBalance and avgTradeSize for any range. */
+  cDelivValUpCr: number;
+  cDelivValDnCr: number;
+  cTrades: number;
 }
 
 export interface SymbolRow {
@@ -103,6 +109,8 @@ export interface SymbolRow {
   high: number | null;
   low: number | null;
   close: number | null;
+  /** The raw previous close (NSE does not adjust it on a split ex-date). */
+  prevClose: number | null;
   vwap: number | null;
   vol: number | null;
   turnoverCr: number | null;
@@ -114,10 +122,6 @@ export interface SymbolRow {
   spike: number | null;
   signal: SignalCode | null;
   flags: number;
-  futOi: number | null;
-  futOiChgPct: number | null;
-  buildup: string | null;
-  pcr: number | null;
 }
 
 export interface Deal {
@@ -152,6 +156,16 @@ export interface SymbolFile {
   corpActions: CorpAction[];
 }
 
+/** One timeframe block of market.json (weekly / monthly / quarterly): the same groups and fields as the daily block, per period. */
+export interface MarketBlock {
+  keys: string[];
+  /** Last trading day of each period. */
+  ends: string[];
+  partial: boolean[];
+  groups: Record<string, MarketGroup>;
+  indexClose: Record<string, (number | null)[]>;
+}
+
 export interface MarketGroup {
   turnoverCr: (number | null)[];
   delivValCr: (number | null)[];
@@ -168,6 +182,9 @@ export interface Market {
   dates: string[];
   groups: Record<string, MarketGroup>;
   indexClose: Record<string, (number | null)[]>;
+  weekly: MarketBlock;
+  monthly: MarketBlock;
+  quarterly: MarketBlock;
 }
 
 export interface SignalPerfEvent {
@@ -226,3 +243,102 @@ export const FLAG = {
   newListing: 1024,
   expiryWeek: 2048,
 } as const;
+
+// ---- timeframes (08-timeframes.md) ------------------------------------------------------------------------------------
+
+/** One entry of periods.json weekly / monthly / quarterly. Quarters have no snapshot file. */
+export interface PeriodInfo {
+  key: string;
+  /** First and last trading day in the period. */
+  start: string;
+  end: string;
+  tradingDays: number;
+  partial: boolean;
+  daysIn: number;
+  daysExpected: number;
+  stocks: number;
+  file?: string;
+}
+
+export interface PeriodsDoc {
+  schemaVersion: 1;
+  config: import('../lib/aggregate').PeriodsConfig;
+  weekly: PeriodInfo[];
+  monthly: PeriodInfo[];
+  quarterly: PeriodInfo[];
+}
+
+/** A weekly/{end}.json or monthly/{key}.json row (slim set). Missing values are null. */
+export interface PeriodSnapshotRow {
+  sym: string;
+  days: number | null;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number | null;
+  prevClose: number | null;
+  vwap: number | null;
+  vol: number | null;
+  turnoverCr: number | null;
+  trades: number | null;
+  delivQty: number | null;
+  delivPct: number | null;
+  delivValCr: number | null;
+  ret: number | null;
+  clv: number | null;
+  avgTradeSize: number | null;
+  delivBalance: number | null;
+  delivValAvgN: number | null;
+  delivPctAvgN: number | null;
+  turnoverAvgCr: number | null;
+  spike: number | null;
+  delivPctDiff: number | null;
+  relTurnover: number | null;
+  tradeSizeRatio: number | null;
+  delivPctZ: number | null;
+  delivPctPctile: number | null;
+  streak: number | null;
+  signal: SignalCode | null;
+  flags: number;
+  adjusted: number;
+}
+
+export interface PeriodSnapshot {
+  info: {
+    tf: 'w' | 'm';
+    key: string;
+    start: string;
+    end: string;
+    partial: boolean;
+    daysIn: number;
+    daysExpected: number;
+  };
+  rows: PeriodSnapshotRow[];
+}
+
+/** stats/signal_perf_periods.json: forward excess returns after each period signal. */
+export interface SignalPerfPeriodsDoc {
+  schemaVersion: 1;
+  asOf: string;
+  window: { from: string; to: string };
+  timeframes: Record<'w' | 'm', { horizons: number[]; horizonLabels: string[] }>;
+  groups: string[];
+  minN: number;
+  events: SignalPerfEvent[];
+  label: string;
+  columns: string[];
+  rows: unknown[][];
+}
+
+export interface SignalPerfPeriodRow {
+  tf: 'w' | 'm';
+  event: string;
+  group: string;
+  horizon: number;
+  events: number;
+  n: number;
+  periods: number;
+  medianExcess: number | null;
+  meanExcess: number | null;
+  hitRate: number | null;
+}

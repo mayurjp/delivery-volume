@@ -1,0 +1,73 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "periods.json",
+ "type": "object",
+ "required": [
+  "schemaVersion",
+  "config",
+  "weekly",
+  "monthly",
+  "quarterly"
+ ],
+ "properties": {
+  "schemaVersion": {
+   "const": 1
+  },
+  "weekly": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "key",
+     "start",
+     "end",
+     "tradingDays",
+     "partial",
+     "daysIn",
+     "daysExpected",
+     "stocks"
+    ]
+   }
+  },
+  "monthly": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "key",
+     "start",
+     "end",
+     "tradingDays",
+     "partial",
+     "daysIn",
+     "daysExpected",
+     "stocks"
+    ]
+   }
+  },
+  "quarterly": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "key",
+     "start",
+     "end",
+     "tradingDays",
+     "partial",
+     "daysIn",
+     "daysExpected",
+     "stocks"
+    ]
+   }
+  },
+  "config": {
+   "type": "object",
+   "required": [
+    "minPeriodsFraction",
+    "liquidity",
+    "periods"
+   ]
+  }
+ }
+}

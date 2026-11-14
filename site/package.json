@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/dist-size.mjs",
     "preview": "vite preview",
     "lint": "eslint . && prettier --check src",
     "format": "prettier --write src",

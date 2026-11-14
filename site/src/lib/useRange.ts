@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { dataClient } from './dataClient';
-import { useApp, useAsync, useGlobalState } from './hooks';
+import { useApp, useAsync, useGlobalState, usePeriods, useTimeframe } from './hooks';
+import { tfToRangeSpec } from './timeframe';
 import {
   buildRangeRows,
   fetchRangeCums,
@@ -44,4 +45,37 @@ export function useRangeRows(resolved: ResolvedRange, enabled = true) {
     return buildRangeRows(cums, resolved, bySym, meta.settings, sb);
   });
   return res;
+}
+
+export interface EffectiveRange extends RangeState {
+  /** True when the global timeframe (q, N-day bars, a custom range) sets the range instead of the page's own controls. */
+  fromTimeframe: boolean;
+  /** The timeframe needs periods.json and it is not here yet (or the timeframe has no range). */
+  pending: boolean;
+}
+
+/**
+ * The range a page works on (08 section 5A): the global timeframe q / c / r sets it through tfToRangeSpec; for d, w and m
+ * the page's own range controls (r, ra, rb, bl, ba, bb) stay in charge.
+ */
+export function useEffectiveRange(): EffectiveRange {
+  const own = useRangeState();
+  const { meta } = useApp();
+  const { date } = useGlobalState();
+  const { state } = useTimeframe();
+  const periods = usePeriods();
+  const fromTimeframe = state.tf === 'q' || state.tf === 'c' || state.tf === 'r';
+  const spec = useMemo(
+    () =>
+      fromTimeframe ? tfToRangeSpec(state, date, meta.tradingDays, periods.data?.quarterly ?? []) : null,
+    [fromTimeframe, state, date, meta.tradingDays, periods.data],
+  );
+  const resolved = useMemo(
+    () => (spec ? resolveRange(spec, date, meta.tradingDays) : null),
+    [spec, date, meta.tradingDays],
+  );
+  if (fromTimeframe && spec && resolved) {
+    return { spec, resolved, setSpec: own.setSpec, fromTimeframe, pending: false };
+  }
+  return { ...own, fromTimeframe, pending: fromTimeframe };
 }

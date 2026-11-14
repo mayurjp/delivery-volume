@@ -102,6 +102,30 @@ const ROUTES = [
   },
 ];
 
+// 08 section 6: D / W / M / Q / Custom (N-day bars) / Custom (date range) on Screener, Stock, Compare, Heatmaps and Stats.
+const TFS = ['', 'tf=w', 'tf=m', 'tf=q', 'tf=c&n=10', 'tf=r&from=2026-06-01&to=2026-09-30&base=prev'];
+const TF_PAGES = [
+  { base: '#/screener', wait: 'h1:has-text("Screener")', sel: '[aria-label="Screener table"], [aria-label="Screener table"] a' },
+  { base: '#/stock/RELIANCE', wait: 'h1:has-text("RELIANCE")', sel: 'canvas' },
+  { base: '#/compare', wait: 'h1:has-text("Period Compare")', sel: 'canvas' },
+  { base: '#/heatmap?u=NIFTY500', wait: 'h1:has-text("Heatmaps")', sel: 'canvas' },
+  { base: '#/heatmap?t=grid', wait: 'h1:has-text("Heatmaps")', sel: 'canvas' },
+  { base: '#/stats', wait: 'h1:has-text("Market Statistics")', sel: 'canvas' },
+];
+for (const pg of TF_PAGES) {
+  for (const tf of TFS) {
+    const sep = pg.base.includes('?') ? '&' : '?';
+    ROUTES.push({
+      path: tf ? `${pg.base}${sep}${tf}` : pg.base,
+      wait: pg.wait,
+      expect: async (p) => {
+        await p.waitForSelector(pg.sel, { timeout: 25000 });
+        return (await p.locator('[data-testid=period-picker], [data-testid=custom-controls], [aria-label=Timeframe]').count()) > 0;
+      },
+    });
+  }
+}
+
 let initial = null;
 try {
   await waitUp();

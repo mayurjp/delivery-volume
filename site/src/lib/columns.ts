@@ -22,6 +22,12 @@ export type ScreenRow = DailyRow & {
   bucket: Bucket | null;
   /** Close minus previous close, ₹. */
   chg: number | null;
+  /** Period-snapshot extras (08 section 5; set only in the weekly and monthly views). */
+  days?: number | null;
+  delivBalance?: number | null;
+  avgTradeSize?: number | null;
+  /** 1 when the period's prices were split-adjusted. */
+  adjusted?: number;
 };
 
 /** What every Screener row type (day or range) provides for the shared table. */
@@ -32,6 +38,7 @@ export interface RowLike {
   etf?: boolean;
   bucket?: Bucket | null;
   caWarn?: boolean;
+  adjusted?: number;
 }
 
 export interface ColumnSpec<R = ScreenRow> {
@@ -46,6 +53,8 @@ export interface ColumnSpec<R = ScreenRow> {
   fmt: (r: R) => string;
   /** CSS colour class (price green/red, delivery blue/orange). */
   tone?: (r: R) => string;
+  /** Per-cell tooltip (native title): a reason for a dash, or the baseline value behind the number. */
+  cellTip?: (r: R) => string | undefined;
   /** Plain value for CSV export (defaults to the raw field). */
   csv?: (r: R) => string | number | null;
 }
@@ -181,6 +190,34 @@ export const COLUMNS: ColumnSpec[] = [
     fmt: (r) => r.buildup ?? '—',
   },
   num('pcr', 'PCR', 'Put-call ratio (Phase 5)', 66, (v) => fmtNum(v)),
+];
+
+const PERIOD_ONLY_TIP_BAL =
+  'Delivery value on up days divided by delivery value on down days within the period. Above 1 means more delivery value changed hands on days the price rose. Description only: every delivered share has a buyer and a seller.';
+
+/** Columns that exist only in the weekly and monthly views (08 section 5). */
+export const PERIOD_ONLY_COLUMNS: ColumnSpec[] = [
+  num('days', 'Days', 'Trading days of this stock inside the period', 56, (v) =>
+    v === null ? '—' : String(v),
+  ),
+  num('delivBalance', 'Deliv balance', PERIOD_ONLY_TIP_BAL, 100, (v) => fmtRatio(v)),
+  num(
+    'avgTradeSize',
+    'Avg trade size',
+    'Average trade size in rupees: turnover divided by number of trades',
+    104,
+    (v) => (v === null ? '—' : `₹${fmtInt(v)}`),
+  ),
+  {
+    key: 'adjusted',
+    kind: 'warn',
+    label: 'Adj',
+    tip: 'A warning marker means a split or bonus fell inside the period: its prices are split-adjusted.',
+    width: 44,
+    fmt: (r) => (r.adjusted ? '⚠' : ''),
+    csv: (r) => (r.adjusted ? 'split-adjusted prices in period' : ''),
+    cellTip: (r) => (r.adjusted ? 'Prices are split-adjusted in this period.' : undefined),
+  },
 ];
 
 export const COLUMN_BY_KEY = new Map<string, ColumnSpec>(COLUMNS.map((c) => [c.key as string, c]));

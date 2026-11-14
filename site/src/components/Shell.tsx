@@ -1,12 +1,13 @@
-import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { fmtDate, MONTH_NAMES, pad2 } from '../lib/format';
+import { fmtDate } from '../lib/format';
 import { useApp, useGlobalState } from '../lib/hooks';
 import { cycleTheme, useThemeChoice } from '../lib/theme';
 import { carryParams } from '../lib/urlState';
 import { useWatchlist } from '../lib/watchlist';
 import FilterPanel from './FilterPanel';
-import { Skeleton } from './ui';
+import TimeframeControl from './TimeframeControl';
+import { Popover, Skeleton } from './ui';
 
 export const DISCLAIMER =
   'Data source: NSE India (nseindia.com). FII/DII figures are provisional. For education only; not investment advice. Not affiliated with NSE.';
@@ -100,43 +101,6 @@ function Nav({ rail }: { rail: boolean }) {
   );
 }
 
-function Popover({
-  button,
-  children,
-  align = 'left',
-}: {
-  button: (toggle: () => void, open: boolean) => ReactNode;
-  children: ReactNode;
-  align?: 'left' | 'right';
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: PointerEvent) =>
-      ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('pointerdown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('pointerdown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
-  return (
-    <div ref={ref} className="relative">
-      {button(() => setOpen((o) => !o), open)}
-      {open && (
-        <div
-          className={`absolute top-full z-40 mt-1 max-w-[calc(100vw-2rem)] ${align === 'right' ? 'right-0' : 'left-0'}`}
-        >
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function FreshnessChip() {
   const { meta } = useApp();
   const stale = Object.values(meta.sources).some((s) => s.latest !== null && s.latest < meta.latestDate);
@@ -185,116 +149,6 @@ function FreshnessChip() {
   );
 }
 
-/** Day-mode date control: previous/next arrows and a month grid in which only trading days are enabled. */
-export function DateControl() {
-  const { meta } = useApp();
-  const { date, setDate } = useGlobalState();
-  const days = meta.tradingDays;
-  const idx = days.indexOf(date);
-  const set = useMemo(() => new Set(days), [days]);
-  const [view, setView] = useState(date.slice(0, 7));
-  const [seen, setSeen] = useState(date);
-  if (seen !== date) {
-    setSeen(date);
-    setView(date.slice(0, 7));
-  }
-  const [y, m] = view.split('-').map(Number) as [number, number];
-  const first = new Date(Date.UTC(y, m - 1, 1));
-  const offset = (first.getUTCDay() + 6) % 7; // Monday first
-  const count = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const shift = (d: number) => {
-    const t = new Date(Date.UTC(y, m - 1 + d, 1));
-    setView(`${t.getUTCFullYear()}-${pad2(t.getUTCMonth() + 1)}`);
-  };
-  const minView = meta.firstDate.slice(0, 7);
-  const maxView = meta.latestDate.slice(0, 7);
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        className="btn px-2"
-        aria-label="Previous trading day"
-        disabled={idx <= 0}
-        onClick={() => setDate(days[idx - 1]!)}
-      >
-        {'‹'}
-      </button>
-      <Popover
-        button={(toggle) => (
-          <button
-            type="button"
-            className="btn whitespace-nowrap num"
-            onClick={toggle}
-            aria-label={`Trading date ${fmtDate(date)}; change`}
-          >
-            {fmtDate(date)}
-          </button>
-        )}
-      >
-        <div className="card w-64 p-2 shadow-lg">
-          <div className="mb-1 flex items-center justify-between text-sm">
-            <button
-              type="button"
-              className="btn px-2"
-              aria-label="Previous month"
-              disabled={view <= minView}
-              onClick={() => shift(-1)}
-            >
-              {'‹'}
-            </button>
-            <span>
-              {MONTH_NAMES[m - 1]} {y}
-            </span>
-            <button
-              type="button"
-              className="btn px-2"
-              aria-label="Next month"
-              disabled={view >= maxView}
-              onClick={() => shift(1)}
-            >
-              {'›'}
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-0.5 text-center text-xs">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-              <div key={i} className="py-1 text-slate-500">
-                {d}
-              </div>
-            ))}
-            {Array.from({ length: offset }, (_, i) => (
-              <div key={`b${i}`} />
-            ))}
-            {Array.from({ length: count }, (_, i) => {
-              const iso = `${view}-${pad2(i + 1)}`;
-              const ok = set.has(iso);
-              return (
-                <button
-                  key={iso}
-                  type="button"
-                  disabled={!ok}
-                  onClick={() => setDate(iso)}
-                  className={`rounded py-1 ${iso === date ? 'bg-blue-600 text-white' : ok ? 'hover:bg-slate-100 dark:hover:bg-slate-800' : 'text-slate-300 dark:text-slate-700'}`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </Popover>
-      <button
-        type="button"
-        className="btn px-2"
-        aria-label="Next trading day"
-        disabled={idx < 0 || idx >= days.length - 1}
-        onClick={() => setDate(days[idx + 1]!)}
-      >
-        {'›'}
-      </button>
-    </div>
-  );
-}
-
 function ThemeToggle() {
   const c = useThemeChoice();
   return (
@@ -318,7 +172,7 @@ function TopBar() {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
         <span className="mr-auto text-base font-semibold">Delivery Volume</span>
         <FreshnessChip />
-        <DateControl />
+        <TimeframeControl />
         <div className="relative">
           <button
             type="button"

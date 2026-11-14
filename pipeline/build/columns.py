@@ -16,17 +16,37 @@ DAILY = [
     ("volAvg20", "i", None), ("turnoverAvg20Cr", "f", 2), ("tradeSizeRatio", "f", 3), ("spike", "f", 3),
     ("delivPctDiff", "f", 2), ("relVol", "f", 3), ("ret1", "f", 2), ("clv", "f", 3), ("vwapGap", "f", 2),
     ("delivPctZ60", "f", 3), ("delivPctPctile", "f", 2), ("streak", "i", None), ("signal", "s", None),
-    ("flags", "i", None), ("futOi", "i", None), ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3),
+    ("flags", "i", None),
 ]
+# F&O columns (03 sections 5.3 and 5.5: futOi, futOiChgPct, buildup, pcr) are all null until Phase 5 wires S3 into the
+# build, so they are NOT published now (66 MB of "null," in dist/); Phase 5 appends them here. Consumers read a missing
+# column as null.
+FNO_COLUMNS = [("futOi", "i", None), ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3)]
+
+# Days older than publish.dailyFullTradingDays carry only these columns (07 section 8); the rest show "—" in the UI.
+DAILY_SLIM = ["sym", "series", "open", "high", "low", "close", "prevClose", "vwap", "vol", "turnoverCr", "trades",
+              "delivQty", "delivPct", "delivValCr", "spike", "delivPctDiff", "ret1", "streak", "signal", "flags"]
 SYMBOL_HIST = [
     ("date", "s", None), ("series", "s", None), ("open", "f", 2), ("high", "f", 2), ("low", "f", 2),
-    ("close", "f", 2), ("vwap", "f", 2), ("vol", "i", None), ("turnoverCr", "f", 2), ("trades", "i", None),
+    ("close", "f", 2), ("prevClose", "f", 2), ("vwap", "f", 2), ("vol", "i", None), ("turnoverCr", "f", 2), ("trades", "i", None),
     ("delivQty", "i", None), ("delivPct", "f", 2), ("delivValCr", "f", 2), ("delivPctAvg20", "f", 2),
-    ("spike", "f", 3), ("signal", "s", None), ("flags", "i", None), ("futOi", "i", None),
-    ("futOiChgPct", "f", 2), ("buildup", "s", None), ("pcr", "f", 3),
+    ("spike", "f", 3), ("signal", "s", None), ("flags", "i", None),
 ]
 CUM = [("sym", "s", None), ("lastClose", "f", 2), ("lastTradeDate", "s", None), ("cDelivValCr", "f", 2),
-       ("cTurnoverCr", "f", 2), ("cDelivQty", "i", None), ("cVol", "i", None), ("cDays", "i", None)]
+       ("cTurnoverCr", "f", 2), ("cDelivQty", "i", None), ("cVol", "i", None), ("cDays", "i", None),
+       ("cDelivValUpCr", "f", 2), ("cDelivValDnCr", "f", 2), ("cTrades", "i", None)]
+# Period snapshots (08 section 4): weekly/{weekEnd}.json and monthly/{YYYY-MM}.json. Slim set only. F&O columns stay null
+# until Phase 5 wires S3 into the build.
+PERIOD = [
+    ("sym", "s", None), ("days", "i", None), ("open", "f", 2), ("high", "f", 2),
+    ("low", "f", 2), ("close", "f", 2), ("prevClose", "f", 2), ("vwap", "f", 2), ("vol", "i", None),
+    ("turnoverCr", "f", 2), ("trades", "i", None), ("delivQty", "i", None), ("delivPct", "f", 2),
+    ("delivValCr", "f", 2), ("ret", "f", 2), ("clv", "f", 3), ("avgTradeSize", "f", 0), ("delivBalance", "f", 3),
+    ("delivValAvgN", "f", 2), ("delivPctAvgN", "f", 2), ("turnoverAvgCr", "f", 2), ("spike", "f", 3),
+    ("delivPctDiff", "f", 2), ("relTurnover", "f", 3), ("tradeSizeRatio", "f", 3), ("delivPctZ", "f", 3),
+    ("delivPctPctile", "f", 2), ("streak", "i", None), ("signal", "s", None), ("flags", "i", None),
+    ("adjusted", "i", None),
+]
 UNIVERSE = [("sym", "s", None), ("f", "s", None), ("name", "s", None), ("isin", "s", None), ("sector", "s", None),
             ("idx", "i", None), ("mcapCr", "f", 2), ("mcapRank", "i", None), ("bucket", "s", None),
             ("listedOn", "s", None), ("aliases", "j", None), ("mcapEstimated", "b", None),
@@ -39,6 +59,11 @@ NAMED_HOLDER_COLS = ["quarter", "category", "subType", "holder", "entityId", "sh
 DEAL_FLOW_COLS = ["date", "category", "buyValueCr", "sellValueCr", "netValueCr"]
 MARKET_METRICS = ["turnoverCr", "delivValCr", "delivPctW", "medianDelivPct", "adv", "dec", "unch", "spikeCount2x"]
 INDEX_CLOSE_NAMES = ["Nifty 50", "Nifty Next 50", "Nifty Bank", "Nifty Midcap 150", "Nifty Smallcap 250"]
+
+
+def daily_slim_cols() -> list:
+    by = {c[0]: c for c in DAILY}
+    return [by[n] for n in DAILY_SLIM]
 
 
 def names(cols) -> list[str]:

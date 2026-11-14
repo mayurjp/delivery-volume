@@ -1,6 +1,6 @@
 import { deliveryClass, priceClass } from '../charts/theme';
 import { numCol, type ColumnSpec } from './columns';
-import { fmtCr, fmtPct, fmtPctChg, fmtPp } from './format';
+import { fmtCr, fmtInt, fmtPct, fmtPctChg, fmtPp, fmtRatio } from './format';
 import type { RangeScreenRow } from './range';
 import { SIGNAL_LABEL } from './signals';
 
@@ -13,6 +13,9 @@ const n = (
   f: (v: number | null) => string,
   tone?: (v: number | null) => string,
 ) => numCol<RangeScreenRow>(k, label, tip, width, f, tone);
+
+export const NOT_DERIVABLE =
+  'High, low and close location are not derivable from cumulative files; open the stock page';
 
 export const RANGE_COLUMNS: ColumnSpec<RangeScreenRow>[] = [
   {
@@ -59,6 +62,8 @@ export const RANGE_COLUMNS: ColumnSpec<RangeScreenRow>[] = [
     width: 44,
     fmt: (r) => (r.caWarn ? '⚠' : ''),
     csv: (r) => (r.caWarn ? 'corporate action in range' : ''),
+    cellTip: (r) =>
+      r.caWarn ? 'A split or bonus ex-date falls in the range: the price return is not adjusted.' : undefined,
   },
   {
     key: 'signal',
@@ -69,6 +74,38 @@ export const RANGE_COLUMNS: ColumnSpec<RangeScreenRow>[] = [
     fmt: (r) => (r.signal ? SIGNAL_LABEL[r.signal] : '—'),
     csv: (r) => (r.signal ? SIGNAL_LABEL[r.signal] : null),
   },
+  {
+    ...n(
+      'delivBalanceR',
+      'Deliv balance',
+      'Delivery value on up days divided by delivery value on down days in the range. Above 1 means more delivery value on days the price rose. Hover a cell for the baseline value.',
+      100,
+      (v) => fmtRatio(v),
+    ),
+    cellTip: (r) =>
+      `Range ${fmtRatio(r.delivBalanceR)}; baseline ${fmtRatio(r.delivBalanceB)} (delivery value on up days / on down days)`,
+  },
+  {
+    ...n(
+      'avgTradeSizeR',
+      'Avg trade size',
+      'Average trade size in rupees in the range: turnover divided by number of trades. Hover a cell for the baseline value.',
+      110,
+      (v) => (v === null ? '—' : `₹${fmtInt(v)}`),
+    ),
+    cellTip: (r) => `Range ₹${fmtInt(r.avgTradeSizeR)}; baseline ₹${fmtInt(r.avgTradeSizeB)}`,
+  },
+  n(
+    'tradeSizeRatio',
+    'Trade size x',
+    'Average trade size in the range relative to the baseline (1.0x = unchanged)',
+    92,
+    (v) => fmtRatio(v),
+  ),
+  ...(['high', 'low', 'clv'] as const).map((k) => ({
+    ...n(k, k === 'clv' ? 'CLV' : k === 'high' ? 'High' : 'Low', NOT_DERIVABLE, 66, () => '—'),
+    cellTip: () => NOT_DERIVABLE,
+  })),
   n('avgDelivValR', 'Avg deliv value', 'Average daily delivery value in the range, ₹ Cr', 110, fmtCr),
   n('avgDelivValB', 'Baseline deliv value', 'Average daily delivery value in the baseline, ₹ Cr', 130, fmtCr),
   n('delivPctWR', 'Deliv %', 'Value-weighted delivery % in the range', 80, (v) => fmtPct(v)),
@@ -99,6 +136,7 @@ export const DEFAULT_RANGE_COLUMNS = [
   'ret',
   'caWarn',
   'signal',
+  'delivBalanceR',
   'avgDelivValR',
   'delivPctWR',
   'avgTurnoverR',

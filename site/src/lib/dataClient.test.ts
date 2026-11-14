@@ -68,12 +68,47 @@ describe('DataClient', () => {
     const r1 = await client.daily('2026-11-13', '2026-11-13');
     const r2 = await client.daily('2026-11-13', '2026-11-13');
     expect(r1).toBe(r2);
-    expect(r1).toEqual([
-      { sym: 'A', close: 1 },
-      { sym: 'B', close: 2 },
+    expect(r1.map((r) => [r.sym, r.close])).toEqual([
+      ['A', 1],
+      ['B', 2],
     ]);
+    // a column the day's file does not carry (a slim day, or the F&O columns) reads as null, so the UI shows a dash
+    expect(r1[0]!.spike).toBeNull();
+    expect(r1[0]!.futOi).toBeNull();
     await client.daily('2026-11-12', '2026-11-13');
     expect(calls.some((c) => c.url.startsWith('/data/daily/2026-11-12.json'))).toBe(true);
+  });
+
+  it('loads periods.json and a period snapshot through the same cache', async () => {
+    const info = {
+      key: '2026-W46',
+      start: '2026-11-09',
+      end: '2026-11-13',
+      tradingDays: 5,
+      partial: false,
+      daysIn: 5,
+      daysExpected: 5,
+      stocks: 1,
+      file: 'weekly/2026-11-13.json',
+    };
+    const snap = {
+      tf: 'w',
+      key: '2026-W46',
+      start: '2026-11-09',
+      end: '2026-11-13',
+      partial: false,
+      daysIn: 5,
+      daysExpected: 5,
+      columns: ['sym', 'ret'],
+      rows: [['A', 1.5]],
+    };
+    const { client, calls } = server({ 'periods.json': { weekly: [info] }, 'weekly/2026-11-13.json': snap });
+    expect((await client.periods()).weekly[0]!.key).toBe('2026-W46');
+    const s1 = await client.periodSnapshot('w', info);
+    expect(s1.rows).toEqual([{ sym: 'A', ret: 1.5 }]);
+    expect(s1.info.end).toBe('2026-11-13');
+    expect(await client.periodSnapshot('w', info)).toBe(s1);
+    expect(calls.filter((c) => c.url.startsWith('/data/weekly/')).length).toBe(1);
   });
 
   it('rejects on HTTP errors and does not cache the failure', async () => {

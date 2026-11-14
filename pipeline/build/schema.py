@@ -12,28 +12,28 @@ import jsonschema
 from . import columns as C
 
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
-SAMPLE_ROWS = 40  # files over 40 rows: cell types are validated on ~40 sampled rows (spread across the file); shape on all rows
 
 SIGNAL_PERF_COLS = ["event", "group", "entry", "horizon", "events", "n", "days", "medianExcess",
                     "meanExcess", "hitRate"]
+PERIOD_PERF_COLS = ["tf", "event", "group", "horizon", "events", "n", "periods", "medianExcess", "meanExcess",
+                    "hitRate"]
 _T = {"s": ["string", "null"], "i": ["integer", "null"], "f": ["number", "null"], "b": ["boolean"],
       "j": ["array"]}
 
 
 def _table(cols, extra: dict | None = None, extra_required: list[str] | None = None, title: str = "") -> dict:
     n = len(cols)
+    row = {"type": "array", "minItems": n, "maxItems": n, "prefixItems": [{"type": _T[c[1]]} for c in cols]}
     props = {
         "schemaVersion": {"const": 1},
         "columns": {"const": C.names(cols)},
-        "rows": {"type": "array", "items": {"$ref": "#/$defs/row"}},
+        "rows": {"type": "array", "items": row},  # inline (no $ref): resolving a $ref per row was the build's slowest step
     }
     props.update(extra or {})
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema", "title": title, "type": "object",
         "required": ["schemaVersion", "columns", "rows"] + (extra_required or []),
         "properties": props,
-        "$defs": {"row": {"type": "array", "minItems": n, "maxItems": n,
-                          "prefixItems": [{"type": _T[c[1]]} for c in cols]}},
     }
 
 
@@ -45,7 +45,7 @@ def schemas() -> dict[str, dict]:
         "meta": {
             "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "meta.json", "type": "object",
             "required": ["schemaVersion", "generatedAt", "latestDate", "firstDate", "tradingDays", "indices",
-                         "sectors", "constituentsAsOf", "sources", "settings"],
+                         "sectors", "constituentsAsOf", "sources", "settings", "publish"],
             "properties": {
                 "schemaVersion": {"const": 1}, "generatedAt": {"type": "string"}, "latestDate": iso,
                 "firstDate": iso, "tradingDays": {"type": "array", "items": iso, "minItems": 1},
@@ -53,13 +53,19 @@ def schemas() -> dict[str, dict]:
                 "constituentsAsOf": {"type": ["string", "null"]},
                 "sources": {"type": "object", "additionalProperties": source},
                 "settings": {"type": "object", "required": ["minTurnoverAvg20Cr", "minBaseDelivValCr"]},
+                "publish": {"type": "object", "required": ["dailyFullTradingDays", "dailyFullFrom", "dailySlimColumns"]},
             }},
         "universe": _table(C.UNIVERSE, title="universe.json"),
         "daily": _table(C.DAILY, {"date": iso}, ["date"], "daily/{date}.json"),
+        "daily_slim": _table(C.daily_slim_cols(), {"date": iso}, ["date"], "daily/{date}.json (older than the full window)"),
+        "period": _table(C.PERIOD, {
+            "tf": {"enum": ["w", "m"]}, "key": {"type": "string"}, "start": iso, "end": iso,
+            "partial": {"type": "boolean"}, "daysIn": {"type": "integer"}, "daysExpected": {"type": "integer"}},
+            ["tf", "key", "start", "end", "partial", "daysIn", "daysExpected"], "weekly/{end}.json, monthly/{key}.json"),
         "cum": _table(C.CUM, {"date": iso}, ["date"], "cum/{date}.json"),
         "market": {
             "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "market.json", "type": "object",
-            "required": ["schemaVersion", "dates", "groups", "indexClose"],
+            "required": ["schemaVersion", "dates", "groups", "indexClose", "weekly", "monthly", "quarterly"],
             "properties": {
                 "schemaVersion": {"const": 1}, "dates": {"type": "array", "items": iso},
                 "groups": {"type": "object", "additionalProperties": {
@@ -68,6 +74,8 @@ def schemas() -> dict[str, dict]:
                                    for m in C.MARKET_METRICS}}},
                 "indexClose": {"type": "object",
                                "additionalProperties": {"type": "array", "items": {"type": ["number", "null"]}}},
+                **{blk: {"type": "object", "required": ["keys", "ends", "partial", "groups", "indexClose"]}
+                   for blk in ("weekly", "monthly", "quarterly")},
             }},
     }
     out["signal_perf"] = {
@@ -84,6 +92,28 @@ def schemas() -> dict[str, dict]:
             "label": {"type": "string"}, "columns": {"const": SIGNAL_PERF_COLS},
             "rows": {"type": "array", "items": {"type": "array", "minItems": len(SIGNAL_PERF_COLS),
                                                 "maxItems": len(SIGNAL_PERF_COLS)}},
+        }}
+    plist = {"type": "array", "items": {"type": "object", "required": [
+        "key", "start", "end", "tradingDays", "partial", "daysIn", "daysExpected", "stocks"]}}
+    out["periods"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "periods.json", "type": "object",
+        "required": ["schemaVersion", "config", "weekly", "monthly", "quarterly"],
+        "properties": {"schemaVersion": {"const": 1}, "weekly": plist, "monthly": plist, "quarterly": plist,
+                       "config": {"type": "object", "required": ["minPeriodsFraction", "liquidity", "periods"]}}}
+    out["signal_perf_periods"] = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "stats/signal_perf_periods.json",
+        "type": "object",
+        "required": ["schemaVersion", "asOf", "window", "timeframes", "groups", "minN", "events", "label", "columns", "rows"],
+        "properties": {
+            "schemaVersion": {"const": 1}, "asOf": iso, "minN": {"type": "integer"},
+            "window": {"type": "object", "required": ["from", "to"]},
+            "timeframes": {"type": "object", "additionalProperties": {
+                "type": "object", "required": ["horizons", "horizonLabels"]}},
+            "groups": {"type": "array", "items": {"type": "string"}},
+            "events": {"type": "array", "items": {"type": "object", "required": ["id", "label"]}},
+            "label": {"type": "string"}, "columns": {"const": PERIOD_PERF_COLS},
+            "rows": {"type": "array", "items": {"type": "array", "minItems": len(PERIOD_PERF_COLS),
+                                                "maxItems": len(PERIOD_PERF_COLS)}},
         }}
     out["split_bonus"] = _table(C.SPLIT_BONUS, title="stats/split_bonus.json")
     sym = _table(C.SYMBOL_HIST, {
@@ -116,15 +146,44 @@ def _validator(name: str) -> jsonschema.Draft202012Validator:
     return jsonschema.Draft202012Validator(sc)
 
 
+_PY = {"string": (str,), "null": (type(None),), "integer": (int,), "number": (int, float), "boolean": (bool,),
+       "array": (list,)}
+
+
+@lru_cache(maxsize=None)
+def _cell_types(name: str) -> list[frozenset] | None:
+    """Allowed exact Python types per column of a table schema (None when the schema is not a plain table)."""
+    sc = json.loads((SCHEMA_DIR / f"{name}.schema.json").read_text(encoding="utf-8"))
+    items = sc.get("properties", {}).get("rows", {}).get("items", {}).get("prefixItems")
+    if not items:
+        return None
+    out = []
+    for it in items:
+        t = it["type"] if isinstance(it["type"], list) else [it["type"]]
+        out.append(frozenset(p for x in t for p in _PY[x]))
+    return out
+
+
 def validate(name: str, obj: dict) -> None:
-    """Validate a generated document. Raises jsonschema.ValidationError (build fails on any violation)."""
+    """Validate a generated document. Raises jsonschema.ValidationError (build fails on any violation).
+
+    Table rows: the shape of every row and the exact Python type of every cell are checked on ALL rows with a
+    C-speed column scan; jsonschema itself runs on the document with its first rows only (running it cell by cell
+    over 100,000-cell files took most of the build time)."""
     v = _validator(name)
     rows = obj.get("rows")
-    if isinstance(rows, list) and len(rows) > 40:
-        sample = rows[:10] + rows[10:: max(1, len(rows) // 30)]
+    if isinstance(rows, list) and len(rows) > 3:
         n = len(obj["columns"])
-        for i, r in enumerate(rows):
-            if len(r) != n:
-                raise jsonschema.ValidationError(f"{name}: row {i} has {len(r)} cells, expected {n}")
-        obj = {**obj, "rows": sample}
+        types = _cell_types(name)
+        if any(len(r) != n for r in rows):
+            bad = next(i for i, r in enumerate(rows) if len(r) != n)
+            raise jsonschema.ValidationError(f"{name}: row {bad} has {len(rows[bad])} cells, expected {n}")
+        if types is not None:
+            for j, col in enumerate(zip(*rows)):
+                seen = set(map(type, col))
+                if not seen <= types[j]:
+                    raise jsonschema.ValidationError(
+                        f"{name}: column {obj['columns'][j]} has cell types {sorted(t.__name__ for t in seen - types[j])}"
+                        " outside the schema")
+        obj = {**obj, "rows": rows[:3]}
     v.validate(obj)

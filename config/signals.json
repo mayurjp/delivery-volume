@@ -1,24 +1,173 @@
 {
   "minHistoryDays": 10,
   "daily": {
-    "ACC": { "ret1Min": 1.0, "spikeMin": 1.5, "delivPctDiffMin": 5, "clvMin": 0.3 },
-    "DIS": { "ret1Max": -1.0, "spikeMin": 1.5, "delivPctDiffMin": 5, "clvMax": -0.3 },
-    "ABS": { "absRet1Max": 1.0, "spikeMin": 2.0, "delivPctDiffMin": 10 },
-    "SPU": { "ret1Min": 2.0, "relVolMin": 2, "delivPctDiffMax": -10 },
-    "SPD": { "ret1Max": -2.0, "relVolMin": 2, "delivPctDiffMax": -10 }
+    "ACC": {
+      "ret1Min": 1.0,
+      "spikeMin": 1.5,
+      "delivPctDiffMin": 5,
+      "clvMin": 0.3
+    },
+    "DIS": {
+      "ret1Max": -1.0,
+      "spikeMin": 1.5,
+      "delivPctDiffMin": 5,
+      "clvMax": -0.3
+    },
+    "ABS": {
+      "absRet1Max": 1.0,
+      "spikeMin": 2.0,
+      "delivPctDiffMin": 10
+    },
+    "SPU": {
+      "ret1Min": 2.0,
+      "relVolMin": 2,
+      "delivPctDiffMax": -10
+    },
+    "SPD": {
+      "ret1Max": -2.0,
+      "relVolMin": 2,
+      "delivPctDiffMax": -10
+    }
   },
   "range": {
-    "ACC": { "retMin": 3, "delivValChgPctMin": 30, "delivPctChgPpMin": 3 },
-    "DIS": { "retMax": -3, "delivValChgPctMin": 30, "delivPctChgPpMin": 3 },
-    "SPU": { "retMin": 5, "delivPctChgPpMax": -5 },
-    "SPD": { "retMax": -5, "delivPctChgPpMax": -5 }
+    "ACC": {
+      "retMin": 3,
+      "delivValChgPctMin": 30,
+      "delivPctChgPpMin": 3
+    },
+    "DIS": {
+      "retMax": -3,
+      "delivValChgPctMin": 30,
+      "delivPctChgPpMin": 3
+    },
+    "SPU": {
+      "retMin": 5,
+      "delivPctChgPpMax": -5
+    },
+    "SPD": {
+      "retMax": -5,
+      "delivPctChgPpMax": -5
+    }
   },
-  "buildup": { "oiChgPct": 2 },
+  "buildup": {
+    "oiChgPct": 2
+  },
   "lists": {
-    "spikes": { "minDelivValCr": 1 },
-    "drops": { "minDelivValAvg20Cr": 1 },
-    "highDelivPct": { "minTurnoverCr": 5 },
-    "sustainedRise": { "minStreak": 5 },
-    "unusual": { "minZ": 2 }
+    "spikes": {
+      "minDelivValCr": 1
+    },
+    "drops": {
+      "minDelivValAvg20Cr": 1
+    },
+    "highDelivPct": {
+      "minTurnoverCr": 5
+    },
+    "sustainedRise": {
+      "minStreak": 5
+    },
+    "unusual": {
+      "minZ": 2
+    }
+  },
+  "periods": {
+    "w": {
+      "base": 10,
+      "long": 52,
+      "minHistory": 6,
+      "daysPerPeriod": 5,
+      "ACC": {
+        "retMin": 3,
+        "spikeMin": 1.5,
+        "delivPctDiffMin": 5,
+        "clvMin": 0.3
+      },
+      "DIS": {
+        "retMax": -3,
+        "spikeMin": 1.5,
+        "delivPctDiffMin": 5,
+        "clvMax": -0.3
+      },
+      "ABS": {
+        "absRetMax": 2,
+        "spikeMin": 2,
+        "delivPctDiffMin": 8
+      },
+      "SPU": {
+        "retMin": 5,
+        "relTurnoverMin": 2,
+        "delivPctDiffMax": -8
+      },
+      "SPD": {
+        "retMax": -5,
+        "relTurnoverMin": 2,
+        "delivPctDiffMax": -8
+      }
+    },
+    "m": {
+      "base": 6,
+      "long": 24,
+      "minHistory": 4,
+      "daysPerPeriod": 21,
+      "ACC": {
+        "retMin": 6,
+        "spikeMin": 1.4,
+        "delivPctDiffMin": 4,
+        "clvMin": 0.3
+      },
+      "DIS": {
+        "retMax": -6,
+        "spikeMin": 1.4,
+        "delivPctDiffMin": 4,
+        "clvMax": -0.3
+      },
+      "ABS": {
+        "absRetMax": 3,
+        "spikeMin": 1.8,
+        "delivPctDiffMin": 6
+      },
+      "SPU": {
+        "retMin": 10,
+        "relTurnoverMin": 1.8,
+        "delivPctDiffMax": -6
+      },
+      "SPD": {
+        "retMax": -10,
+        "relTurnoverMin": 1.8,
+        "delivPctDiffMax": -6
+      }
+    },
+    "q": {
+      "base": 4,
+      "long": 8,
+      "minHistory": 3,
+      "daysPerPeriod": 63,
+      "ACC": {
+        "retMin": 9,
+        "spikeMin": 1.4,
+        "delivPctDiffMin": 4,
+        "clvMin": 0.3
+      },
+      "DIS": {
+        "retMax": -9,
+        "spikeMin": 1.4,
+        "delivPctDiffMin": 4,
+        "clvMax": -0.3
+      },
+      "ABS": {
+        "absRetMax": 4.5,
+        "spikeMin": 1.8,
+        "delivPctDiffMin": 6
+      },
+      "SPU": {
+        "retMin": 15,
+        "relTurnoverMin": 1.8,
+        "delivPctDiffMax": -6
+      },
+      "SPD": {
+        "retMax": -15,
+        "relTurnoverMin": 1.8,
+        "delivPctDiffMax": -6
+      }
+    }
   }
 }

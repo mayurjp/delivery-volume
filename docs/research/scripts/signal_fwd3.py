@@ -70,7 +70,8 @@ P = np.full((T, len(syms)), np.nan)
 C[full["date"].map(tix), full["sym"].map(si)] = full["close"]
 P[full["date"].map(tix), full["sym"].map(si)] = full["prevClose"]
 prev_c = np.vstack([np.full((1, len(syms)), np.nan), C[:-1]])
-adj_cum = np.cumsum(np.nan_to_num(np.abs(P / prev_c - 1) > 0.03, nan=0).astype(int), axis=0)
+# a split/bonus shows up as a one-day close ratio: NSE's PREV_CLOSE is raw on the ex-date
+adj_cum = np.cumsum(np.nan_to_num((np.abs(P / prev_c - 1) > 0.03) | (C / prev_c <= 0.78) | (C / prev_c >= 1.8), nan=0).astype(int), axis=0)
 ti, sj = df["t"].to_numpy(), df["sym"].map(si).to_numpy()
 for k in (5, 20):
     tk = np.where(ti + k < T, ti + k, 0)

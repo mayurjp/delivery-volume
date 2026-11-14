@@ -9,6 +9,7 @@ from pathlib import Path
 from .. import config, metrics
 from . import columns as C
 from . import loader, outputs, signal_perf
+from . import periods as period_build
 from .schema import validate
 
 
@@ -42,12 +43,13 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     lap("metrics computed")
     corp = loader.load_corp_actions(alias, root)
     df = outputs.add_flags(df, days, corp, loader.load_band_hits(alias, root), loader.load_ban(alias, root),
-                           loader.load_hl52(alias, root), etf)
+                           loader.load_hl52(alias, root), etf, loader.first_date("corp_actions", root=root))
 
     if out.exists():
-        for sub in ("daily", "cum", "symbols", "stats"):
+        for sub in ("daily", "cum", "symbols", "stats", "weekly", "monthly"):
             shutil.rmtree(out / sub, ignore_errors=True)
     out.mkdir(parents=True, exist_ok=True)
+    outputs._DIRS.clear()
 
     meta = outputs.build_meta(days, uni, asof, settings, root)
     validate("meta", meta)
@@ -58,7 +60,7 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     validate("universe", uni_doc)
     outputs.dump(out / "universe.json", uni_doc)
 
-    sizes = {"daily": outputs.write_daily(df, days, out)}
+    sizes = {"daily": outputs.write_daily(df, days, out, settings.get("publish", {}).get("dailyFullTradingDays"))}
     outputs.flush()
     lap(f"daily written ({sizes['daily'] / 1e6:.1f} MB)")
     sizes["cum"] = outputs.write_cum(df, days, list(uni["sym"]), settings["carryForwardMaxDays"], out)
@@ -67,15 +69,30 @@ def run_build(out: Path, root: Path | None = None, settings: dict | None = None,
     sizes["symbols"] = outputs.write_symbols(df, uni, corp, out)
     outputs.flush()
     lap(f"symbols written ({sizes['symbols'] / 1e6:.1f} MB)")
-    market = outputs.build_market(df, days, uni, loader.load_indices_close(days, root))
+    iso_days = [d.isoformat() for d in days]
+    idx_close = loader.load_indices_close(days, root)
+    frames = period_build.compute_period_frames(df, iso_days, settings, signals, etf)
+    lap("period frames computed (w, m, q)")
+    market = outputs.build_market(df, days, uni, idx_close)
+    market.update(period_build.market_blocks(frames, uni, idx_close))
     validate("market", market)
     outputs.dump(out / "market.json", market)
+    pdoc = period_build.periods_doc(frames, settings, signals)
+    validate("periods", pdoc)
+    outputs.dump(out / "periods.json", pdoc)
+    sizes["periods"] = period_build.write_snapshots(frames, out)
     outputs.flush()
-    outputs.dump(out / "stats" / "split_bonus.json", outputs.build_split_bonus(corp))
-    validate("split_bonus", outputs.build_split_bonus(corp))
-    perf = signal_perf.compute(df, [d.isoformat() for d in days], uni, C.INDICES.index("NIFTY200"))
+    lap(f"periods written ({sizes['periods'] / 1e6:.1f} MB)")
+    adj = outputs.detected_adjustments(df, loader.first_date("corp_actions", root=root))
+    split_doc = outputs.build_split_bonus(corp, adj)
+    validate("split_bonus", split_doc)
+    outputs.dump(out / "stats" / "split_bonus.json", split_doc)
+    perf = signal_perf.compute(df, iso_days, uni, C.INDICES.index("NIFTY200"))
     validate("signal_perf", perf)
     outputs.dump(out / "stats" / "signal_perf.json", perf)
+    pperf = period_build.signal_perf_periods(df, frames, iso_days, uni, C.INDICES.index("NIFTY200"))
+    validate("signal_perf_periods", pperf)
+    outputs.dump(out / "stats" / "signal_perf_periods.json", pperf)
     outputs.flush()
     lap("market, split/bonus and signal_perf written; build complete")
     return {"universe": len(uni), "days": len(days), "sizes": sizes, "seconds": time.monotonic() - t0}

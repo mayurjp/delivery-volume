@@ -9,7 +9,7 @@ static React site reads only that JSON. The browser never talks to NSE. Specs: [
 - SME stocks (series SM, ST) are excluded everywhere, by design.
 - Labels such as "Up on heavy delivery" describe what happened on a day. They are not predictions or advice.
 
-**Status:** Phases 0-2 are done: the pipeline and backfill, the Dashboard, Screener (day mode), Stock page, Learn and
+**Status:** Phase 3B adds 3 years of history (744 trading days) and the D / W / M / Q / Custom timeframes (docs/specs/08-timeframes.md). Phases 0-2 are done: the pipeline and backfill, the Dashboard, Screener (day mode), Stock page, Learn and
 Watchlist, the workflows, and daily collection of FII/DII cash and bulk/block deals into `store/` (no UI yet).
 
 ## Setup (Windows, PowerShell)
@@ -34,6 +34,7 @@ Pipeline (from the repo root):
 .venv\Scripts\python -m pipeline update --no-build                          # fetch only
 .venv\Scripts\python -m pipeline collect                                    # only the latest FII/DII cash and bulk/block deals
 .venv\Scripts\python -m pipeline backfill-deals --from 2025-11-01           # one-off historical bulk/block deals (see notes)
+.venv\Scripts\python -m pipeline merge-history                                # move staged extra history (.history_staging/) into store/ (idempotent)
 .venv\Scripts\python -m pipeline build --out site/public/data               # rebuild the JSON from store/ (offline)
 .venv\Scripts\python -m pipeline verify-sources --date 2026-11-13 --json    # probe every source
 .venv\Scripts\python -m pytest                                              # tests

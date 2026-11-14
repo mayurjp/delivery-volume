@@ -18,12 +18,25 @@ MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NO
 KEEP_SERIES = ("EQ", "BE", "BZ")  # analytics universe + trade-for-trade days kept for price continuity
 
 
+def resolve_alias(s: pd.Series, alias: dict[str, str]) -> pd.Series:
+    """Series.replace(alias) does one full comparison pass per alias; a dict map is one hash lookup per row."""
+    if not alias:
+        return s
+    m = s.map(alias)
+    return m.where(m.notna(), s)
+
+
 def _csv(path: Path, **kw) -> pd.DataFrame:
     return pd.read_csv(io.BytesIO(store.read_bytes(path)), dtype=str, keep_default_na=False, **kw)
 
 
 def trading_days(root: Path | None = None) -> list[date]:
     return store.list_dates("cm_delivery", root=root)
+
+
+def first_date(kind: str, ext: str = "csv.gz", root: Path | None = None) -> str | None:
+    d = store.list_dates(kind, ext, root=root)
+    return d[0].isoformat() if d else None
 
 
 def load_alias_map(root: Path | None = None) -> dict[str, str]:
@@ -39,11 +52,13 @@ def load_delivery(days: list[date], alias: dict[str, str], root: Path | None = N
     """All S1 rows for EQ/BE/BZ (SME already dropped at parse), symbols merged through the alias map."""
     frames = []
     for d in days:
-        df = s1_cm_delivery.parse_stored(store.read_bytes(store.path_for("cm_delivery", d, root=root)), d)
-        frames.append(df[df["series"].isin(KEEP_SERIES)])
+        frames.append(s1_cm_delivery.parse_stored_fast(
+            store.read_bytes(store.path_for("cm_delivery", d, root=root)), d, KEEP_SERIES))
     df = pd.concat(frames, ignore_index=True)
     if alias:
-        df["sym"] = df["sym"].replace(alias)
+        df["sym"] = resolve_alias(df["sym"], alias)
+    for c in ("sym", "series", "date"):  # plain object columns: pandas 3's str dtype is slow to group/compare w/o pyarrow
+        df[c] = df[c].astype(object)
     df = df.drop_duplicates(["sym", "date"], keep="last")
     return df.sort_values(["sym", "date"], kind="stable").reset_index(drop=True)
 
@@ -90,7 +105,7 @@ def load_corp_actions(alias: dict[str, str], root: Path | None = None) -> pd.Dat
     out = pd.DataFrame({"sym": df["SYMBOL"], "exDate": df["EX_DT"], "kind": df["kind"], "purpose": df["PURPOSE"]})
     out = out[out["exDate"].str.match(r"^\d{4}-\d{2}-\d{2}$")]
     if alias:
-        out["sym"] = out["sym"].replace(alias)
+        out["sym"] = resolve_alias(out["sym"], alias)
     return out.drop_duplicates(["sym", "exDate", "purpose"]).reset_index(drop=True)
 
 
@@ -101,7 +116,7 @@ def load_band_hits(alias: dict[str, str], root: Path | None = None) -> pd.DataFr
         frames.append(pd.DataFrame({"sym": df["SYMBOL"].str.strip(), "date": d.isoformat()}))
     out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=["sym", "date"])
     if alias:
-        out["sym"] = out["sym"].replace(alias)
+        out["sym"] = resolve_alias(out["sym"], alias)
     return out.drop_duplicates()
 
 
@@ -114,7 +129,7 @@ def load_ban(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
         rows += [(s, d.isoformat()) for s in (p.data or [])]
     out = pd.DataFrame(rows, columns=["sym", "date"])
     if alias:
-        out["sym"] = out["sym"].replace(alias)
+        out["sym"] = resolve_alias(out["sym"], alias)
     return out
 
 
@@ -131,7 +146,7 @@ def load_hl52(alias: dict[str, str], root: Path | None = None) -> pd.DataFrame:
     out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(
         columns=["sym", "date", "high52", "low52"])
     if alias:
-        out["sym"] = out["sym"].replace(alias)
+        out["sym"] = resolve_alias(out["sym"], alias)
     return out.drop_duplicates(["sym", "date"], keep="last")
 
 
@@ -167,7 +182,7 @@ def load_constituents(alias: dict[str, str], root: Path | None = None) -> tuple[
         if f.exists():
             df = s11.read_snapshot_csv(f.read_text(encoding="utf-8-sig"))
             if alias:
-                df["Symbol"] = df["Symbol"].replace(alias)
+                df["Symbol"] = resolve_alias(df["Symbol"], alias)
             out[key] = df
     return asof, out
 
@@ -183,7 +198,7 @@ def load_equity_list(alias: dict[str, str], root: Path | None = None) -> pd.Data
     for c in cols:
         df[c] = df[c].str.strip()
     if alias:
-        df["SYMBOL"] = df["SYMBOL"].replace(alias)
+        df["SYMBOL"] = resolve_alias(df["SYMBOL"], alias)
     return df.drop_duplicates("SYMBOL")
 
 
@@ -193,5 +208,5 @@ def load_isin_latest(alias: dict[str, str], root: Path | None = None) -> dict[st
         return {}
     df = _csv(store.path_for("cm_isin", d[-1], root=root))
     df = df[df["series"].isin(KEEP_SERIES)]
-    sym = df["symbol"].replace(alias) if alias else df["symbol"]
+    sym = resolve_alias(df["symbol"], alias) if alias else df["symbol"]
     return dict(zip(sym, df["isin"]))

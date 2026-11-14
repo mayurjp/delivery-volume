@@ -1,9 +1,16 @@
-import { BASELINES, RANGE_PRESETS, type BaselineMode, type RangePreset } from '../lib/range';
+import { BASELINES, QUICK_COMPARES, RANGE_PRESETS, type BaselineMode, type RangePreset } from '../lib/range';
 import { useApp } from '../lib/hooks';
 import type { RangeState } from '../lib/useRange';
 
 /** Range presets, custom dates and the baseline selector (05 section 3). States the resolved ranges in words. */
-export default function RangeControls({ state }: { state: RangeState }) {
+export default function RangeControls({
+  state,
+  quick = false,
+}: {
+  state: RangeState;
+  /** Show the two quick comparison chips (4 weeks vs 12 weeks, 3 months vs 6 months). */
+  quick?: boolean;
+}) {
   const { meta } = useApp();
   const { spec, resolved, setSpec } = state;
   const input =
@@ -53,6 +60,24 @@ export default function RangeControls({ state }: { state: RangeState }) {
           </span>
         )}
       </div>
+      {quick && (
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Quick comparisons">
+          {QUICK_COMPARES.map((q) => {
+            const on = spec.preset === q.preset && spec.baseline === q.baseline;
+            return (
+              <button
+                key={q.id}
+                type="button"
+                aria-pressed={on}
+                className={`chip ${on ? 'bg-blue-600 text-white' : ''}`}
+                onClick={() => setSpec({ ...spec, preset: q.preset, baseline: q.baseline })}
+              >
+                {q.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <label className="flex items-center gap-1.5">
           <span className="text-slate-500 dark:text-slate-400">Baseline</span>

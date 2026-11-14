@@ -12,7 +12,8 @@
   "sectors",
   "constituentsAsOf",
   "sources",
-  "settings"
+  "settings",
+  "publish"
  ],
  "properties": {
   "schemaVersion": {
@@ -93,6 +94,14 @@
    "required": [
     "minTurnoverAvg20Cr",
     "minBaseDelivValCr"
+   ]
+  },
+  "publish": {
+   "type": "object",
+   "required": [
+    "dailyFullTradingDays",
+    "dailyFullFrom",
+    "dailySlimColumns"
    ]
   }
  }

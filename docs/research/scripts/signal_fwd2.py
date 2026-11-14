@@ -3,7 +3,8 @@
 Usage: python -I signal_fwd2.py <project root> [lag 0|1]
 Excess return = stock forward return minus the median forward return of the BENCHMARK group that day
 (all liquid stocks, or the same cap bucket / Nifty 200 when testing inside that group).
-Windows crossing a price adjustment (prevClose(t) vs close(t-1) differ >3%) are dropped.
+Windows crossing a price adjustment (prevClose(t) vs close(t-1) differ >3%, or a one-day close ratio <= 0.78 or >= 1.8:
+NSE's PREV_CLOSE is raw on a split/bonus ex-date) are dropped.
 t(by date) = mean of per-date average excess / (sd / sqrt(#dates)); 20-day windows overlap, so treat t loosely.
 """
 import gzip
@@ -22,8 +23,8 @@ for f in sorted((data / "daily").glob("20*.json")):
     doc = json.loads(f.read_text(encoding="utf-8"))
     df = pd.DataFrame(doc["rows"], columns=doc["columns"])
     df["date"] = doc["date"]
-    frames.append(df[["date", "sym", "series", "high", "close", "prevClose", "ret1", "spike", "clv",
-                      "delivPctDiff", "streak", "signal", "flags"]])
+    frames.append(df.reindex(columns=["date", "sym", "series", "high", "close", "prevClose", "ret1", "spike", "clv",
+                      "delivPctDiff", "streak", "signal", "flags"]))
 df = pd.concat(frames, ignore_index=True)
 
 meta = json.loads((data / "meta.json").read_text(encoding="utf-8"))
@@ -34,20 +35,9 @@ u["n200"] = u["idx"].fillna(0).astype(int).map(lambda x: (x >> b200) & 1 == 1)
 df = df.merge(u[["sym", "bucket", "n200"]], on="sym", how="left")
 df["n200"] = df["n200"].fillna(False).astype(bool)
 
-# 52-week high breakout: file(T) holds highs through T-1, so breakout(T) = high(T) > file(T).high52
-hl = []
-for f in sorted((root / "store/hl52").rglob("*.csv.gz")):
-    h = pd.read_csv(io.BytesIO(gzip.decompress(f.read_bytes())), usecols=["symbol", "high52"])
-    h["date"] = f.name[:10]
-    hl.append(h.rename(columns={"symbol": "sym", "high52": "prior52h"}))
-hl = pd.concat(hl, ignore_index=True)
-hl["prior52h"] = pd.to_numeric(hl["prior52h"], errors="coerce")
-# the store keeps pre-rename symbols; universe.json lists each symbol's old names (aliases)
-alias = {old: r.sym for r in u.itertuples() for old in r.aliases}
-hl["sym"] = hl["sym"].replace(alias)
-hl = hl.drop_duplicates(["sym", "date"], keep="last")
-df = df.merge(hl, on=["sym", "date"], how="left")
-df["breakout"] = df["high"] > df["prior52h"]
+# 52-week high breakout = the published high52 flag (bit 64): high(T) > the S13 52-week high of T where S13 was stored,
+# and high(T) > the max split-adjusted high of the prior 250 trading days (own rule) on the earlier days of the 3-year history
+df["breakout"] = (df["flags"].fillna(0).astype(int) & 64) != 0
 
 days = sorted(df["date"].unique())
 df["t"] = df["date"].map({x: i for i, x in enumerate(days)})
@@ -62,7 +52,8 @@ P = np.full((T, len(syms)), np.nan)
 C[allrows["t"], allrows["sym"].map(si)] = allrows["close"]
 P[allrows["t"], allrows["sym"].map(si)] = allrows["prevClose"]
 prev_c = np.vstack([np.full((1, len(syms)), np.nan), C[:-1]])
-adj_cum = np.cumsum(np.nan_to_num(np.abs(P / prev_c - 1) > 0.03, nan=0).astype(int), axis=0)
+# a split/bonus shows up as a one-day close ratio: NSE's PREV_CLOSE is raw on the ex-date
+adj_cum = np.cumsum(np.nan_to_num((np.abs(P / prev_c - 1) > 0.03) | (C / prev_c <= 0.78) | (C / prev_c >= 1.8), nan=0).astype(int), axis=0)
 ti, sj = df["t"].to_numpy(), df["sym"].map(si).to_numpy()
 LAG = int(sys.argv[2]) if len(sys.argv) > 2 else 0   # 1 = enter at close(t+1): data is published after the close
 for k in (5, 20):

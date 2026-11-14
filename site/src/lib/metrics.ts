@@ -22,6 +22,13 @@ export interface RangeRow {
   delivPctChgPp: number | null;
   turnoverChgPct: number | null;
   ret: number | null;
+  /** Delivery value on up days / on down days (08 section 5A), range and baseline; null when there is no down day. */
+  delivBalanceR: number | null;
+  delivBalanceB: number | null;
+  /** Average trade size in rupees (turnover / trades) and the range's size relative to the baseline's. */
+  avgTradeSizeR: number | null;
+  avgTradeSizeB: number | null;
+  tradeSizeRatio: number | null;
   /** Last close in the range and average daily turnover (₹ Cr) of the range: used by the global filters. */
   lastClose: number | null;
   avgTurnoverR: number | null;
@@ -35,6 +42,9 @@ interface Span {
   n: number;
   dv: number;
   tv: number;
+  up: number;
+  dn: number;
+  trades: number;
   lastClose: number | null;
   priorClose: number | null;
   listed: boolean;
@@ -47,6 +57,9 @@ function span(a0: CumRow | undefined, a1: CumRow | undefined): Span | null {
     n: a1.cDays - (a0?.cDays ?? 0),
     dv: a1.cDelivValCr - (a0?.cDelivValCr ?? 0),
     tv: a1.cTurnoverCr - (a0?.cTurnoverCr ?? 0),
+    up: (a1.cDelivValUpCr ?? 0) - (a0?.cDelivValUpCr ?? 0),
+    dn: (a1.cDelivValDnCr ?? 0) - (a0?.cDelivValDnCr ?? 0),
+    trades: (a1.cTrades ?? 0) - (a0?.cTrades ?? 0),
     lastClose: a1.lastClose,
     priorClose: a0?.lastClose ?? null,
     listed,
@@ -82,6 +95,10 @@ export function computeRange(
     const pctB = B && B.tv > 0 ? (B.dv / B.tv) * 100 : null;
     const turnR = R.n > 0 ? R.tv / R.n : null;
     const turnB = B && B.n > 0 ? B.tv / B.n : null;
+    const balR = R.dn > 0 ? R.up / R.dn : null;
+    const balB = B && B.dn > 0 ? B.up / B.dn : null;
+    const atsR = R.trades > 0 ? (R.tv * 1e7) / R.trades : null;
+    const atsB = B && B.trades > 0 ? (B.tv * 1e7) / B.trades : null;
     const coverage = opt.tradingDaysR > 0 ? R.n / opt.tradingDaysR : 0;
     const reasons: string[] = [];
     if (coverage < 0.6) reasons.push('traded on fewer than 60% of the range days');
@@ -103,6 +120,11 @@ export function computeRange(
         R.lastClose !== null && R.priorClose !== null && R.priorClose > 0
           ? (R.lastClose / R.priorClose - 1) * 100
           : null,
+      delivBalanceR: balR,
+      delivBalanceB: balB,
+      avgTradeSizeR: atsR,
+      avgTradeSizeB: atsB,
+      tradeSizeRatio: atsR !== null && atsB ? atsR / atsB : null,
       lastClose: R.lastClose,
       avgTurnoverR: turnR,
       coverage,

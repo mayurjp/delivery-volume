@@ -30,6 +30,7 @@
     "high",
     "low",
     "close",
+    "prevClose",
     "vwap",
     "vol",
     "turnoverCr",
@@ -40,17 +41,125 @@
     "delivPctAvg20",
     "spike",
     "signal",
-    "flags",
-    "futOi",
-    "futOiChgPct",
-    "buildup",
-    "pcr"
+    "flags"
    ]
   },
   "rows": {
    "type": "array",
    "items": {
-    "$ref": "#/$defs/row"
+    "type": "array",
+    "minItems": 18,
+    "maxItems": 18,
+    "prefixItems": [
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     {
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    ]
    }
   },
   "sym": {
@@ -160,141 +269,6 @@
      "type": "array"
     }
    }
-  }
- },
- "$defs": {
-  "row": {
-   "type": "array",
-   "minItems": 21,
-   "maxItems": 21,
-   "prefixItems": [
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "integer",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    {
-     "type": [
-      "number",
-      "null"
-     ]
-    }
-   ]
   }
  }
 }

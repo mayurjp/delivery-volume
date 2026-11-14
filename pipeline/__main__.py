@@ -48,6 +48,9 @@ def build_parser() -> argparse.ArgumentParser:
     bdl.add_argument("--from", dest="frm", type=_d)
     bdl.add_argument("--to", type=_d)
 
+    mh = sub.add_parser("merge-history", help="move staged extra history (.history_staging/) into store/ (idempotent)")
+    mh.add_argument("--staging", type=Path, default=Path(".history_staging"))
+
     sub.add_parser("status", help="coverage table and gaps")
     return ap
 

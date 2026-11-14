@@ -31,12 +31,25 @@ export function firstOnOrAfter(dates: readonly string[], iso: string): number {
   return lo < dates.length ? lo : -1;
 }
 
+/** Index of the last date <= `iso`, or -1. */
+export function lastOnOrBefore(dates: readonly string[], iso: string): number {
+  let lo = 0;
+  let hi = dates.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (dates[mid]! <= iso) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo - 1;
+}
+
 /** Main stock chart: candles, delivered vs non-delivered volume, delivery % with a +-1 sigma band. One zoom. */
 export function stockChartOption(
   rows: readonly SymbolRow[],
   corp: readonly CorpAction[],
   p: Palette,
   mobile: boolean,
+  highlight?: { a: string; b: string },
 ): EChartsOption {
   const dates = rows.map((r) => r.date);
   const delivered = rows.map((r) => r.delivQty);
@@ -49,7 +62,18 @@ export function stockChartOption(
   const spread = band.mean.map((m, i) =>
     m === null || band.std[i] === null ? null : 2 * (band.std[i] as number),
   );
-  const start = Math.max(0, 100 - (126 / Math.max(rows.length, 1)) * 100);
+  let start = Math.max(0, 100 - (126 / Math.max(rows.length, 1)) * 100);
+  let end = 100;
+  // a custom range: shade it and zoom to it with some room on both sides
+  const hi = highlight
+    ? { a: firstOnOrAfter(dates, highlight.a), b: lastOnOrBefore(dates, highlight.b) }
+    : null;
+  if (hi && hi.a >= 0 && hi.b >= hi.a) {
+    const pad = Math.max(10, Math.round((hi.b - hi.a) / 2));
+    const n = Math.max(rows.length, 1);
+    start = (Math.max(0, hi.a - pad) / n) * 100;
+    end = ((Math.min(rows.length - 1, hi.b + pad) + 1) / n) * 100;
+  }
 
   const markLines = corp
     .map((c) => ({ c, i: firstOnOrAfter(dates, c.exDate) }))
@@ -145,7 +169,7 @@ export function stockChartOption(
             type: 'slider',
             xAxisIndex: [0, 1, 2],
             start,
-            end: 100,
+            end,
             height: 18,
             bottom: 4,
             borderColor: p.grid,
@@ -154,7 +178,7 @@ export function stockChartOption(
             type: 'inside',
             xAxisIndex: [0, 1, 2],
             start,
-            end: 100,
+            end,
             zoomOnMouseWheel: 'ctrl',
             moveOnMouseMove: true,
           },
@@ -168,6 +192,14 @@ export function stockChartOption(
         data: rows.map((r) => [nn(r.open), nn(r.close), nn(r.low), nn(r.high)]),
         itemStyle: { color: p.up, color0: p.down, borderColor: p.up, borderColor0: p.down },
         markLine: markLines.length ? { symbol: 'none', silent: true, data: markLines } : undefined,
+        markArea:
+          hi && hi.a >= 0 && hi.b >= hi.a
+            ? {
+                silent: true,
+                itemStyle: { color: p.band },
+                data: [[{ xAxis: dates[hi.a]! }, { xAxis: dates[hi.b]! }]],
+              }
+            : undefined,
       },
       {
         name: 'Delivered',

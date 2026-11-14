@@ -8,6 +8,7 @@ import {
   type HeatItem,
   type TreeNode,
 } from '../lib/heat';
+import { splitPartial } from '../lib/statsSeries';
 import type { EChartsOption } from './echarts';
 import { divergeColor, type Palette } from './theme';
 
@@ -196,6 +197,8 @@ export function treemapOption(tree: readonly TreeNode[], p: Palette): EChartsOpt
 export interface GridData {
   rows: string[];
   dates: string[];
+  /** Column labels for week / month / quarter / N-day-bar columns (the date is used when absent). */
+  labels?: string[];
   /** [dateIndex, rowIndex, value] */
   cells: [number, number, number | null][];
 }
@@ -214,14 +217,18 @@ export function gridOption(
       ...tooltipBase(p),
       formatter: (e: unknown) => {
         const v = (e as { value: [number, number, number | null] }).value;
-        return `${g.rows[v[1]]}<br/>${fmtDate(g.dates[v[0]])}<br/>${v[2] === null ? 'no data' : unit === 'pp' ? fmtPp(v[2]) : fmtRatio(v[2])}`;
+        return `${g.rows[v[1]]}<br/>${g.labels ? g.labels[v[0]] : fmtDate(g.dates[v[0]])}<br/>${v[2] === null ? 'no data' : unit === 'pp' ? fmtPp(v[2]) : fmtRatio(v[2])}`;
       },
     },
     grid: { left: mobile ? 104 : 190, right: 12, top: 8, bottom: 56 },
     xAxis: {
       type: 'category',
-      data: g.dates,
-      axisLabel: { color: p.muted, formatter: (v: string) => fmtDate(v).slice(0, -5), interval: 'auto' },
+      data: g.labels ?? g.dates,
+      axisLabel: {
+        color: p.muted,
+        formatter: (v: string) => (g.labels ? v : fmtDate(v).slice(0, -5)),
+        interval: 'auto',
+      },
       axisTick: { show: false },
       splitArea: { show: false },
     },
@@ -270,35 +277,70 @@ export interface TrendSeries {
   values: (number | null)[];
 }
 
-/** Delivery % of several groups, each with its 20-day average (thicker line). */
+export interface TrendOpts {
+  /** X labels for periods and bars; the date is used when absent. */
+  labels?: readonly string[];
+  /** Points still in progress: drawn dashed and labelled. */
+  partial?: readonly boolean[];
+  /** Draw the 20-day average (daily points only). */
+  ma?: boolean;
+}
+
+const isoLabel = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? fmtDate(v).slice(0, -5) : v);
+
+/** Delivery % of several groups; for daily points each also gets its 20-day average (thicker line). */
 export function trendOption(
   dates: readonly string[],
   series: readonly TrendSeries[],
   p: Palette,
+  opts: TrendOpts = {},
 ): EChartsOption {
+  const ma = opts.ma ?? !opts.labels;
+  const partial = opts.partial ?? [];
   const out: unknown[] = [];
   series.forEach((s, i) => {
     const color = p.cat[i % p.cat.length]!;
+    const sp = splitPartial(s.values, partial);
     out.push({
       name: s.name,
       type: 'line',
-      showSymbol: false,
-      data: s.values,
-      lineStyle: { color, width: 1, opacity: 0.55 },
+      showSymbol: !ma,
+      symbolSize: 5,
+      data: sp.full,
+      lineStyle: { color, width: ma ? 1 : 2, opacity: ma ? 0.55 : 1 },
       itemStyle: { color },
     });
-    out.push({
-      name: `${s.name} 20D avg`,
-      type: 'line',
-      showSymbol: false,
-      data: movingAvg(s.values, 20),
-      lineStyle: { color, width: 2.5 },
-      itemStyle: { color },
-    });
+    if (sp.hasPartial) {
+      out.push({
+        name: `${s.name} in progress`,
+        type: 'line',
+        showSymbol: true,
+        symbolSize: 6,
+        data: sp.dashed,
+        lineStyle: { color, width: 2, type: 'dashed', opacity: 0.6 },
+        itemStyle: { color, opacity: 0.6 },
+      });
+    }
+    if (ma) {
+      out.push({
+        name: `${s.name} 20D avg`,
+        type: 'line',
+        showSymbol: false,
+        data: movingAvg(s.values, 20),
+        lineStyle: { color, width: 2.5 },
+        itemStyle: { color },
+      });
+    }
   });
   return {
     textStyle: { color: p.text },
-    legend: { top: 0, type: 'scroll', textStyle: { color: p.muted }, itemHeight: 8 },
+    legend: {
+      top: 0,
+      type: 'scroll',
+      data: series.flatMap((x) => (ma ? [x.name, `${x.name} 20D avg`] : [x.name])),
+      textStyle: { color: p.muted },
+      itemHeight: 8,
+    },
     tooltip: {
       ...tooltipBase(p),
       trigger: 'axis',
@@ -307,8 +349,8 @@ export function trendOption(
     grid: { left: 48, right: 12, top: 40, bottom: 28 },
     xAxis: {
       type: 'category',
-      data: dates as string[],
-      axisLabel: { color: p.muted, formatter: (v: string) => fmtDate(v).slice(0, -5) },
+      data: (opts.labels ?? dates) as string[],
+      axisLabel: { color: p.muted, formatter: isoLabel },
       axisLine: { lineStyle: { color: p.grid } },
       axisTick: { show: false },
     },
@@ -321,6 +363,155 @@ export function trendOption(
       axisLabel: { color: p.muted, formatter: (v: number) => `${v}%` },
     },
     series: out,
+  } as EChartsOption;
+}
+
+/** Bars whose in-progress points are lighter and outlined with a dashed border. */
+function barData(values: readonly (number | null)[], partial: readonly boolean[], color: string) {
+  return values.map((v, i) => ({
+    value: v,
+    itemStyle: partial[i]
+      ? { color, opacity: 0.4, borderColor: color, borderType: 'dashed' as const, borderWidth: 1 }
+      : { color },
+  }));
+}
+
+/** Delivery value and turnover per period (bars, ₹ Cr) with an optional index close on the right axis. */
+export function flowsOption(
+  labels: readonly string[],
+  partial: readonly boolean[],
+  data: {
+    turnoverCr: readonly (number | null)[];
+    delivValCr: readonly (number | null)[];
+    index: { name: string; values: readonly (number | null)[] } | null;
+  },
+  p: Palette,
+): EChartsOption {
+  const series: unknown[] = [
+    {
+      name: 'Turnover',
+      type: 'bar',
+      data: barData(data.turnoverCr, partial, p.nonDelivered),
+      barMaxWidth: 18,
+    },
+    { name: 'Delivery value', type: 'bar', data: barData(data.delivValCr, partial, p.inc), barMaxWidth: 18 },
+  ];
+  if (data.index) {
+    series.push({
+      name: data.index.name,
+      type: 'line',
+      yAxisIndex: 1,
+      showSymbol: false,
+      connectNulls: true,
+      data: data.index.values,
+      lineStyle: { color: p.dec, width: 2 },
+      itemStyle: { color: p.dec },
+    });
+  }
+  return {
+    textStyle: { color: p.text },
+    legend: { top: 0, type: 'scroll', textStyle: { color: p.muted }, itemHeight: 8 },
+    tooltip: {
+      ...tooltipBase(p),
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      valueFormatter: (v: unknown) => (typeof v === 'number' ? fmtNum(v, 0) : '—'),
+    },
+    grid: { left: 64, right: data.index ? 56 : 12, top: 40, bottom: 28 },
+    xAxis: {
+      type: 'category',
+      data: labels as string[],
+      axisLabel: { color: p.muted, formatter: isoLabel },
+      axisLine: { lineStyle: { color: p.grid } },
+      axisTick: { show: false },
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: '₹ Cr',
+        nameTextStyle: { color: p.muted, align: 'left' },
+        ...axisStyle(p),
+        axisLabel: { color: p.muted, formatter: (v: number) => fmtNum(v, 0) },
+      },
+      {
+        type: 'value',
+        scale: true,
+        show: !!data.index,
+        name: data.index?.name ?? '',
+        nameTextStyle: { color: p.muted, align: 'right' },
+        axisLine: { lineStyle: { color: p.grid } },
+        axisLabel: { color: p.muted },
+        splitLine: { show: false },
+      },
+    ],
+    series,
+  } as EChartsOption;
+}
+
+/** Advancing and declining stocks (stacked bars) and the count of delivery spikes of 2x or more (line, right axis). */
+export function breadthOption(
+  labels: readonly string[],
+  partial: readonly boolean[],
+  data: {
+    adv: readonly (number | null)[];
+    dec: readonly (number | null)[];
+    spikes: readonly (number | null)[];
+  },
+  p: Palette,
+): EChartsOption {
+  return {
+    textStyle: { color: p.text },
+    legend: { top: 0, type: 'scroll', textStyle: { color: p.muted }, itemHeight: 8 },
+    tooltip: { ...tooltipBase(p), trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: 52, right: 52, top: 40, bottom: 28 },
+    xAxis: {
+      type: 'category',
+      data: labels as string[],
+      axisLabel: { color: p.muted, formatter: isoLabel },
+      axisLine: { lineStyle: { color: p.grid } },
+      axisTick: { show: false },
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: 'Stock-days',
+        nameTextStyle: { color: p.muted, align: 'left' },
+        ...axisStyle(p),
+      },
+      {
+        type: 'value',
+        name: 'Spikes ≥ 2×',
+        nameTextStyle: { color: p.muted, align: 'right' },
+        axisLine: { lineStyle: { color: p.grid } },
+        axisLabel: { color: p.muted },
+        splitLine: { show: false },
+      },
+    ],
+    series: [
+      {
+        name: 'Advancing',
+        type: 'bar',
+        stack: 'ad',
+        data: barData(data.adv, partial, p.up),
+        barMaxWidth: 18,
+      },
+      {
+        name: 'Declining',
+        type: 'bar',
+        stack: 'ad',
+        data: barData(data.dec, partial, p.down),
+        barMaxWidth: 18,
+      },
+      {
+        name: 'Spikes ≥ 2×',
+        type: 'line',
+        yAxisIndex: 1,
+        showSymbol: false,
+        data: data.spikes,
+        lineStyle: { color: p.inc, width: 2 },
+        itemStyle: { color: p.inc },
+      },
+    ],
   } as EChartsOption;
 }
 
@@ -395,6 +586,7 @@ export function retScatterOption(
       nameGap: 28,
       nameTextStyle: { color: p.muted },
       ...axisStyle(p),
+      axisLabel: { color: p.muted, formatter: (v: number) => String(Math.round(v * 10) / 10) },
       splitLine: { show: false },
     },
     yAxis: {

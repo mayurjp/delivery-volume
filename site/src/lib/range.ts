@@ -5,12 +5,14 @@ import type { Bucket, CumRow, SignalCode, SplitBonusRow, UniverseRow } from '../
 
 /** Range mode (05 section 3, 04 section 3): range and baseline resolution, loading, signals and the corporate-action marker. */
 
-export type RangePreset = '1W' | '2W' | '1M' | '3M' | '6M' | '1Y' | 'MTD' | 'YTD' | 'C';
-export type BaselineMode = 'p' | '20' | '50' | 'c';
+export type RangePreset = '1W' | '2W' | '4W' | '12W' | '1M' | '3M' | '6M' | '1Y' | 'MTD' | 'YTD' | 'C';
+export type BaselineMode = 'p' | '20' | '50' | '60' | '126' | 'c';
 
 export const RANGE_PRESETS: { id: RangePreset; label: string }[] = [
   { id: '1W', label: '1W' },
   { id: '2W', label: '2W' },
+  { id: '4W', label: '4W' },
+  { id: '12W', label: '12W' },
   { id: '1M', label: '1M' },
   { id: '3M', label: '3M' },
   { id: '6M', label: '6M' },
@@ -24,12 +26,22 @@ export const BASELINES: { id: BaselineMode; label: string }[] = [
   { id: 'p', label: 'Previous equal period' },
   { id: '20', label: 'Prior 20 days' },
   { id: '50', label: 'Prior 50 days' },
+  { id: '60', label: 'Prior 60 days' },
+  { id: '126', label: 'Prior 126 days' },
   { id: 'c', label: 'Custom' },
+];
+
+/** Quick comparisons (08 section 5): the range preset and the baseline that go with it. */
+export const QUICK_COMPARES: { id: string; label: string; preset: RangePreset; baseline: BaselineMode }[] = [
+  { id: 'w4v12', label: 'Last 4 weeks vs previous 12 weeks', preset: '4W', baseline: '60' },
+  { id: 'm3v6', label: 'Last 3 months vs previous 6 months', preset: '3M', baseline: '126' },
 ];
 
 const SIZE: Partial<Record<RangePreset, number>> = {
   '1W': 5,
   '2W': 10,
+  '4W': 20,
+  '12W': 60,
   '1M': 21,
   '3M': 63,
   '6M': 126,
@@ -141,6 +153,8 @@ export async function fetchRangeCums(client: DataClient, r: ResolvedRange): Prom
   return { a0, a1, b0, b1 };
 }
 
+export type RangeMetric = 'val' | 'pct' | 'bal' | 'ats';
+
 export interface RangeScreenRow extends RangeRow {
   name: string;
   sector: string;
@@ -151,6 +165,10 @@ export interface RangeScreenRow extends RangeRow {
   signal: SignalCode | null;
   /** A split or bonus ex-date falls inside [prev(a), b]: the price return is not adjusted. */
   caWarn: boolean;
+  /** Never derivable from cum/ files: the columns exist only to show a dash with a tooltip (08 section 5A). */
+  high?: null;
+  low?: null;
+  clv?: null;
 }
 
 /** Range signal thresholds (config/signals.json -> range). */
@@ -163,6 +181,20 @@ export function rangeSignal(r: RangeRow, etf: boolean): SignalCode | null {
   if (r.ret >= 5 && r.delivPctChgPp <= -5) return 'SPU';
   if (r.ret <= -5 && r.delivPctChgPp <= -5) return 'SPD';
   return null;
+}
+
+/** The number the ranked tables sort on and show first, per metric (null when it cannot be computed). */
+export function metricValue(r: RangeScreenRow, m: RangeMetric): number | null {
+  switch (m) {
+    case 'val':
+      return r.delivValChgPct;
+    case 'pct':
+      return r.delivPctChgPp;
+    case 'bal':
+      return r.delivBalanceR !== null && r.delivBalanceB !== null ? r.delivBalanceR - r.delivBalanceB : null;
+    default:
+      return r.tradeSizeRatio;
+  }
 }
 
 /** Symbols with a split or bonus ex-date in [from, to] (ISO strings compare correctly). */
