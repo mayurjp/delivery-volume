@@ -19,8 +19,8 @@ MED_TOL, LIFT_TOL, COUNT_TOL = 0.1, 0.25, 0.035
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not SHIPPED.exists(), reason="needs generated data (run `python -m pipeline build`); CI has none")
 def test_run_footprints_reproduce_the_research_script(tmp_path):
-    assert SHIPPED.exists(), "run `python -m pipeline build` first"
     out = tmp_path / "study.json"
     subprocess.run([sys.executable, "-I", str(SCRIPT), str(ROOT), str(ROOT / ".history_staging"), "--json", str(out)],
                    check=True, capture_output=True, text=True, timeout=900)
