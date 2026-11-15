@@ -1,7 +1,7 @@
 {
  "coverage": {
-  "completeCompanies": 1131,
-  "completeShare": 0.473,
+  "completeCompanies": 1734,
+  "completeShare": 0.7252,
   "meetsTarget": false,
   "quarters": [
    "2025-12-31",
@@ -10,23 +10,23 @@
    "2026-09-30"
   ],
   "storedPerQuarter": {
-   "2025-12-31": 1138,
-   "2026-03-31": 1155,
-   "2026-06-30": 1162,
-   "2026-09-30": 1206
+   "2025-12-31": 1742,
+   "2026-03-31": 1773,
+   "2026-06-30": 1783,
+   "2026-09-30": 1852
   },
   "target": 0.95,
   "universe": 2391
  },
- "generated": "2026-11-14T23:37:43+00:00",
+ "generated": "2026-11-15T03:45:09+00:00",
  "lastRun": {
   "cap": 2500,
   "capped": true,
-  "invalid": 72,
+  "invalid": 9,
   "listingCalls": 0,
   "mode": "backfill",
   "notInUniverse": 925,
-  "problems": 104,
+  "problems": 45,
   "quarters": [
    "2025-12-31",
    "2026-03-31",
@@ -34,16 +34,16 @@
    "2026-09-30"
   ],
   "requests": 2500,
-  "skipped": 2368,
+  "skipped": 4661,
   "smeDropped": 0,
-  "stored": 2293,
-  "xbrl": 2365
+  "stored": 2489,
+  "xbrl": 2498
  },
  "missingCount": {
-  "2025-12-31": 1253,
-  "2026-03-31": 1236,
-  "2026-06-30": 1229,
-  "2026-09-30": 1185
+  "2025-12-31": 649,
+  "2026-03-31": 618,
+  "2026-06-30": 608,
+  "2026-09-30": 539
  },
  "missingSample": {
   "2025-12-31": [
@@ -430,28 +430,28 @@
     "symbol": "NIRLON"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "FIEMIND"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "SMT"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "ROLEXRINGS"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "HDFIRE"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "GULFOILLUB"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "SFCTECH"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "GOODLUCK"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "ORIENTCABL"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "GMMPFAUDLR"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "HAWKINCOOK"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
-    "symbol": "SENCO"
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "FUSIONCX"
    }
   ]
  }

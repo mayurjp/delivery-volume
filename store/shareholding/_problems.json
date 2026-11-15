@@ -1,16 +1,21 @@
 {
- "count": 104,
- "generated": "2026-11-14T23:37:43+00:00",
+ "count": 45,
+ "generated": "2026-11-15T03:45:09+00:00",
  "items": [
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "ABFRL"
+   "reason": "XBRL symbol ABCOTS",
+   "symbol": "ABCIND"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "BOSCH-HCIL"
+   "reason": "XBRL symbol SABTNL",
+   "symbol": "AQYLON"
+  },
+  {
+   "quarter": "2025-12-31",
+   "reason": "XBRL symbol ARISINFRA",
+   "symbol": "ARIS"
   },
   {
    "quarter": "2025-12-31",
@@ -19,113 +24,53 @@
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "CARERATING"
+   "reason": "no total shares (ShareholdingPatternMember)",
+   "symbol": "DCMSIL"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "XBRL symbol INFIBEAM",
-   "symbol": "CCAVENUE"
+   "reason": "XBRL symbol SASTASUNDR",
+   "symbol": "HEALTHX"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "bank (38.00%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "CRAMC"
+   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "IITL"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "bank (60.81%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "FEDFINA"
+   "reason": "named holder '0': no shares/pct in PAC_Public15",
+   "symbol": "MONEYBOXX"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "FIEMIND"
+   "reason": "XBRL symbol MIRCELECTR",
+   "symbol": "ONIDA"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "GMMPFAUDLR"
+   "reason": "public leaves exceed public total by 2.350 pp (double count?)",
+   "symbol": "PASUPTAC"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "GOODLUCK"
+   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "PNBGILTS"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "GULFOILLUB"
+   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SPIC"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "HAPPSTMNDS"
+   "reason": "public leaves exceed public total by 10.650 pp (double count?)",
+   "symbol": "TNPETRO"
   },
   {
    "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "HCC"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol ICICIPRULI",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "bank (50.95%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder 'Sanjay Mehta': no shares/pct in PAC_Public15",
-   "symbol": "LUMAXIND"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "MAPMYINDIA"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "MASFIN"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder 'Ricky Ishwardas Kirpalani': no shares/pct in PAC_Public15; named holder 'Haresh Tikamdas Keswani': no shares/pct in PAC_Public16; named holder 'Rushil Rajan Kirpalani': no shares/pct in PAC_Public17; named holder 'Johnny Ishwardas Kirpalani': no shares/pct in PAC_Public18; named holder 'Poonam Ishwardas Kirpalani': no shares/pct in PAC_Public19; named holder 'Sascha Kirpalani': no shares/pct in PAC_Public20; named holder 'Alisha Johnny Kirpalani': no shares/pct in PAC_Public21; named holder 'Mala Sunil Jhangiani': no shares/pct in PAC_Public22; named holder 'Pooja Vijay Assomull': no shares/pct in PAC_Public23; named holder 'VISTRA ITCL (INDIA) LIMITED': no shares/pct in PAC_Public24; named holder 'Sarina Ricky Kirpalani': no shares/pct in PAC_Public25; named holder 'Nikita Ricky Kirpalani': no shares/pct in PAC_Public26; named holder 'Vijay Manohardas Assomull': no shares/pct in PAC_Public27; named holder 'FIRST WATER FUND': no shares/pct in PAC_Public28; named holder 'FIRST WATER CAPITAL FUND': no shares/pct in PAC_Public29; named holder 'First Water Capital Fund - II': no shares/pct in PAC_Public30",
-   "symbol": "POLYPLEX"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "PURVA"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "ROLEXRINGS"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "SAMBHV"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "SENCO"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http None",
-   "symbol": "TRIVENI"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder 'POOJA VIJAY ASSOMULL': no shares/pct in PAC_Public22; named holder 'TIANA KIRPALANI': no shares/pct in PAC_Public24",
-   "symbol": "UFLEX"
+   "reason": "XBRL symbol VISASTEEL",
+   "symbol": "VISACHROME"
   },
   {
    "quarter": "2025-12-31",
@@ -134,38 +79,8 @@
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "ABFRL"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "XBRL symbol AMIRCHAND",
-   "symbol": "AEROPLANE"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "BOSCH-HCIL"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "CARERATING"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "bank (38.00%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "CRAMC"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "bank (60.79%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "FEDFINA"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "FIEMIND"
+   "reason": "XBRL symbol ABCOTS",
+   "symbol": "ABCIND"
   },
   {
    "quarter": "2026-03-31",
@@ -174,198 +89,78 @@
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "GMMPFAUDLR"
+   "reason": "XBRL symbol SASTASUNDR",
+   "symbol": "HEALTHX"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "GOODLUCK"
+   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "IITL"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "GULFOILLUB"
+   "reason": "xbrl http 404",
+   "symbol": "MODIS"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "HAPPSTMNDS"
+   "reason": "XBRL symbol MIRCELECTR",
+   "symbol": "ONIDA"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "HCC"
+   "reason": "public leaves exceed public total by 2.340 pp (double count?)",
+   "symbol": "PASUPTAC"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "XBRL symbol ICICIPRULI",
-   "symbol": "ICICILIFE"
+   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "PNBGILTS"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "bank (50.89%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "ICICILIFE"
+   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SPIC"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "named holder 'Sanjay Mehta': no shares/pct in PAC_Public15",
-   "symbol": "LUMAXIND"
+   "reason": "public leaves exceed public total by 10.700 pp (double count?)",
+   "symbol": "TNPETRO"
   },
   {
    "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "MASFIN"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "named holder 'Ricky Ishwardas Kirpalani': no shares/pct in PAC_Public15; named holder 'Haresh Tikamdas Keswani': no shares/pct in PAC_Public16; named holder 'Rushil Rajan Kirpalani': no shares/pct in PAC_Public17; named holder 'Johnny Ishwardas Kirpalani': no shares/pct in PAC_Public18; named holder 'Poonam Ishwardas Kirpalani': no shares/pct in PAC_Public19; named holder 'Sascha Kirpalani': no shares/pct in PAC_Public20; named holder 'Alisha Johnny Kirpalani': no shares/pct in PAC_Public21; named holder 'Mala Sunil Jhangiani': no shares/pct in PAC_Public22; named holder 'Pooja Vijay Assomull': no shares/pct in PAC_Public23; named holder 'VISTRA ITCL (INDIA) LIMITED': no shares/pct in PAC_Public24; named holder 'Sarina Ricky Kirpalani': no shares/pct in PAC_Public25; named holder 'Nikita Ricky Kirpalani': no shares/pct in PAC_Public26; named holder 'Vijay Manohardas Assomull': no shares/pct in PAC_Public27; named holder 'FIRST WATER FUND': no shares/pct in PAC_Public28; named holder 'FIRST WATER CAPITAL FUND': no shares/pct in PAC_Public29; named holder 'First Water Capital Fund - II': no shares/pct in PAC_Public30",
-   "symbol": "POLYPLEX"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "PURVA"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "public leaves exceed public total by 0.100 pp (double count?)",
-   "symbol": "RACLGEAR"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "ROLEXRINGS"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "SAMBHV"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "SENCO"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http None",
-   "symbol": "TRIVENI"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "named holder 'POOJA VIJAY ASSOMULL': no shares/pct in DetailsOfTheShareholdersActingAsPersonsInConcertForPublic22; named holder 'TIANA KIRPALANI': no shares/pct in DetailsOfTheShareholdersActingAsPersonsInConcertForPublic24",
-   "symbol": "UFLEX"
+   "reason": "XBRL symbol VISASTEEL",
+   "symbol": "VISACHROME"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "ABFRL"
+   "reason": "XBRL symbol ABCOTS",
+   "symbol": "ABCIND"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "BOSCH-HCIL"
+   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "IITL"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "CARERATING"
+   "reason": "named holder '0': no shares/pct in PAC_Public15",
+   "symbol": "MONEYBOXX"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "CMRGREEN"
+   "reason": "public leaves exceed public total by 2.360 pp (double count?)",
+   "symbol": "PASUPTAC"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "bank (38.00%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "CRAMC"
+   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "PNBGILTS"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "bank (60.67%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "FEDFINA"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "FIEMIND"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "GMMPFAUDLR"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "GOODLUCK"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "GULFOILLUB"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "HAPPSTMNDS"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "HCC"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "XBRL symbol ICICIPRULI",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "bank (50.84%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder 'Sanjay Mehta': no shares/pct in PAC_Public15",
-   "symbol": "LUMAXIND"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "MASFIN"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder 'Ricky Ishwardas Kirpalani': no shares/pct in PAC_Public15; named holder 'Haresh Tikamdas Keswani': no shares/pct in PAC_Public16; named holder 'Rushil Rajan Kirpalani': no shares/pct in PAC_Public17; named holder 'Johnny Ishwardas Kirpalani': no shares/pct in PAC_Public18; named holder 'Poonam Ishwardas Kirpalani': no shares/pct in PAC_Public19; named holder 'Sascha Kirpalani': no shares/pct in PAC_Public20; named holder 'Alisha Johnny Kirpalani': no shares/pct in PAC_Public21; named holder 'Mala Sunil Jhangiani': no shares/pct in PAC_Public22; named holder 'Pooja Vijay Assomull': no shares/pct in PAC_Public23; named holder 'VISTRA ITCL (INDIA) LIMITED': no shares/pct in PAC_Public24; named holder 'Sarina Ricky Kirpalani': no shares/pct in PAC_Public25; named holder 'Nikita Ricky Kirpalani': no shares/pct in PAC_Public26; named holder 'Vijay Manohardas Assomull': no shares/pct in PAC_Public27; named holder 'FIRST WATER FUND': no shares/pct in PAC_Public28; named holder 'FIRST WATER CAPITAL FUND': no shares/pct in PAC_Public29; named holder 'First Water Capital Fund - II': no shares/pct in PAC_Public30",
-   "symbol": "POLYPLEX"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "PURVA"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "ROLEXRINGS"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "SAMBHV"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "SENCO"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "SHARDAMOTR"
+   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SPIC"
   },
   {
    "quarter": "2026-06-30",
@@ -374,13 +169,8 @@
   },
   {
    "quarter": "2026-06-30",
-   "reason": "xbrl http None",
-   "symbol": "TRIVENI"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder 'POOJA VIJAY ASSOMULL': no shares/pct in DetailsOfTheShareholdersActingAsPersonsInConcertForPublic22; named holder 'TIANA KIRPALANI': no shares/pct in DetailsOfTheShareholdersActingAsPersonsInConcertForPublic24",
-   "symbol": "UFLEX"
+   "reason": "public leaves exceed public total by 10.670 pp (double count?)",
+   "symbol": "TNPETRO"
   },
   {
    "quarter": "2026-06-30",
@@ -389,8 +179,8 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "ABFRL"
+   "reason": "XBRL symbol ABCOTS",
+   "symbol": "ABCIND"
   },
   {
    "quarter": "2026-09-30",
@@ -399,83 +189,18 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "public leaves exceed public total by 15.330 pp (double count?)",
-   "symbol": "ARCIL"
+   "reason": "named holder \"EMPLOYEE'S RETIREMENT PLAN OF DUKE UNIVERSITY\": no shares/pct in PAC_Public15; named holder 'THE DUKE ENDOWMENT': no shares/pct in PAC_Public16; named holder 'GOTHIC CORPORATION': no shares/pct in PAC_Public17; named holder 'GOTHIC HSP CORPORATION': no shares/pct in PAC_Public18",
+   "symbol": "BALAJITELE"
   },
   {
    "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "BOSCH-HCIL"
+   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "IITL"
   },
   {
    "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "CARERATING"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "CMRGREEN"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "bank (38.00%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "CRAMC"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "bank (60.64%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "FEDFINA"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "FIEMIND"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "GMMPFAUDLR"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "GOODLUCK"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "GULFOILLUB"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "HAPPSTMNDS"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "HCC"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "XBRL symbol ICICIPRULI",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "bank (52.83%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "ICICILIFE"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "named holder 'Sanjay Mehta': no shares/pct in PAC_Public15",
-   "symbol": "LUMAXIND"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "MASFIN"
+   "reason": "named holder '0': no shares/pct in PAC_Public15",
+   "symbol": "MONEYBOXX"
   },
   {
    "quarter": "2026-09-30",
@@ -484,43 +209,23 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "named holder 'Ricky Ishwardas Kirpalani': no shares/pct in PAC_Public15; named holder 'Haresh Tikamdas Keswani': no shares/pct in PAC_Public16; named holder 'Rushil Rajan Kirpalani': no shares/pct in PAC_Public17; named holder 'Johnny Ishwardas Kirpalani': no shares/pct in PAC_Public18; named holder 'Poonam Ishwardas Kirpalani': no shares/pct in PAC_Public19; named holder 'Sascha Kirpalani': no shares/pct in PAC_Public20; named holder 'Alisha Johnny Kirpalani': no shares/pct in PAC_Public21; named holder 'Mala Sunil Jhangiani': no shares/pct in PAC_Public22; named holder 'Pooja Vijay Assomull': no shares/pct in PAC_Public23; named holder 'VISTRA ITCL (INDIA) LIMITED': no shares/pct in PAC_Public24; named holder 'Sarina Ricky Kirpalani': no shares/pct in PAC_Public25; named holder 'Nikita Ricky Kirpalani': no shares/pct in PAC_Public26; named holder 'Vijay Manohardas Assomull': no shares/pct in PAC_Public27; named holder 'FIRST WATER FUND': no shares/pct in PAC_Public28; named holder 'FIRST WATER CAPITAL FUND': no shares/pct in PAC_Public29; named holder 'First Water Capital Fund - II': no shares/pct in PAC_Public30",
-   "symbol": "POLYPLEX"
+   "reason": "public leaves exceed public total by 2.240 pp (double count?)",
+   "symbol": "PASUPTAC"
   },
   {
    "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "PURVA"
+   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "PNBGILTS"
   },
   {
    "quarter": "2026-09-30",
-   "reason": "public leaves exceed public total by 0.670 pp (double count?)",
-   "symbol": "RACLGEAR"
+   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "SPIC"
   },
   {
    "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "ROLEXRINGS"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "SAMBHV"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "SENCO"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "SHARDAMOTR"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "xbrl http None",
-   "symbol": "TRIVENI"
+   "reason": "public leaves exceed public total by 10.050 pp (double count?)",
+   "symbol": "TNPETRO"
   }
  ]
 }
