@@ -1,186 +1,21 @@
 {
- "count": 45,
- "generated": "2026-11-15T03:45:09+00:00",
+ "count": 7,
+ "generated": "2026-11-17T11:03:59+00:00",
  "items": [
   {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol ABCOTS",
-   "symbol": "ABCIND"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol SABTNL",
-   "symbol": "AQYLON"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol ARISINFRA",
-   "symbol": "ARIS"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http 404",
-   "symbol": "CANBK"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "no total shares (ShareholdingPatternMember)",
-   "symbol": "DCMSIL"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol SASTASUNDR",
-   "symbol": "HEALTHX"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "IITL"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder '0': no shares/pct in PAC_Public15",
-   "symbol": "MONEYBOXX"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol MIRCELECTR",
-   "symbol": "ONIDA"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "public leaves exceed public total by 2.350 pp (double count?)",
-   "symbol": "PASUPTAC"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "PNBGILTS"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "SPIC"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "public leaves exceed public total by 10.650 pp (double count?)",
-   "symbol": "TNPETRO"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "XBRL symbol VISASTEEL",
-   "symbol": "VISACHROME"
-  },
-  {
-   "quarter": "2025-12-31",
-   "reason": "xbrl http 404",
-   "symbol": "ZENSARTECH"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "XBRL symbol ABCOTS",
-   "symbol": "ABCIND"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http 404",
-   "symbol": "FIVESTAR"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "XBRL symbol SASTASUNDR",
-   "symbol": "HEALTHX"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "IITL"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "xbrl http 404",
-   "symbol": "MODIS"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "XBRL symbol MIRCELECTR",
-   "symbol": "ONIDA"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "public leaves exceed public total by 2.340 pp (double count?)",
-   "symbol": "PASUPTAC"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "PNBGILTS"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "SPIC"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "public leaves exceed public total by 10.700 pp (double count?)",
-   "symbol": "TNPETRO"
-  },
-  {
-   "quarter": "2026-03-31",
-   "reason": "XBRL symbol VISASTEEL",
-   "symbol": "VISACHROME"
+   "quarter": "2026-06-30",
+   "reason": "XBRL symbol SILLYMONKS",
+   "symbol": "CRESTO"
   },
   {
    "quarter": "2026-06-30",
-   "reason": "XBRL symbol ABCOTS",
-   "symbol": "ABCIND"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "IITL"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder '0': no shares/pct in PAC_Public15",
-   "symbol": "MONEYBOXX"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "public leaves exceed public total by 2.360 pp (double count?)",
-   "symbol": "PASUPTAC"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "PNBGILTS"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "SPIC"
+   "reason": "public leaves exceed public total by 0.010 pp (double count?)",
+   "symbol": "PRUDMOULI"
   },
   {
    "quarter": "2026-06-30",
    "reason": "xbrl http 404",
    "symbol": "TIINDIA"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "public leaves exceed public total by 10.670 pp (double count?)",
-   "symbol": "TNPETRO"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http 404",
-   "symbol": "WONDERLA"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "XBRL symbol ABCOTS",
-   "symbol": "ABCIND"
   },
   {
    "quarter": "2026-09-30",
@@ -189,18 +24,8 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "named holder \"EMPLOYEE'S RETIREMENT PLAN OF DUKE UNIVERSITY\": no shares/pct in PAC_Public15; named holder 'THE DUKE ENDOWMENT': no shares/pct in PAC_Public16; named holder 'GOTHIC CORPORATION': no shares/pct in PAC_Public17; named holder 'GOTHIC HSP CORPORATION': no shares/pct in PAC_Public18",
-   "symbol": "BALAJITELE"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "named holder 'The Bank Of New York Mellon, Dr': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "IITL"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "named holder '0': no shares/pct in PAC_Public15",
-   "symbol": "MONEYBOXX"
+   "reason": "bank (64.84%) exceeds the public total: treated as promoter-group overlap",
+   "symbol": "INDBANK"
   },
   {
    "quarter": "2026-09-30",
@@ -209,23 +34,8 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "public leaves exceed public total by 2.240 pp (double count?)",
-   "symbol": "PASUPTAC"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "bank (74.07%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "PNBGILTS"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "named holder 'The Bank of New York Mellon, DR': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "SPIC"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "public leaves exceed public total by 10.050 pp (double count?)",
-   "symbol": "TNPETRO"
+   "reason": "named holder '1': no shares/pct in CustodianOrDRHolder_Context15",
+   "symbol": "UMESLTD"
   }
  ]
 }

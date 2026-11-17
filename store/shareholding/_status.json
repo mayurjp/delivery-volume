@@ -1,7 +1,7 @@
 {
  "coverage": {
-  "completeCompanies": 1734,
-  "completeShare": 0.7252,
+  "completeCompanies": 1736,
+  "completeShare": 0.7224,
   "meetsTarget": false,
   "quarters": [
    "2025-12-31",
@@ -12,38 +12,38 @@
   "storedPerQuarter": {
    "2025-12-31": 1742,
    "2026-03-31": 1773,
-   "2026-06-30": 1783,
-   "2026-09-30": 1852
+   "2026-06-30": 1884,
+   "2026-09-30": 2159
   },
   "target": 0.95,
-  "universe": 2391
+  "universe": 2403
  },
- "generated": "2026-11-15T03:45:09+00:00",
+ "generated": "2026-11-17T11:03:59+00:00",
  "lastRun": {
-  "cap": 2500,
-  "capped": true,
-  "invalid": 9,
-  "listingCalls": 0,
-  "mode": "backfill",
-  "notInUniverse": 925,
-  "problems": 45,
+  "cap": 600,
+  "capped": false,
+  "invalid": 3,
+  "listingCalls": 1,
+  "mode": "daily",
+  "notInUniverse": 314,
+  "problems": 7,
   "quarters": [
    "2025-12-31",
    "2026-03-31",
    "2026-06-30",
    "2026-09-30"
   ],
-  "requests": 2500,
-  "skipped": 4661,
+  "requests": 414,
+  "skipped": 2494,
   "smeDropped": 0,
-  "stored": 2489,
-  "xbrl": 2498
+  "stored": 408,
+  "xbrl": 411
  },
  "missingCount": {
-  "2025-12-31": 649,
-  "2026-03-31": 618,
-  "2026-06-30": 608,
-  "2026-09-30": 539
+  "2025-12-31": 661,
+  "2026-03-31": 630,
+  "2026-06-30": 519,
+  "2026-09-30": 244
  },
  "missingSample": {
   "2025-12-31": [
@@ -56,7 +56,7 @@
     "symbol": "VAML"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "CANBK"
    },
    {
@@ -113,19 +113,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "ESDS"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "BHARATCOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "JNPR"
+    "symbol": "ESDS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "FRACTAL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "JNPR"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -218,7 +218,7 @@
     "symbol": "HORIZONIND"
    },
    {
-    "reason": "filed, not yet stored (capped run or failed download: see _problems.json)",
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "FIVESTAR"
    },
    {
@@ -235,7 +235,7 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SYMBIOTEC"
+    "symbol": "MONEYVIEW"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -243,7 +243,7 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MONEYVIEW"
+    "symbol": "SYMBIOTEC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -329,11 +329,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SYMBIOTEC"
+    "symbol": "MONEYVIEW"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MONEYVIEW"
+    "symbol": "SYMBIOTEC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -360,10 +360,6 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "MCX"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "ALKEM"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -411,10 +407,6 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "AVL"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "KOVAI"
    },
    {
@@ -439,10 +431,6 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SFCTECH"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "ORIENTCABL"
    },
    {
@@ -451,7 +439,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "SFCTECH"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "FUSIONCX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "KPL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "EVONILE"
    }
   ]
  }
