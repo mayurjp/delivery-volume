@@ -1,7 +1,7 @@
 {
  "coverage": {
-  "completeCompanies": 1736,
-  "completeShare": 0.7224,
+  "completeCompanies": 1734,
+  "completeShare": 0.7216,
   "meetsTarget": false,
   "quarters": [
    "2025-12-31",
@@ -10,39 +10,39 @@
    "2026-09-30"
   ],
   "storedPerQuarter": {
-   "2025-12-31": 1742,
-   "2026-03-31": 1773,
-   "2026-06-30": 1884,
+   "2025-12-31": 1740,
+   "2026-03-31": 1771,
+   "2026-06-30": 1882,
    "2026-09-30": 2159
   },
   "target": 0.95,
   "universe": 2403
  },
- "generated": "2026-11-17T11:03:59+00:00",
+ "generated": "2026-11-18T10:28:51+00:00",
  "lastRun": {
   "cap": 600,
   "capped": false,
   "invalid": 3,
   "listingCalls": 1,
   "mode": "daily",
-  "notInUniverse": 314,
-  "problems": 7,
+  "notInUniverse": 270,
+  "problems": 3,
   "quarters": [
    "2025-12-31",
    "2026-03-31",
    "2026-06-30",
    "2026-09-30"
   ],
-  "requests": 414,
-  "skipped": 2494,
+  "requests": 8,
+  "skipped": 2533,
   "smeDropped": 0,
-  "stored": 408,
-  "xbrl": 411
+  "stored": 2,
+  "xbrl": 5
  },
  "missingCount": {
-  "2025-12-31": 661,
-  "2026-03-31": 630,
-  "2026-06-30": 519,
+  "2025-12-31": 663,
+  "2026-03-31": 632,
+  "2026-06-30": 521,
   "2026-09-30": 244
  },
  "missingSample": {
@@ -89,15 +89,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "TVSHLTD"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "LALITHAA"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MOLBIO"
+    "symbol": "SHADOWFAX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SHADOWFAX"
+    "symbol": "MOLBIO"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -121,15 +125,7 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "FRACTAL"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "JNPR"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "SEDEMAC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -137,15 +133,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "FRACTAL"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHSCOOTER"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "HORIZONIND"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "CMPDI"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "EDELALTS"
+    "symbol": "SEDEMAC"
    }
   ],
   "2026-03-31": [
@@ -187,6 +187,10 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "TVSHLTD"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "LALITHAA"
    },
    {
@@ -215,6 +219,10 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHSCOOTER"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "HORIZONIND"
    },
    {
@@ -235,19 +243,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MONEYVIEW"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "VISL"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "SYMBIOTEC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "PARASHLTH"
+    "symbol": "MONEYVIEW"
    }
   ],
   "2026-06-30": [
@@ -289,6 +289,10 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "TVSHLTD"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "KIOCL"
    },
    {
@@ -317,6 +321,10 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHSCOOTER"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "HORIZONIND"
    },
    {
@@ -329,11 +337,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MONEYVIEW"
+    "symbol": "SYMBIOTEC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SYMBIOTEC"
+    "symbol": "MONEYVIEW"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -342,14 +350,6 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "ELANTAS"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "SHIPROCKET"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "TONBO"
    }
   ],
   "2026-09-30": [
@@ -411,11 +411,15 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KIRLFER"
+    "symbol": "KAMAHOLD"
    },
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "BENGALASM"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "KIRLFER"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -439,19 +443,15 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SFCTECH"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "FUSIONCX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KPL"
+    "symbol": "SFCTECH"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "EVONILE"
+    "symbol": "KPL"
    }
   ]
  }

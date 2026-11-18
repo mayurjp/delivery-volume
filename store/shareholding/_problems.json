@@ -1,17 +1,7 @@
 {
- "count": 7,
- "generated": "2026-11-17T11:03:59+00:00",
+ "count": 3,
+ "generated": "2026-11-18T10:28:51+00:00",
  "items": [
-  {
-   "quarter": "2026-06-30",
-   "reason": "XBRL symbol SILLYMONKS",
-   "symbol": "CRESTO"
-  },
-  {
-   "quarter": "2026-06-30",
-   "reason": "public leaves exceed public total by 0.010 pp (double count?)",
-   "symbol": "PRUDMOULI"
-  },
   {
    "quarter": "2026-06-30",
    "reason": "xbrl http 404",
@@ -24,18 +14,8 @@
   },
   {
    "quarter": "2026-09-30",
-   "reason": "bank (64.84%) exceeds the public total: treated as promoter-group overlap",
-   "symbol": "INDBANK"
-  },
-  {
-   "quarter": "2026-09-30",
    "reason": "no total shares (ShareholdingPatternMember)",
    "symbol": "MONEYVIEW"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "named holder '1': no shares/pct in CustodianOrDRHolder_Context15",
-   "symbol": "UMESLTD"
   }
  ]
 }
