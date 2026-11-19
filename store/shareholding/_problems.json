@@ -1,12 +1,7 @@
 {
- "count": 3,
- "generated": "2026-11-18T10:28:51+00:00",
+ "count": 2,
+ "generated": "2026-11-19T10:36:24+00:00",
  "items": [
-  {
-   "quarter": "2026-06-30",
-   "reason": "xbrl http 404",
-   "symbol": "TIINDIA"
-  },
   {
    "quarter": "2026-09-30",
    "reason": "no total shares (ShareholdingPatternMember)",
