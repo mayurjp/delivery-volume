@@ -1,7 +1,7 @@
 {
  "coverage": {
   "completeCompanies": 1734,
-  "completeShare": 0.721,
+  "completeShare": 0.7204,
   "meetsTarget": false,
   "quarters": [
    "2025-12-31",
@@ -13,37 +13,37 @@
    "2025-12-31": 1740,
    "2026-03-31": 1771,
    "2026-06-30": 1881,
-   "2026-09-30": 2161
+   "2026-09-30": 2162
   },
   "target": 0.95,
-  "universe": 2405
+  "universe": 2407
  },
- "generated": "2026-11-20T10:17:35+00:00",
+ "generated": "2026-11-21T10:02:25+00:00",
  "lastRun": {
   "cap": 600,
   "capped": false,
   "invalid": 2,
   "listingCalls": 1,
   "mode": "daily",
-  "notInUniverse": 227,
-  "problems": 2,
+  "notInUniverse": 225,
+  "problems": 3,
   "quarters": [
    "2025-12-31",
    "2026-03-31",
    "2026-06-30",
    "2026-09-30"
   ],
-  "requests": 5,
-  "skipped": 2185,
+  "requests": 7,
+  "skipped": 2182,
   "smeDropped": 0,
-  "stored": 0,
-  "xbrl": 2
+  "stored": 2,
+  "xbrl": 4
  },
  "missingCount": {
-  "2025-12-31": 665,
-  "2026-03-31": 634,
-  "2026-06-30": 524,
-  "2026-09-30": 244
+  "2025-12-31": 667,
+  "2026-03-31": 636,
+  "2026-06-30": 526,
+  "2026-09-30": 245
  },
  "missingSample": {
   "2025-12-31": [
@@ -65,11 +65,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MCX"
+    "symbol": "MANIPALHOS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MANIPALHOS"
+    "symbol": "MCX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -105,15 +105,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BONFIG"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "BAYERCROP"
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "BONFIG"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "CLEANMAX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHSCOOTER"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -125,15 +129,15 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "JNPR"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "HORIZONIND"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MAHSCOOTER"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "JNPR"
+    "symbol": "SEDEMAC"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -142,10 +146,6 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "ESDS"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "SEDEMAC"
    }
   ],
   "2026-03-31": [
@@ -163,11 +163,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MCX"
+    "symbol": "MANIPALHOS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MANIPALHOS"
+    "symbol": "MCX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -199,15 +199,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BONFIG"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "BAYERCROP"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "HORIZONIND"
+    "symbol": "BONFIG"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -216,6 +212,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "JNPR"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "HORIZONIND"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -261,11 +261,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MCX"
+    "symbol": "MANIPALHOS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "MANIPALHOS"
+    "symbol": "MCX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -305,15 +305,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BONFIG"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "BAYERCROP"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "HORIZONIND"
+    "symbol": "BONFIG"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -322,6 +318,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "JNPR"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "HORIZONIND"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -371,11 +371,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BONFIG"
+    "symbol": "BAYERCROP"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BAYERCROP"
+    "symbol": "BONFIG"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -407,11 +407,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "TIMEX"
+    "symbol": "KOVAI"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KOVAI"
+    "symbol": "TIMEX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -439,19 +439,19 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "ORIENTCABL"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "HAWKINCOOK"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KPL"
+    "symbol": "ORIENTCABL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "SFCTECH"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "KPL"
    }
   ]
  }
