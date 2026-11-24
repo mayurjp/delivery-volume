@@ -1,6 +1,6 @@
 {
- "count": 3,
- "generated": "2026-11-21T10:02:25+00:00",
+ "count": 2,
+ "generated": "2026-11-24T12:47:27+00:00",
  "items": [
   {
    "quarter": "2026-09-30",
@@ -11,11 +11,6 @@
    "quarter": "2026-09-30",
    "reason": "no total shares (ShareholdingPatternMember)",
    "symbol": "MONEYVIEW"
-  },
-  {
-   "quarter": "2026-09-30",
-   "reason": "XBRL symbol SHUKRAPHAR",
-   "symbol": "SHUKRAMED"
   }
  ]
 }
