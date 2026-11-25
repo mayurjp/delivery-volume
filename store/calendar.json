@@ -1,5 +1,5 @@
 {
- "lastChecked": "2026-11-25T17:03:57+05:30",
+ "lastChecked": "2026-11-26T04:09:41+05:30",
  "noData": {
   "2023-11-14": {
    "checks": 1,
@@ -1428,12 +1428,16 @@
   "2026-11-24": {
    "checks": 4,
    "final": true
+  },
+  "2026-11-26": {
+   "checks": 1,
+   "final": false
   }
  },
  "snapshotsChecked": {
-  "constituents": "2026-11-20",
-  "equity_list": "2026-11-20",
-  "symbol_change": "2026-11-20"
+  "constituents": "2026-11-26",
+  "equity_list": "2026-11-26",
+  "symbol_change": "2026-11-26"
  },
  "tradingDays": [
   "2023-11-15",
