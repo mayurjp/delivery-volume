@@ -18,7 +18,7 @@
   "target": 0.95,
   "universe": 2419
  },
- "generated": "2026-11-25T11:34:07+00:00",
+ "generated": "2026-11-26T11:16:13+00:00",
  "lastRun": {
   "cap": 600,
   "capped": false,
@@ -33,11 +33,11 @@
    "2026-06-30",
    "2026-09-30"
   ],
-  "requests": 6,
+  "requests": 5,
   "skipped": 2187,
   "smeDropped": 0,
-  "stored": 1,
-  "xbrl": 3
+  "stored": 0,
+  "xbrl": 2
  },
  "missingCount": {
   "2025-12-31": 680,
