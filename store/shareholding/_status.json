@@ -1,7 +1,7 @@
 {
  "coverage": {
   "completeCompanies": 1732,
-  "completeShare": 0.716,
+  "completeShare": 0.7157,
   "meetsTarget": false,
   "quarters": [
    "2025-12-31",
@@ -16,9 +16,9 @@
    "2026-09-30": 2168
   },
   "target": 0.95,
-  "universe": 2419
+  "universe": 2420
  },
- "generated": "2026-11-27T11:10:14+00:00",
+ "generated": "2026-11-28T10:43:23+00:00",
  "lastRun": {
   "cap": 600,
   "capped": false,
@@ -26,24 +26,24 @@
   "listingCalls": 1,
   "mode": "daily",
   "notInUniverse": 219,
-  "problems": 3,
+  "problems": 2,
   "quarters": [
    "2025-12-31",
    "2026-03-31",
    "2026-06-30",
    "2026-09-30"
   ],
-  "requests": 7,
-  "skipped": 2184,
+  "requests": 5,
+  "skipped": 2183,
   "smeDropped": 0,
-  "stored": 2,
-  "xbrl": 4
+  "stored": 0,
+  "xbrl": 2
  },
  "missingCount": {
-  "2025-12-31": 681,
-  "2026-03-31": 650,
-  "2026-06-30": 543,
-  "2026-09-30": 251
+  "2025-12-31": 682,
+  "2026-03-31": 651,
+  "2026-06-30": 544,
+  "2026-09-30": 252
  },
  "missingSample": {
   "2025-12-31": [
@@ -70,6 +70,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHACOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -117,11 +121,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BHARATCOAL"
+    "symbol": "CLEANMAX"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "CLEANMAX"
+    "symbol": "BHARATCOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -133,19 +137,15 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "HORIZONIND"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "FRACTAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "JNPR"
+    "symbol": "HORIZONIND"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "VEDPOWER"
+    "symbol": "ESDS"
    }
   ],
   "2026-03-31": [
@@ -168,6 +168,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHACOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -219,15 +223,15 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
+    "symbol": "ESDS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
     "symbol": "JNPR"
    },
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "VEDPOWER"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "ESDS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -239,15 +243,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "VOGL"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "KARAMTARA"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "SYMBIOTEC"
+    "symbol": "VOGL"
    }
   ],
   "2026-06-30": [
@@ -266,6 +266,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "MANIPALHOS"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHACOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -325,11 +329,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "JNPR"
+    "symbol": "ESDS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "ESDS"
+    "symbol": "JNPR"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -346,10 +350,6 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "ELANTAS"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "MONEYVIEW"
    }
   ],
   "2026-09-30": [
@@ -360,6 +360,10 @@
    {
     "reason": "no filing in the listing windows checked so far",
     "symbol": "MCX"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "MAHACOAL"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -395,11 +399,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "TONBO"
+    "symbol": "KENNAMET"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KENNAMET"
+    "symbol": "TONBO"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -415,11 +419,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "BENGALASM"
+    "symbol": "KIRLFER"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KIRLFER"
+    "symbol": "BENGALASM"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -431,19 +435,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "IGLSPIRITS"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
     "symbol": "HDFIRE"
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "CRYSTALCP"
-   },
-   {
-    "reason": "no filing in the listing windows checked so far",
-    "symbol": "HAWKINCOOK"
+    "symbol": "IGLSPIRITS"
    },
    {
     "reason": "no filing in the listing windows checked so far",
@@ -451,7 +447,11 @@
    },
    {
     "reason": "no filing in the listing windows checked so far",
-    "symbol": "KPL"
+    "symbol": "HAWKINCOOK"
+   },
+   {
+    "reason": "no filing in the listing windows checked so far",
+    "symbol": "CRYSTALCP"
    }
   ]
  }
